@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include 9t9it_optics *.css
+recursive-include 9t9it_optics *.csv
+recursive-include 9t9it_optics *.html
+recursive-include 9t9it_optics *.ico
+recursive-include 9t9it_optics *.js
+recursive-include 9t9it_optics *.json
+recursive-include 9t9it_optics *.md
+recursive-include 9t9it_optics *.png
+recursive-include 9t9it_optics *.py
+recursive-include 9t9it_optics *.svg
+recursive-include 9t9it_optics *.txt
+recursive-exclude 9t9it_optics *.pyc

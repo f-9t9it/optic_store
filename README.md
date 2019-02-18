@@ -1,2 +1,7 @@
-# 9t9it_optics
+## Optics 9T9IT
+
 ERPNext App for Optical Store
+
+#### License
+
+MIT
