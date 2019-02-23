@@ -11,7 +11,7 @@ def query_latest(doctype, txt, searchfield, start, page_len, filters):
     print("here")
     return frappe.db.sql(
         """
-            SELECT name, customer_name, test_date
+            SELECT name, type, customer_name, test_date
             FROM `tabOptical Prescription`
             WHERE
                 docstatus = 1 AND

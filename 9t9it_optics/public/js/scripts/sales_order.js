@@ -1,3 +1,7 @@
+import Vue from 'vue/dist/vue.js';
+
+import PrescriptionView from '../components/PrescriptionView.vue';
+
 function orx_query(frm) {
   const { customer, orx_type: type } = frm.doc;
   if (customer && type) {
@@ -13,4 +17,16 @@ function orx_query(frm) {
 export default {
   customer: orx_query,
   orx_type: orx_query,
+  orx_name: async function(frm) {
+    const { orx_name } = frm.doc;
+    const { $wrapper } = frm.get_field('orx_html');
+    $wrapper.empty();
+    if (orx_name) {
+      const doc = await frappe.db.get_doc('Optical Prescription', orx_name);
+      frm.orx_vue = new Vue({
+        el: $wrapper.html('<div />').children()[0],
+        render: h => h(PrescriptionView, { props: { doc } }),
+      });
+    }
+  },
 };
