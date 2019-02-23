@@ -12,6 +12,28 @@ app_color = "grey"
 app_email = "info@9t9it.com"
 app_license = "MIT"
 
+error_report_email = "support@9t9it.com"
+
+fixtures = [
+    {
+        "doctype": "Custom Field",
+        "filters": [
+            [
+                "name",
+                "in",
+                [
+                    "Sales Order-orx_sec",
+                    "Sales Order-orx_type",
+                    "Sales Order-orx_col",
+                    "Sales Order-orx_name",
+                    "Sales Order-orx_html_sec",
+                    "Sales Order-orx_html",
+                ],
+            ]
+        ],
+    }
+]
+
 # Includes in <head>
 # ------------------
 
