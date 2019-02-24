@@ -89,7 +89,6 @@ td {
 .text-secondary {
   text-align: left;
   color: #8d99a6;
-  grid-column: 2 / span 2;
 }
 
 /* reset bootstrap */
