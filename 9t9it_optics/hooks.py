@@ -102,13 +102,9 @@ app_include_js = "/assets/js/9t9it_optics.min.js"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+    "Sales Order": {"validate": "9t9it_optics.doc_events.sales_order.validate"}
+}
 
 # Scheduled Tasks
 # ---------------
