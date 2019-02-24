@@ -4,8 +4,11 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.utils import date_diff
 from frappe.model.document import Document
 
 
 class OpticalPrescription(Document):
-    pass
+    def validate(self):
+        if self.expiry_date and date_diff(self.expiry_date, self.test_date) < 0:
+            frappe.throw("Expiry Date cannot be before Test Date")
