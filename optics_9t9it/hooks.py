@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 from . import __version__
 
-app_name = "9t9it_optics"
+app_name = "optics_9t9it"
 app_version = __version__
 app_title = "Optics 9T9IT"
 app_publisher = "9T9IT"
@@ -39,12 +39,12 @@ fixtures = [
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/9t9it_optics/css/9t9it_optics.css"
-app_include_js = "/assets/js/9t9it_optics.min.js"
+# app_include_css = "/assets/optics_9t9it/css/optics_9t9it.css"
+app_include_js = "/assets/js/optics_9t9it.min.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/9t9it_optics/css/9t9it_optics.css"
-# web_include_js = "/assets/9t9it_optics/js/9t9it_optics.js"
+# web_include_css = "/assets/optics_9t9it/css/optics_9t9it.css"
+# web_include_js = "/assets/optics_9t9it/js/optics_9t9it.js"
 
 # include js in page
 # page_js = {"page" : "public/js/file.js"}
@@ -67,7 +67,7 @@ app_include_js = "/assets/js/9t9it_optics.min.js"
 # }
 
 # Website user home page (by function)
-# get_website_user_home_page = "9t9it_optics.utils.get_home_page"
+# get_website_user_home_page = "optics_9t9it.utils.get_home_page"
 
 # Generators
 # ----------
@@ -78,14 +78,14 @@ app_include_js = "/assets/js/9t9it_optics.min.js"
 # Installation
 # ------------
 
-# before_install = "9t9it_optics.install.before_install"
-# after_install = "9t9it_optics.install.after_install"
+# before_install = "optics_9t9it.install.before_install"
+# after_install = "optics_9t9it.install.after_install"
 
 # Desk Notifications
 # ------------------
 # See frappe.core.notifications.get_notification_config
 
-# notification_config = "9t9it_optics.notifications.get_notification_config"
+# notification_config = "optics_9t9it.notifications.get_notification_config"
 
 # Permissions
 # -----------
@@ -104,7 +104,8 @@ app_include_js = "/assets/js/9t9it_optics.min.js"
 # Hook on document methods and events
 
 doc_events = {
-    "Sales Order": {"validate": "9t9it_optics.doc_events.sales_order.validate"}
+    "Sales Order": {"validate": "optics_9t9it.doc_events.sales_order.validate"},
+    "Customer": {"autoname": "optics_9t9it.doc_events.customer.autoname"},
 }
 
 # Scheduled Tasks
@@ -112,30 +113,30 @@ doc_events = {
 
 # scheduler_events = {
 # 	"all": [
-# 		"9t9it_optics.tasks.all"
+# 		"optics_9t9it.tasks.all"
 # 	],
 # 	"daily": [
-# 		"9t9it_optics.tasks.daily"
+# 		"optics_9t9it.tasks.daily"
 # 	],
 # 	"hourly": [
-# 		"9t9it_optics.tasks.hourly"
+# 		"optics_9t9it.tasks.hourly"
 # 	],
 # 	"weekly": [
-# 		"9t9it_optics.tasks.weekly"
+# 		"optics_9t9it.tasks.weekly"
 # 	]
 # 	"monthly": [
-# 		"9t9it_optics.tasks.monthly"
+# 		"optics_9t9it.tasks.monthly"
 # 	]
 # }
 
 # Testing
 # -------
 
-# before_tests = "9t9it_optics.install.before_tests"
+# before_tests = "optics_9t9it.install.before_tests"
 
 # Overriding Whitelisted Methods
 # ------------------------------
 #
 # override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "9t9it_optics.event.get_events"
+# 	"frappe.desk.doctype.event.event.get_events": "optics_9t9it.event.get_events"
 # }
