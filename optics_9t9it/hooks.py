@@ -23,6 +23,7 @@ fixtures = [
                 "in",
                 [
                     "Customer-branch",
+                    "Item Group-item_group_abbr",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
                     "Sales Order-orx_col",
