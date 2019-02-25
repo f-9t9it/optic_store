@@ -3,7 +3,9 @@
 
 frappe.ui.form.on('Optical Settings', {
   refresh: function(frm) {
-    if (frm.doc.defaults_installed !== 'Yes') {
+    // hack to enable this button during development
+    const development = true;
+    if (development || frm.doc.defaults_installed !== 'Yes') {
       frm.add_custom_button('Setup Defaults', async function() {
         await frappe.call({
           method: 'optics_9t9it.api.install.setup_defaults',
