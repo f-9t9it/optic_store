@@ -45,4 +45,6 @@ def _create_item_groups():
 
 
 def _update_settings():
-    frappe.db.set_value("Selling Settings", None, "cust_master_name", "Naming Series")
+    selling_settings = frappe.get_single("Selling Settings")
+    selling_settings.cust_master_name = "Naming Series"
+    selling_settings.save(ignore_permissions=True)
