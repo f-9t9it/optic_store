@@ -24,6 +24,7 @@ fixtures = [
                 [
                     "Customer-branch",
                     "Item Group-item_group_abbr",
+                    "Item-manual_item_code",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
                     "Sales Order-orx_col",
@@ -42,6 +43,8 @@ fixtures = [
                 "in",
                 [
                     "Customer-naming_series-options",
+                    "Item-quick_entry",
+                    "Item-naming_series-options",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
                     "Sales Order-orx_col",
