@@ -158,7 +158,7 @@ doc_events = {
 # Testing
 # -------
 
-# before_tests = "optics_9t9it.install.before_tests"
+before_tests = "optics_9t9it.api.install.setup_defaults"
 
 # Overriding Whitelisted Methods
 # ------------------------------
