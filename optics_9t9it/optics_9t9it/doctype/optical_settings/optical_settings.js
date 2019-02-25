@@ -3,12 +3,12 @@
 
 frappe.ui.form.on('Optical Settings', {
   refresh: function(frm) {
-    if (frm.doc.fixtures_installed !== 'Yes') {
-      frm.add_custom_button('Install Fixtures', async function() {
+    if (frm.doc.defaults_installed !== 'Yes') {
+      frm.add_custom_button('Setup Defaults', async function() {
         await frappe.call({
-          method: 'optics_9t9it.api.install.setup_fixtures',
+          method: 'optics_9t9it.api.install.setup_defaults',
         });
-        await frm.set_value('fixtures_installed', 'Yes');
+        await frm.set_value('defaults_installed', 'Yes');
         frm.save();
       });
     }

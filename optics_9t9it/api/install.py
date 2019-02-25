@@ -7,8 +7,9 @@ import frappe
 
 
 @frappe.whitelist()
-def setup_fixtures():
+def setup_defaults():
     _create_item_groups()
+    _update_settings()
 
 
 def _create_item_groups():
@@ -41,3 +42,7 @@ def _create_item_groups():
         ],
     )
     frappe.db.commit()
+
+
+def _update_settings():
+    frappe.db.set_value("Selling Settings", None, "cust_master_name", "Naming Series")
