@@ -128,6 +128,10 @@ app_include_js = "/assets/js/optics_9t9it.min.js"
 doc_events = {
     "Sales Order": {"validate": "optics_9t9it.doc_events.sales_order.validate"},
     "Customer": {"before_naming": "optics_9t9it.doc_events.customer.before_naming"},
+    "Item": {
+        "before_naming": "optics_9t9it.doc_events.item.before_naming",
+        "autoname": "optics_9t9it.doc_events.item.autoname",
+    },
 }
 
 # Scheduled Tasks
