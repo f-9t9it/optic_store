@@ -32,7 +32,25 @@ fixtures = [
                 ],
             ]
         ],
-    }
+    },
+    {
+        "doctype": "Property Setter",
+        "filters": [
+            [
+                "name",
+                "in",
+                [
+                    "Customer-naming_series-options",
+                    "Sales Order-orx_sec",
+                    "Sales Order-orx_type",
+                    "Sales Order-orx_col",
+                    "Sales Order-orx_name",
+                    "Sales Order-orx_html_sec",
+                    "Sales Order-orx_html",
+                ],
+            ]
+        ],
+    },
 ]
 
 # Includes in <head>
@@ -105,7 +123,7 @@ app_include_js = "/assets/js/optics_9t9it.min.js"
 
 doc_events = {
     "Sales Order": {"validate": "optics_9t9it.doc_events.sales_order.validate"},
-    "Customer": {"autoname": "optics_9t9it.doc_events.customer.autoname"},
+    "Customer": {"before_naming": "optics_9t9it.doc_events.customer.before_naming"},
 }
 
 # Scheduled Tasks

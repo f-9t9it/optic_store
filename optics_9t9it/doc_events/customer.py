@@ -8,6 +8,6 @@ import frappe
 from optics_9t9it.api.customer import get_user_branch
 
 
-def before_save(doc, method):
-    if doc.is_new() and not doc.branch:
+def before_naming(doc, method):
+    if not doc.branch:
         doc.branch = get_user_branch()
