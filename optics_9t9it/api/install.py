@@ -47,6 +47,14 @@ def _create_item_groups():
 
 
 def _update_settings():
-    selling_settings = frappe.get_single("Selling Settings")
-    selling_settings.cust_master_name = "Naming Series"
-    selling_settings.save(ignore_permissions=True)
+    def update(doctype, params):
+        doc = frappe.get_single(doctype)
+        map(lambda x: doc.set(*x), params.items())
+        doc.save(ignore_permissions=True)
+
+    settings = {
+        "Selling Settings": {"cust_master_name": "Naming Series"},
+        "Stock Settings": {"item_naming_by": "Naming Series", "show_barcode_field": 1},
+    }
+
+    map(lambda x: update(*x), settings.items())
