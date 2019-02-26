@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 
-from optics_9t9it.api.customer import get_user_branch
+from optic_store.api.customer import get_user_branch
 
 
 def before_naming(doc, method):

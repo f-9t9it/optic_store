@@ -8,7 +8,7 @@ frappe.ui.form.on('Optical Settings', {
     if (development || frm.doc.defaults_installed !== 'Yes') {
       frm.add_custom_button('Setup Defaults', async function() {
         await frappe.call({
-          method: 'optics_9t9it.api.install.setup_defaults',
+          method: 'optic_store.api.install.setup_defaults',
         });
         await frm.set_value('defaults_installed', 'Yes');
         frm.save();

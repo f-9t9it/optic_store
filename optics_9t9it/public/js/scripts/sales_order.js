@@ -7,7 +7,7 @@ function orx_query(frm) {
   if (customer && type) {
     frm.set_query('orx_name', function() {
       return {
-        query: 'optics_9t9it.api.optical_prescription.query_latest',
+        query: 'optic_store.api.optical_prescription.query_latest',
         filters: { customer, type },
       };
     });

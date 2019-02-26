@@ -7,7 +7,7 @@ import frappe
 import unittest
 from toolz import merge
 
-from optics_9t9it.tests import make_users, make_companies, make_customers, make_items
+from optic_store.tests import make_users, make_companies, make_customers, make_items
 
 _so_args = {
     "doctype": "Sales Order",

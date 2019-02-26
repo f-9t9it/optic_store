@@ -1,4 +1,4 @@
-## Optics 9T9IT
+## Optic Store
 
 ERPNext App for Optical Store
 
