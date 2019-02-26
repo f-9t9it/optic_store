@@ -8,6 +8,7 @@ import frappe
 
 @frappe.whitelist()
 def setup_defaults():
+    frappe.only_for("System Manager")
     _create_item_groups()
     _update_settings()
 

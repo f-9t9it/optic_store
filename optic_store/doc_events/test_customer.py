@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 
-from optics_9t9it.tests import make_employees
+from optic_store.tests import make_employees
 
 
 class TestCustomer(unittest.TestCase):

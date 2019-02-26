@@ -4,10 +4,8 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.model.document import Document
 
-from optics_9t9it.api.customer import get_user_branch
 
-
-def before_naming(doc, method):
-    if not doc.branch:
-        doc.branch = get_user_branch()
+class OpticalStoreSettings(Document):
+    pass

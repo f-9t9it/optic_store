@@ -6,10 +6,10 @@ from frappe import _
 def get_data():
     return [
         {
-            "module_name": "Optics 9T9IT",
+            "module_name": "Optic Store",
             "color": "grey",
             "icon": "octicon octicon-file-directory",
             "type": "module",
-            "label": _("Optics 9T9IT"),
+            "label": _("Optic Store"),
         }
     ]

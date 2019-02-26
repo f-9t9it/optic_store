@@ -2,16 +2,16 @@
 // rename this file from _test_[name] to test_[name] to activate
 // and remove above this line
 
-QUnit.test('test: Optical Settings', function(assert) {
+QUnit.test('test: Optical Store Settings', function(assert) {
   let done = assert.async();
 
   // number of asserts
   assert.expect(1);
 
   frappe.run_serially([
-    // insert a new Optical Settings
+    // insert a new Optical Store Settings
     () =>
-      frappe.tests.make('Optical Settings', [
+      frappe.tests.make('Optical Store Settings', [
         // values to be set
         { key: 'value' },
       ]),

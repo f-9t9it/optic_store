@@ -7,5 +7,5 @@ import frappe
 import unittest
 
 
-class TestOpticalSettings(unittest.TestCase):
+class TestOpticalStoreSettings(unittest.TestCase):
     pass

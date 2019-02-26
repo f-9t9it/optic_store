@@ -4,15 +4,15 @@ include *.json
 include *.md
 include *.py
 include *.txt
-recursive-include optics_9t9it *.css
-recursive-include optics_9t9it *.csv
-recursive-include optics_9t9it *.html
-recursive-include optics_9t9it *.ico
-recursive-include optics_9t9it *.js
-recursive-include optics_9t9it *.json
-recursive-include optics_9t9it *.md
-recursive-include optics_9t9it *.png
-recursive-include optics_9t9it *.py
-recursive-include optics_9t9it *.svg
-recursive-include optics_9t9it *.txt
-recursive-exclude optics_9t9it *.pyc
+recursive-include optic_store *.css
+recursive-include optic_store *.csv
+recursive-include optic_store *.html
+recursive-include optic_store *.ico
+recursive-include optic_store *.js
+recursive-include optic_store *.json
+recursive-include optic_store *.md
+recursive-include optic_store *.png
+recursive-include optic_store *.py
+recursive-include optic_store *.svg
+recursive-include optic_store *.txt
+recursive-exclude optic_store *.pyc
