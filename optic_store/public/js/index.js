@@ -1,6 +1,4 @@
-import sales_order from './scripts/sales_order';
-import customer from './scripts/customer';
-import item from './scripts/item';
+import { sales_order, customer, item } from './scripts';
 
 frappe.ui.form.on('Sales Order', sales_order);
 frappe.ui.form.on('Customer', customer);
