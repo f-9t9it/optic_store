@@ -1,0 +1,53 @@
+[
+ {
+  "_assign": null, 
+  "_comments": null, 
+  "_liked_by": null, 
+  "_user_tags": null, 
+  "default_value": null, 
+  "doc_type": "Customer", 
+  "docstatus": 0, 
+  "doctype": "Property Setter", 
+  "doctype_or_field": "DocField", 
+  "field_name": "naming_series", 
+  "modified": "2019-02-25 20:54:19.389670", 
+  "name": "Customer-naming_series-options", 
+  "property": "options", 
+  "property_type": "Text", 
+  "value": "CUST-.branch.-.YYYY.-\nCUST-.YYYY.-"
+ }, 
+ {
+  "_assign": null, 
+  "_comments": null, 
+  "_liked_by": null, 
+  "_user_tags": null, 
+  "default_value": null, 
+  "doc_type": "Item", 
+  "docstatus": 0, 
+  "doctype": "Property Setter", 
+  "doctype_or_field": "DocField", 
+  "field_name": "naming_series", 
+  "modified": "2019-02-25 21:44:27.910444", 
+  "name": "Item-naming_series-options", 
+  "property": "options", 
+  "property_type": "Text", 
+  "value": "item_group_abbr.#########\nSTO-ITEM-.YYYY.-"
+ }, 
+ {
+  "_assign": null, 
+  "_comments": null, 
+  "_liked_by": null, 
+  "_user_tags": null, 
+  "default_value": null, 
+  "doc_type": "Item", 
+  "docstatus": 0, 
+  "doctype": "Property Setter", 
+  "doctype_or_field": "DocType", 
+  "field_name": null, 
+  "modified": "2019-02-25 22:40:49.966196", 
+  "name": "Item-quick_entry", 
+  "property": "quick_entry", 
+  "property_type": "Check", 
+  "value": "0"
+ }
+]
