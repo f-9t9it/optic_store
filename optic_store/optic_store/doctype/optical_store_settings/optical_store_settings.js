@@ -1,7 +1,7 @@
 // Copyright (c) 2019, 9T9IT and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Optical Settings', {
+frappe.ui.form.on('Optical Store Settings', {
   refresh: function(frm) {
     // hack to enable this button during development
     const development = true;
