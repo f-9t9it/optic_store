@@ -7,6 +7,36 @@ import frappe
 from toolz import merge
 
 
+def make_customers():
+    make_branches()
+    records = [
+        (
+            {"customer_name": "Ned Flanders"},
+            {
+                "type": "Individual",
+                "customer_group": "All Customer Groups",
+                "territory": "All Territories",
+                "branch": "Moe's Tavern",
+            },
+        )
+    ]
+    return map(lambda x: make_test_doc("Customer", *x), records)
+
+
+def make_items():
+    records = [
+        (
+            {"item_name": "Yellow Frame"},
+            {"item_name": "Yellow Frame", "item_group": "Frame"},
+        ),
+        (
+            {"item_name": "Green Lens"},
+            {"item_name": "Green Lens", "item_group": "Prescription Lens"},
+        ),
+    ]
+    return map(lambda x: make_test_doc("Item", *x), records)
+
+
 def make_employees():
     make_companies()
     make_users()
@@ -35,10 +65,7 @@ def make_users():
             {
                 "first_name": "Homer",
                 "last_name": "Simpson",
-                "roles": [
-                    {"doctype": "Has Role", "role": "Employee"},
-                    {"doctype": "Has Role", "role": "Sales User"},
-                ],
+                "roles": [{"role": "Employee"}, {"role": "Sales User"}],
             },
         )
     ]
