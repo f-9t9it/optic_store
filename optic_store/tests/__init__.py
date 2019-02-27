@@ -14,11 +14,9 @@ def make_sales_orders():
     item = make_items()[0]
     records = [
         (
-            {"owner": "simpson@optix.com", "transaction_date": "2019-02-26"},
+            {"customer": customer.name, "transaction_date": "2019-02-26"},
             {
-                "customer": customer.name,
                 "company": "Optix",
-                "transaction_date": "2019-02-26",
                 "delivery_date": "2019-02-28",
                 "orx_type": "Contacts",
                 "items": [
