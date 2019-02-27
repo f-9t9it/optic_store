@@ -131,3 +131,12 @@ def make_test_doc(doctype, exists_dict, args, submit=False):
     if submit:
         doc.submit()
     return doc
+
+
+def remove_test_doc(doctype, exists_dict):
+    name = frappe.db.exists(doctype, exists_dict)
+    if name:
+        doc = frappe.get_doc(doctype, name)
+        if doc.docstatus == 1:
+            doc.cancel()
+        frappe.delete_doc(doctype, name, ignore_permissions=True)

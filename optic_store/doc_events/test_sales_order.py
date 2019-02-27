@@ -7,7 +7,13 @@ import frappe
 import unittest
 from toolz import merge
 
-from optic_store.tests import make_users, make_companies, make_customers, make_items
+from optic_store.tests import (
+    make_users,
+    make_companies,
+    make_customers,
+    make_items,
+    remove_test_doc,
+)
 
 _so_args = {
     "doctype": "Sales Order",
@@ -29,9 +35,7 @@ class TestSalesOrder(unittest.TestCase):
 
     def tearDown(self):
         frappe.set_user(self.old_user)
-        name = frappe.db.exists("Sales Order", {"owner": "simpson@optix.com"})
-        if name:
-            frappe.delete_doc("Customer", name, ignore_permissions=True)
+        remove_test_doc("Sales Order", {"owner": "simpson@optix.com"})
 
     def test_validation_for_specs_frame(self):
         so = frappe.get_doc(
