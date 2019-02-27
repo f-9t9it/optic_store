@@ -22,7 +22,7 @@ class TestSalesOrder(unittest.TestCase):
     def setUp(self):
         make_users()
         make_companies()
-        make_customers()[0]
+        make_customers()
         make_items()
         self.old_user = frappe.session.user
         frappe.set_user("simpson@optix.com")
