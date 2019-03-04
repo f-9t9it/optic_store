@@ -7,6 +7,33 @@ import frappe
 from toolz import merge
 
 
+def make_sales_orders():
+    make_users()
+    make_companies()
+    customer = make_customers()[0]
+    item = make_items()[0]
+    records = [
+        (
+            {"customer": customer.name, "transaction_date": "2019-02-26"},
+            {
+                "company": "Optix",
+                "delivery_date": "2019-02-28",
+                "orx_type": "Contacts",
+                "items": [
+                    {
+                        "item_code": item.name,
+                        "qty": 1,
+                        "rate": 100,
+                        "conversion_factor": 1,
+                        "warehouse": "Stores - O",
+                    }
+                ],
+            },
+        )
+    ]
+    return map(lambda x: make_test_doc("Sales Order", submit=True, *x), records)
+
+
 def make_customers():
     make_branches()
     records = [
@@ -92,11 +119,22 @@ def make_companies():
     return map(lambda x: make_test_doc("Company", *x), records)
 
 
-def make_test_doc(doctype, exists_dict, args):
+def make_test_doc(doctype, exists_dict, args, submit=False):
     name = frappe.db.exists(doctype, exists_dict)
     if name:
-        return name
+        return frappe.get_doc(doctype, name)
     doc = frappe.get_doc(merge({"doctype": doctype}, exists_dict, args)).insert(
         ignore_permissions=True
     )
-    return doc.name
+    if submit:
+        doc.submit()
+    return doc
+
+
+def remove_test_doc(doctype, exists_dict):
+    name = frappe.db.exists(doctype, exists_dict)
+    if name:
+        doc = frappe.get_doc(doctype, name)
+        if doc.docstatus == 1:
+            doc.cancel()
+        frappe.delete_doc(doctype, name, ignore_permissions=True)

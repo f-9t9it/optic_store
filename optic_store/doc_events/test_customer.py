@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 
-from optic_store.tests import make_employees
+from optic_store.tests import make_employees, remove_test_doc
 
 
 class TestCustomer(unittest.TestCase):
@@ -16,9 +16,7 @@ class TestCustomer(unittest.TestCase):
         frappe.set_user("simpson@optix.com")
 
     def tearDown(self):
-        name = frappe.db.exists("Customer", {"customer_name": "Test Barney Gumble"})
-        if name:
-            frappe.delete_doc("Customer", name, ignore_permissions=True)
+        remove_test_doc("Customer", {"customer_name": "Test Barney Gumble"})
         frappe.set_user(self.old_user)
 
     def test_customer_id_contains_branch(self):

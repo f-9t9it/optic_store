@@ -6,15 +6,15 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 
+from optic_store.tests import remove_test_doc
+
 
 class TestItem(unittest.TestCase):
     def setUp(self):
         pass
 
     def tearDown(self):
-        name = frappe.db.exists("Item", {"item_name": "Test Green Solution"})
-        if name:
-            frappe.delete_doc("Item", name, ignore_permissions=True)
+        remove_test_doc("Item", {"item_name": "Test Green Solution"})
 
     def test_item_code_contains_group(self):
         item = frappe.get_doc(
