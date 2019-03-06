@@ -26,6 +26,7 @@
 
 <script>
 import { RX_PARAMS_SPEC_DIST, RX_PARAMS_CONT_DIST } from '../utils/constants';
+import { get_formatted } from '../utils/format';
 import PrescriptionViewTable from './PrescriptionViewTable.vue';
 import PrescriptionViewParam from './PrescriptionViewParam.vue';
 
@@ -45,26 +46,7 @@ export default {
   },
   methods: {
     get_formatted: function(side, param) {
-      const value = this.doc[`${param}_${side}`];
-      if (['sph', 'cyl', 'sph_reading', 'add'].includes(param)) {
-        return `${value > 0 ? '+' : ''}${value.toFixed(2)}`;
-      }
-      if ('axis' === param) {
-        return `${value}°`;
-      }
-      if ('va' === param) {
-        return value.toFixed(2);
-      }
-      if ('pd' === param) {
-        return `${value.toFixed(0)}mm`;
-      }
-      if ('prism' === param) {
-        return value.toFixed(1);
-      }
-      if ('iop' === param) {
-        return `${value.toFixed(2)}mmHg`;
-      }
-      return value;
+      return get_formatted(this.doc)(side, param);
     },
   },
 };
