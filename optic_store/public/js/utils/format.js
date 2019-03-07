@@ -1,6 +1,6 @@
 export function get_formatted(doc) {
   return function(side, param) {
-    const value = doc[`${param}_${side}`] || 0;
+    const value = doc[side ? `${param}_${side}` : param] || 0;
     if (['sph', 'cyl', 'sph_reading', 'add'].includes(param)) {
       return `${value > 0 ? '+' : ''}${value.toFixed(2)}`;
     }
@@ -10,7 +10,7 @@ export function get_formatted(doc) {
     if ('va' === param) {
       return value.toFixed(2);
     }
-    if ('pd' === param) {
+    if (['pd', 'height'].includes(param)) {
       return `${value.toFixed(0)}mm`;
     }
     if ('prism' === param) {

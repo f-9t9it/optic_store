@@ -1,60 +1,60 @@
 <template>
   <section>
-    <prescription-view-table v-bind="{ params, get_formatted }" />
-    <div class="solo-params">
-      <prescription-view-param
-        label="Pupillary Distance"
-        field="pd"
-        :sides="['right', 'left', 'total']"
-        :get_formatted="get_formatted"
-      />
-      <prescription-view-param
-        label="Prism"
-        field="prism"
-        :sides="['right', 'left']"
-        :get_formatted="get_formatted"
-      />
-      <prescription-view-param
-        label="Intraocular Pressure"
-        field="iop"
-        :sides="['right', 'left']"
-        :get_formatted="get_formatted"
-      />
+    <div v-if="doc.type === 'Spectacles'" class="os-specs">
+      <dl>
+        <dt>Type of Spectacles</dt>
+        <dd class="like-disabled-input">{{ doc.type_of_spectacle }}</dd>
+      </dl>
+      <dl>
+        <dt>Frame Size</dt>
+        <dd class="like-disabled-input">{{ get_formatted('frame_size') }}</dd>
+      </dl>
+      <dl>
+        <dt>Height</dt>
+        <dd class="like-disabled-input">{{ doc.height_type }}</dd>
+        <dd class="like-disabled-input">{{ get_formatted('height') }}</dd>
+      </dl>
     </div>
+    <prescription-form v-bind="{ doc }" />
   </section>
 </template>
 
 <script>
 import { RX_PARAMS_SPEC_DIST, RX_PARAMS_CONT_DIST } from '../utils/constants';
 import { get_formatted } from '../utils/format';
-import PrescriptionViewTable from './PrescriptionViewTable.vue';
-import PrescriptionViewParam from './PrescriptionViewParam.vue';
+import PrescriptionForm from './PrescriptionForm.vue';
 
 export default {
   props: { doc: Object },
-  components: { PrescriptionViewTable, PrescriptionViewParam },
-  computed: {
-    params: function() {
-      if (this.doc.type === 'Spectacles') {
-        return RX_PARAMS_SPEC_DIST;
-      }
-      if (this.doc.type === 'Contacts') {
-        return RX_PARAMS_CONT_DIST;
-      }
-      return [];
-    },
-  },
+  components: { PrescriptionForm },
   methods: {
-    get_formatted: function(side, param) {
-      return get_formatted(this.doc)(side, param);
+    get_formatted: function(param) {
+      return get_formatted(this.doc)(null, param);
     },
   },
 };
 </script>
 
-<style scoped>
-.solo-params {
+<style lang="scss" scoped>
+.os-specs {
   display: flex;
-  flex-flow: row wrap;
+  margin-left: 120px;
+  & dt,
+  & dd {
+    margin: 2px;
+  }
+  & > dl {
+    min-width: 100px;
+    & > dt {
+      text-transform: uppercase;
+      font-size: 0.8em;
+      color: #8d99a6;
+      text-align: center;
+      font-weight: normal;
+    }
+    & > dd {
+      text-align: right;
+    }
+  }
 }
 </style>
