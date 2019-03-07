@@ -30,6 +30,10 @@ export default {
         frm.add_custom_button(__('Invoice & Print'), function() {
           frm.invoice_dialog.create_and_print(frm);
         });
+      } else {
+        frm.add_custom_button(__('Print Invoice'), function() {
+          frm.invoice_dialog.print_invoice(frm);
+        });
       }
     }
   },
