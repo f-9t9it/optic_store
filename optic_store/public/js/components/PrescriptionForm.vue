@@ -23,13 +23,11 @@
       </span>
     </div>
     <div v-for="side in sides" :class="get_side_class(side, ['os-label'])">
-      <span v-for="param in ['pd', 'prism', 'iop']">
-        {{ get_other_label(param) }}
-      </span>
+      <span v-for="param in params_other"> {{ get_other_label(param) }} </span>
     </div>
     <div v-for="side in sides" :class="get_side_class(side, ['os-value'])">
       <prescription-form-field
-        v-for="param in ['pd', 'prism', 'iop']"
+        v-for="param in params_other"
         :key="`${param}_${side}`"
         v-bind="get_field_props(side, param)"
       />
@@ -38,7 +36,11 @@
 </template>
 
 <script>
-import { RX_PARAMS_SPEC_DIST, RX_PARAMS_CONT_DIST } from '../utils/constants';
+import {
+  RX_PARAMS_SPEC_DIST,
+  RX_PARAMS_CONT_DIST,
+  RX_PARAMS_OTHER,
+} from '../utils/constants';
 import { get_formatted } from '../utils/format';
 import PrescriptionFormField from './PrescriptionFormField.vue';
 
@@ -59,7 +61,7 @@ export default {
   components: { PrescriptionFormField },
   props: { doc: Object, update: Function },
   data: function() {
-    return { sides: ['right', 'left'] };
+    return { sides: ['right', 'left'], params_other: RX_PARAMS_OTHER };
   },
   computed: {
     params: function() {
