@@ -50,6 +50,9 @@ export default {
       },
     });
   },
+  refresh: function(frm) {
+    frm.detail_vue.doc = frm.doc;
+  },
   sph_right: handle_add_sph,
   sph_left: handle_add_sph,
   add_right: handle_add_sph,

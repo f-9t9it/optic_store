@@ -87,13 +87,13 @@ export default {
         left: side === 'left',
         four: this.doc.type === 'Spectacles',
         six: this.doc.type === 'Contacts',
-        disabled: this.doc.docstatus !== 0,
       });
     },
     get_field_props: function(side, param) {
       return {
         param,
         side,
+        disabled: this.doc.docstatus !== 0,
         step: get_step(param),
         value: parseFloat(this.doc[`${param}_${side}`]),
         get_formatted: this.get_formatted,
