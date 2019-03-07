@@ -126,6 +126,7 @@ app_include_js = "/assets/js/optic_store.min.js"
 # Hook on document methods and events
 
 doc_events = {
+    "Delivery Note": {"validate": "optic_store.doc_events.delivery_note.validate"},
     "Sales Order": {"validate": "optic_store.doc_events.sales_order.validate"},
     "Customer": {"before_naming": "optic_store.doc_events.customer.before_naming"},
     "Item": {
