@@ -1,6 +1,6 @@
 export function get_formatted(doc) {
   return function(side, param) {
-    const value = doc[`${param}_${side}`];
+    const value = doc[`${param}_${side}`] || 0;
     if (['sph', 'cyl', 'sph_reading', 'add'].includes(param)) {
       return `${value > 0 ? '+' : ''}${value.toFixed(2)}`;
     }
