@@ -39,7 +39,6 @@ def _are_paid(sales_orders):
             """,
             values={"sales_orders": sales_orders},
             as_dict=1,
-            debug=1,
         ),
     )
     return reduce(lambda a, x: a and (x in ["Paid"]), statuses, True)
