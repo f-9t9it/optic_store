@@ -1,6 +1,20 @@
-// async function request(args) {
-
-// }
+function print_invoice(sales_invoice_name, print_format, no_letterhead) {
+  // from /frappe/public/js/frappe/form/print.js
+  const w = window.open(
+    frappe.urllib.get_full_url(
+      `/printview?doctype=${encodeURIComponent(
+        'Sales Invoice'
+      )}&name=${encodeURIComponent(
+        sales_invoice_name
+      )}&trigger_print=1&format=${encodeURIComponent(
+        print_format
+      )}&no_letterhead=${no_letterhead ? '1' : '0'}&_lang=en`
+    )
+  );
+  if (!w) {
+    frappe.msgprint(__('Please enable pop-ups'));
+  }
+}
 
 export default class InvoiceDialog {
   constructor() {
@@ -36,22 +50,7 @@ export default class InvoiceDialog {
         args: { name, mode_of_payment, amount },
       });
       frm.reload_doc();
-
-      // from /frappe/public/js/frappe/form/print.js
-      const w = window.open(
-        frappe.urllib.get_full_url(
-          `/printview?doctype=${encodeURIComponent(
-            'Sales Invoice'
-          )}&name=${encodeURIComponent(
-            sales_invoice_name
-          )}&trigger_print=1&format=${encodeURIComponent(
-            print_format
-          )}&no_letterhead=${no_letterhead ? '1' : '0'}&_lang=en`
-        )
-      );
-      if (!w) {
-        frappe.msgprint(__('Please enable pop-ups'));
-      }
+      print_invoice(sales_invoice_name, print_format, no_letterhead);
     });
 
     const { message: settings = {} } = await frappe.db.get_value(
@@ -64,5 +63,17 @@ export default class InvoiceDialog {
       this.dialog.set_value('amount', frm.doc.rounded_total),
     ]);
     this.dialog.show();
+  }
+  async print_invoice(frm) {
+    const { name } = frm.doc;
+    const {
+      message: { sales_invoice_name, print_format, no_letterhead },
+    } = await frappe.call({
+      method: 'optic_store.api.sales_order.get_invoice',
+      args: { name },
+    });
+    sales_invoice_name.forEach(invoice => {
+      print_invoice(invoice, print_format, no_letterhead);
+    });
   }
 }

@@ -3,6 +3,10 @@
 
 frappe.ui.form.on('Optical Store Settings', {
   refresh: function(frm) {
+    frm.set_query('item_group', 'dashboard_item_groups', {
+      filters: [['is_group', '=', '0']],
+    });
+
     // hack to enable this button during development
     const development = true;
     if (development || frm.doc.defaults_installed !== 'Yes') {
