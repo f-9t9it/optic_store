@@ -20,10 +20,12 @@ async function render_prescription_data(frm) {
       method: 'optic_store.api.customer.get_dashboard_data',
       args: { customer: frm.doc.name },
     });
-    frm.prescription_chart_vue = new Vue({
-      el: $wrapper.html('<div />').children()[0],
-      render: h => h(CustomerDashboard, { props }),
-    });
+    if (props) {
+      frm.prescription_chart_vue = new Vue({
+        el: $wrapper.html('<div />').children()[0],
+        render: h => h(CustomerDashboard, { props }),
+      });
+    }
   }
 }
 

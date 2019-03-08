@@ -21,17 +21,20 @@ def get_dashboard_data(customer):
         fields=["item_group"],
         order_by="idx",
     )
+    if not labels:
+        return None
     items = frappe.db.sql(
         """
             SELECT
                 soi.item_group AS item_group,
-                soi.qty AS qty,
-                soi.amount AS amount
+                SUM(soi.qty) AS qty,
+                SUM(soi.amount) AS amount
             FROM `tabSales Order Item` AS soi
             INNER JOIN `tabSales Order` AS so ON soi.parent = so.name
             WHERE
                 so.customer = %(customer)s AND
                 so.docstatus = 1
+            GROUP BY soi.item_group
         """,
         values={"customer": customer},
         as_dict=1,
