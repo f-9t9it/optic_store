@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.desk.reportview import get_filters_cond
+from toolz import compose
 
 
 def query_latest(doctype, txt, searchfield, start, page_len, filters):
@@ -31,3 +32,9 @@ def query_latest(doctype, txt, searchfield, start, page_len, filters):
             "page_len": page_len,
         },
     )
+
+
+@frappe.whitelist()
+def save_and_submit(doc):
+    submit = compose(frappe.client.submit, frappe.client.insert)
+    return submit(doc)
