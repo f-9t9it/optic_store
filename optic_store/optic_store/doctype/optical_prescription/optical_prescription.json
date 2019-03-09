@@ -305,7 +305,7 @@
   }, 
   {
    "allow_bulk_edit": 0, 
-   "allow_in_quick_entry": 0, 
+   "allow_in_quick_entry": 1, 
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
@@ -1766,7 +1766,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2019-03-07 17:25:51.688652", 
+ "modified": "2019-03-08 21:09:12.799996", 
  "modified_by": "Administrator", 
  "module": "Optic Store", 
  "name": "Optical Prescription", 
@@ -1831,7 +1831,7 @@
    "write": 1
   }
  ], 
- "quick_entry": 0, 
+ "quick_entry": 1, 
  "read_only": 0, 
  "read_only_onload": 0, 
  "show_name_in_global_search": 0, 
