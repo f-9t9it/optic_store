@@ -146,6 +146,7 @@ input[type='number']::-webkit-outer-spin-button {
 .os-value {
   &.right {
     grid-column: right;
+    border-right: 1px solid #ebeff2;
   }
   &.left {
     grid-column: left;
@@ -156,6 +157,7 @@ input[type='number']::-webkit-outer-spin-button {
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
+  padding: 0 2px;
   & > * {
     margin: 2px;
   }
