@@ -20,7 +20,7 @@ import PrescriptionFormConditionals from './PrescriptionFormConditionals.vue';
 import PrescriptionFormSupplement from './PrescriptionFormSupplement.vue';
 
 function get_step(param) {
-  if (['sph', 'cyl', 'sph_reading', 'add', 'va', 'iop'].includes(param)) {
+  if (['sph', 'cyl', 'sph_reading', 'add', 'iop'].includes(param)) {
     return '0.01';
   }
   if ('prism' === param) {
@@ -53,7 +53,12 @@ export default {
     },
     get_step,
     on_change: function(e) {
-      this.update(e.target.name, parseFloat(e.target.value || 0));
+      this.update(
+        e.target.name,
+        ['va_right', 'va_left'].includes(e.target.name)
+          ? e.target.value
+          : parseFloat(e.target.value || 0)
+      );
     },
   },
 };

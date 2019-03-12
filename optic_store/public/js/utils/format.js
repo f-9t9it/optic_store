@@ -7,9 +7,6 @@ export function get_formatted(doc) {
     if ('axis' === param) {
       return `${value}°`;
     }
-    if ('va' === param) {
-      return value.toFixed(2);
-    }
     if (['pd', 'height'].includes(param)) {
       return `${value.toFixed(0)}mm`;
     }

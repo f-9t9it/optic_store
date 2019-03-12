@@ -8,7 +8,6 @@
     <div v-for="side in sides" :class="get_side_class(side, ['os-value'])">
       <prescription-form-field
         v-for="param in params"
-        :key="`${param}_${side}`"
         v-bind="get_field_props(side, param)"
       />
     </div>
@@ -69,22 +68,14 @@ export default {
         side,
         disabled: this.doc.docstatus !== 0,
         step: this.get_step(param),
-        value: parseFloat(this.doc[`${param}_${side}`]),
+        type: param === 'va' ? 'text' : 'number',
+        value:
+          param === 'va'
+            ? this.doc[`${param}_${side}`]
+            : parseFloat(this.doc[`${param}_${side}`]),
         get_formatted: this.get_formatted,
         on_change: this.on_change,
       };
-    },
-    get_other_label: function(param) {
-      if (param === 'pd') {
-        return 'PD';
-      }
-      if (param === 'prism') {
-        return 'Prism';
-      }
-      if (param === 'iop') {
-        return 'Intraocular Pressure';
-      }
-      return param;
     },
   },
 };
