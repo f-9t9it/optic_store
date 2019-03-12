@@ -26,7 +26,7 @@
       </span>
     </div>
     <div v-for="side in sides" :class="get_side_class(side, ['os-label'])">
-      <span v-for="param in params_other"> {{ get_other_label(param) }} </span>
+      <span v-for="param in params_other">{{ get_other_label(param) }}</span>
     </div>
     <div v-for="side in sides" :class="get_side_class(side, ['os-value'])">
       <prescription-form-field
@@ -105,7 +105,7 @@ export default {
     },
     get_other_label: function(param) {
       if (param === 'pd') {
-        return 'Pupillary Distance';
+        return 'PD';
       }
       if (param === 'prism') {
         return 'Prism';
