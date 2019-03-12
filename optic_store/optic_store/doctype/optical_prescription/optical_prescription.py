@@ -16,3 +16,4 @@ class OpticalPrescription(Document):
     def before_insert(self):
         self.sph_reading_right = flt(self.sph_right) + flt(self.add_right)
         self.sph_reading_left = flt(self.sph_left) + flt(self.add_left)
+        self.pd_total = flt(self.pd_right) + flt(self.pd_left)

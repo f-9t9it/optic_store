@@ -24,6 +24,11 @@ function toggle_detail_entry(frm, state) {
   frm.toggle_display(['details_sec', 'pd_sec', 'prism_sec', 'iop_sec'], state);
 }
 
+function calc_total_pd(frm) {
+  const { pd_right = 0, pd_left = 0 } = frm.doc;
+  frm.set_value('pd_total', parseFloat(pd_right) + parseFloat(pd_left));
+}
+
 export default {
   setup: async function(frm) {
     const { message: settings = {} } = await frappe.db.get_value(
@@ -60,4 +65,6 @@ export default {
   add_left: handle_add_sph,
   add_type_right: enable_sph_reading,
   add_type_left: enable_sph_reading,
+  pd_right: calc_total_pd,
+  pd_left: calc_total_pd,
 };
