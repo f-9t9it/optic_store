@@ -44,7 +44,7 @@ export default {
 <style lang="scss" scoped>
 .os-root {
   margin-bottom: 12px;
-  width: 50%;
+  width: calc((100% - 100px) / 2 + 100px);
 }
 .os-field {
   display: flex;
@@ -55,13 +55,12 @@ export default {
     text-transform: uppercase;
     font-size: 0.8em;
     color: #8d99a6;
-    width: 100px;
+    flex: 0 0 100px;
   }
   & > select,
   & > span {
     margin: 0 4px;
-    width: initial;
-    min-width: 50%;
+    width: 100%;
   }
 }
 </style>
