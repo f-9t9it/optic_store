@@ -17,7 +17,10 @@
       <prescription-form-field v-bind="get_field_props(side, 'add')" />
     </div>
     <div class="os-row-header">Reading</div>
-    <div v-for="side in sides" :class="get_side_class(side, ['os-value'])">
+    <div
+      v-for="side in sides"
+      :class="get_side_class(side, ['os-value', 'last'])"
+    >
       <span class="like-disabled-input">
         {{ get_formatted(side, 'sph_reading') }}
       </span>
@@ -134,6 +137,7 @@ input[type='number']::-webkit-outer-spin-button {
   font-weight: bold;
   text-transform: capitalize;
   text-align: center;
+  height: 100%;
 }
 .os-row-header {
   grid-column: 1;
@@ -173,6 +177,9 @@ input[type='number']::-webkit-outer-spin-button {
       text-align: right;
     }
   }
+  &.last {
+    padding-bottom: 2px;
+  }
 }
 .os-label > span,
 .os-row-header {
@@ -182,11 +189,11 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 .os-label {
-  margin-top: 12px;
   border-top: 1px solid #ebeff2;
   padding-top: 2px;
   & > span {
     text-align: center;
+    padding-top: 10px;
   }
 }
 .os-value > input {
