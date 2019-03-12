@@ -25,46 +25,23 @@
         {{ get_formatted(side, 'sph_reading') }}
       </span>
     </div>
-    <div v-for="side in sides" :class="get_side_class(side, ['os-label'])">
-      <span v-for="param in params_other">{{ get_other_label(param) }}</span>
-    </div>
-    <div v-for="side in sides" :class="get_side_class(side, ['os-value'])">
-      <prescription-form-field
-        v-for="param in params_other"
-        :key="`${param}_${side}`"
-        v-bind="get_field_props(side, param)"
-      />
-    </div>
   </div>
 </template>
 
 <script>
-import {
-  RX_PARAMS_SPEC_DIST,
-  RX_PARAMS_CONT_DIST,
-  RX_PARAMS_OTHER,
-} from '../utils/constants';
-import { get_formatted } from '../utils/format';
+import { RX_PARAMS_SPEC_DIST, RX_PARAMS_CONT_DIST } from '../utils/constants';
 import PrescriptionFormField from './PrescriptionFormField.vue';
-
-function get_step(param) {
-  if (['sph', 'cyl', 'sph_reading', 'add', 'va', 'iop'].includes(param)) {
-    return '0.01';
-  }
-  if ('prism' === param) {
-    return '0.1';
-  }
-  if (['axis', 'pd'].includes(param)) {
-    return '1';
-  }
-  return null;
-}
 
 export default {
   components: { PrescriptionFormField },
-  props: { doc: Object, update: Function },
+  props: {
+    doc: Object,
+    on_change: Function,
+    get_formatted: Function,
+    get_step: Function,
+  },
   data: function() {
-    return { sides: ['right', 'left'], params_other: RX_PARAMS_OTHER };
+    return { sides: ['right', 'left'] };
   },
   computed: {
     params: function() {
@@ -78,12 +55,6 @@ export default {
     },
   },
   methods: {
-    get_formatted: function(side, param) {
-      return get_formatted(this.doc)(side, param);
-    },
-    on_change: function(e) {
-      this.update(e.target.name, parseFloat(e.target.value || 0));
-    },
     get_side_class: function(side, always = []) {
       return always.reduce((a, x) => Object.assign({ [x]: true }, a), {
         right: side === 'right',
@@ -97,7 +68,7 @@ export default {
         param,
         side,
         disabled: this.doc.docstatus !== 0,
-        step: get_step(param),
+        step: this.get_step(param),
         value: parseFloat(this.doc[`${param}_${side}`]),
         get_formatted: this.get_formatted,
         on_change: this.on_change,

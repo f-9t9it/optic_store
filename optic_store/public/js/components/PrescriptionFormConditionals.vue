@@ -24,7 +24,7 @@ export default {
   props: {
     doc: Object,
     conditional_fields: Array,
-    update: Function,
+    on_change: Function,
   },
   computed: {
     disabled: function() {
@@ -36,11 +36,6 @@ export default {
           ({ fieldname }) => fieldname === 'type_of_spectacle'
         ) || {};
       return options.split('\n');
-    },
-  },
-  methods: {
-    on_change: function(e) {
-      this.update(e.target.name, e.target.value);
     },
   },
 };
