@@ -1,6 +1,6 @@
 import Vue from 'vue/dist/vue.js';
 
-import PrescriptionView from '../components/PrescriptionView.vue';
+import PrescriptionForm from '../components/PrescriptionForm.vue';
 import InvoiceDialog from '../frappe-components/InvoiceDialog';
 
 function orx_query(frm) {
@@ -23,7 +23,7 @@ async function render_prescription(frm) {
     const doc = await frappe.db.get_doc('Optical Prescription', orx_name);
     frm.orx_vue = new Vue({
       el: $wrapper.html('<div />').children()[0],
-      render: h => h(PrescriptionView, { props: { doc } }),
+      render: h => h(PrescriptionForm, { props: { doc } }),
     });
   }
 }

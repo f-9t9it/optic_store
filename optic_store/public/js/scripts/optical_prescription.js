@@ -45,6 +45,7 @@ export default {
           props: {
             doc: this.doc,
             update: (field, value) => frm.set_value(field, value),
+            fields: frm.fields_dict,
           },
         });
       },

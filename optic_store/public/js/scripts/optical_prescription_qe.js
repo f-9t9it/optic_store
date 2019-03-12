@@ -28,13 +28,14 @@ export default {
     const { $wrapper } = this.dialog.get_field('details_html');
     this.detail_vue = new Vue({
       el: $wrapper.html('<div />').children()[0],
-      data: { doc: this.dialog.doc },
+      data: { doc: this.dialog.doc, fields: this.dialog.fields_dict },
       methods: {
         update: (field, value) => this.dialog.set_value(field, value),
       },
       render: function(h) {
+        const { doc, update, fields } = this;
         return h(PrescriptionForm, {
-          props: { doc: this.doc, update: this.update },
+          props: { doc, update, fields },
         });
       },
     });
