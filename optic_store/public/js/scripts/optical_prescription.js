@@ -42,6 +42,14 @@ export default {
     enable_sph_reading(frm);
     const { $wrapper } = frm.get_field('details_html');
     $wrapper.empty();
+    if (frm.doc.__islocal) {
+      // this makes the below fields reactive in vue
+      frm.doc = Object.assign(frm.doc, {
+        sph_reading_right: undefined,
+        sph_reading_left: undefined,
+        pd_total: undefined,
+      });
+    }
     frm.detail_vue = new Vue({
       el: $wrapper.html('<div />').children()[0],
       data: { doc: frm.doc },

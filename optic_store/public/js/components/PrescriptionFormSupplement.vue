@@ -63,7 +63,7 @@ export default {
       return {
         param,
         side,
-        disabled: this.doc.docstatus !== 0,
+        disabled: this.doc.docstatus !== 0 || side === 'total',
         step: this.get_step(param),
         value: parseFloat(this.doc[`${param}_${side}`]),
         get_formatted: this.get_formatted,
