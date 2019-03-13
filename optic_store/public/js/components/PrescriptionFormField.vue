@@ -6,7 +6,7 @@
     v-else
     class="form-control"
     :name="`${param}_${side}`"
-    type="number"
+    :type="type"
     :step="step"
     :value="value"
     @input="on_change"
@@ -18,9 +18,10 @@ export default {
   props: {
     param: String,
     side: String,
+    type: { type: String, default: 'number' },
     step: String,
     on_change: Function,
-    value: Number,
+    value: [String, Number],
     disabled: Boolean,
     get_formatted: Function,
   },
