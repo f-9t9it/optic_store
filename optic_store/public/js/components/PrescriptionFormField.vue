@@ -8,8 +8,8 @@
     :name="`${param}_${side}`"
     :type="type"
     :step="step"
-    :value="value"
-    @input="on_change"
+    v-model="scrubbed"
+    @input="on_input"
   />
 </template>
 
@@ -24,6 +24,16 @@ export default {
     value: [String, Number],
     disabled: Boolean,
     get_formatted: Function,
+  },
+  data: function() {
+    return {
+      scrubbed: this.value,
+    };
+  },
+  methods: {
+    on_input: function(e) {
+      this.scrubbed = this.on_change(e);
+    },
   },
 };
 </script>

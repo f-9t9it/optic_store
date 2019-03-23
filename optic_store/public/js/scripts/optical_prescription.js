@@ -26,13 +26,23 @@ function calc_total_pd(frm) {
   frm.set_value('pd_total', parseFloat(pd_right) + parseFloat(pd_left));
 }
 
-function handle_va(side) {
-  return async function(frm) {
-    const field = `va_${side}`;
-    const value = frm.doc[field];
-    if (value) {
-      await frm.set_value(field, value.replace(/[^0-9\/]*/g, ''));
+function update_fields(frm) {
+  function scrub(field, value) {
+    if (['va_right', 'va_left'].includes(field)) {
+      return value.replace(/[^0-9\/]*/g, '');
     }
+    if (['axis_right', 'axis_left'].includes(field)) {
+      if (value < 0) {
+        return 0;
+      }
+      return Math.min(value, 180);
+    }
+    return value;
+  }
+  return function(field, value) {
+    const scrubbed = scrub(field, value);
+    frm.set_value(field, scrubbed);
+    return scrubbed;
   };
 }
 
@@ -66,7 +76,7 @@ export default {
         return h(PrescriptionForm, {
           props: {
             doc: this.doc,
-            update: (field, value) => frm.set_value(field, value),
+            update: update_fields(frm),
             fields: frm.fields_dict,
           },
         });
@@ -76,10 +86,11 @@ export default {
   refresh: function(frm) {
     frm.detail_vue.doc = frm.doc;
   },
+  after_save: function(frm) {
+    frm.reload_doc();
+  },
   sph_right: handle_add_sph('right'),
   sph_left: handle_add_sph('left'),
-  va_right: handle_va('right'),
-  va_left: handle_va('left'),
   add_right: handle_add_sph('right'),
   add_left: handle_add_sph('left'),
   add_type_right: enable_sph_reading,
