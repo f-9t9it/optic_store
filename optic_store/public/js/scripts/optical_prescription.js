@@ -37,6 +37,9 @@ function update_fields(frm) {
       }
       return Math.min(value, 180);
     }
+    if (['cyl_right', 'cyl_left'].includes(field)) {
+      return Math.round(value * 4) / 4;
+    }
     return value;
   }
   return function(field, value) {
