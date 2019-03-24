@@ -46,6 +46,44 @@ function update_fields(frm) {
   };
 }
 
+function render_detail_vue(frm) {
+  const { $wrapper } = frm.get_field('details_html');
+  $wrapper.empty();
+  if (frm.doc.__islocal) {
+    // this makes the below fields reactive in vue
+    frm.doc = Object.assign(frm.doc, {
+      sph_reading_right: undefined,
+      sph_reading_left: undefined,
+      va_right: undefined,
+      va_left: undefined,
+      pd_total: undefined,
+    });
+  }
+  return new Vue({
+    el: $wrapper.html('<div />').children()[0],
+    data: { doc: frm.doc },
+    render: function(h) {
+      return h(PrescriptionForm, {
+        props: {
+          doc: this.doc,
+          update: update_fields(frm),
+          fields: frm.fields_dict,
+        },
+      });
+    },
+  });
+}
+
+function setup_route_back(frm) {
+  if (frappe._from_link && frappe._from_link.frm) {
+    const { doctype, docname } = frappe._from_link.frm;
+    // disable native route back for save events. will handle submits by own
+    frappe._from_link.frm = null;
+    return ['Form', doctype, docname];
+  }
+  return null;
+}
+
 export default {
   setup: async function(frm) {
     const { message: settings = {} } = await frappe.db.get_value(
@@ -57,37 +95,19 @@ export default {
   },
   onload: function(frm) {
     enable_sph_reading(frm);
-    const { $wrapper } = frm.get_field('details_html');
-    $wrapper.empty();
-    if (frm.doc.__islocal) {
-      // this makes the below fields reactive in vue
-      frm.doc = Object.assign(frm.doc, {
-        sph_reading_right: undefined,
-        sph_reading_left: undefined,
-        va_right: undefined,
-        va_left: undefined,
-        pd_total: undefined,
-      });
-    }
-    frm.detail_vue = new Vue({
-      el: $wrapper.html('<div />').children()[0],
-      data: { doc: frm.doc },
-      render: function(h) {
-        return h(PrescriptionForm, {
-          props: {
-            doc: this.doc,
-            update: update_fields(frm),
-            fields: frm.fields_dict,
-          },
-        });
-      },
-    });
+    frm.detail_vue = render_detail_vue(frm);
+    frm.route_back = setup_route_back(frm);
   },
   refresh: function(frm) {
     frm.detail_vue.doc = frm.doc;
   },
-  after_save: function(frm) {
-    frm.reload_doc();
+  on_submit: async function(frm) {
+    if (frm.route_back) {
+      await frappe.set_route(frm.route_back);
+      if (frappe._from_link_scrollY) {
+        frappe.utils.scroll_to(frappe._from_link_scrollY);
+      }
+    }
   },
   sph_right: handle_add_sph('right'),
   sph_left: handle_add_sph('left'),
