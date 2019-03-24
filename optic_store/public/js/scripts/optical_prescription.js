@@ -52,6 +52,8 @@ function render_detail_vue(frm) {
   if (frm.doc.__islocal) {
     // this makes the below fields reactive in vue
     frm.doc = Object.assign(frm.doc, {
+      add_right: undefined,
+      add_left: undefined,
       sph_reading_right: undefined,
       sph_reading_left: undefined,
       va_right: undefined,
@@ -111,7 +113,12 @@ export default {
   },
   sph_right: handle_add_sph('right'),
   sph_left: handle_add_sph('left'),
-  add_right: handle_add_sph('right'),
+  add_right: function(frm) {
+    handle_add_sph('right')(frm);
+    if (!frm.doc.add_left) {
+      frm.set_value('add_left', frm.doc.add_right);
+    }
+  },
   add_left: handle_add_sph('left'),
   add_type_right: enable_sph_reading,
   add_type_left: enable_sph_reading,

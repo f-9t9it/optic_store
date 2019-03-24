@@ -35,6 +35,11 @@ export default {
       this.scrubbed = this.on_change(e);
     },
   },
+  watch: {
+    value: function(value) {
+      this.scrubbed = value;
+    },
+  },
 };
 </script>
 
