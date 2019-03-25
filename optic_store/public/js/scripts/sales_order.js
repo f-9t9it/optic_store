@@ -3,9 +3,13 @@ import Vue from 'vue/dist/vue.js';
 import PrescriptionForm from '../components/PrescriptionForm.vue';
 import InvoiceDialog from '../frappe-components/InvoiceDialog';
 
-function orx_query(frm) {
+function setup_orx_name(frm) {
   const { customer, orx_type: type } = frm.doc;
   if (customer && type) {
+    const orx_name = frm.get_docfield('orx_name');
+    orx_name.get_route_options_for_new_doc = function(field) {
+      return { customer, type };
+    };
     frm.set_query('orx_name', function() {
       return {
         query: 'optic_store.api.optical_prescription.query_latest',
@@ -55,7 +59,7 @@ export default {
     render_prescription(frm);
     render_invoice_button(frm);
   },
-  customer: orx_query,
-  orx_type: orx_query,
+  customer: setup_orx_name,
+  orx_type: setup_orx_name,
   orx_name: render_prescription,
 };
