@@ -36,6 +36,7 @@ fixtures = [
                     "Sales Order-orx_lab",
                     "Sales Order-orx_html_sec",
                     "Sales Order-orx_html",
+                    "Sales Order-orx_group_discount",
                     "Sales Order-os_recall_sec",
                     "Sales Order-os_recall",
                     "Sales Order-os_recall_months",
