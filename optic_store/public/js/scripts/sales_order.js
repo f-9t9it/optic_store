@@ -55,7 +55,13 @@ async function apply_group_discount(frm) {
   const { orx_group_discount } = frm.doc;
   const items = frm
     .get_field('items')
-    .grid.grid_rows.map({ doctype, name: docname, brand: brand_name });
+    .grid.grid_rows.map(
+      ({ doc: { doctype, name: docname, brand: brand_name } }) => ({
+        doctype,
+        docname,
+        brand_name,
+      })
+    );
   if (orx_group_discount) {
     try {
       const { brands } = await frappe.db.get_doc(
@@ -63,7 +69,7 @@ async function apply_group_discount(frm) {
         orx_group_discount
       );
       if (brands) {
-        items.forEach(({ doc: { doctype, docname, brand_name } }) => {
+        items.forEach(({ doctype, docname, brand_name }) => {
           if (brand_name) {
             const { discount_rate = 0 } =
               brands.find(({ brand }) => brand === brand_name) || {};
@@ -80,7 +86,7 @@ async function apply_group_discount(frm) {
       frappe.throw(__('Cannot apply Group Discount'));
     }
   } else {
-    items.forEach(({ doc: { doctype, docname } }) => {
+    items.forEach(({ doctype, docname }) => {
       frappe.model.set_value(doctype, docname, 'discount_percentage', 0);
     });
   }
