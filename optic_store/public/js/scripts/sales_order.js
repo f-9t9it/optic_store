@@ -51,6 +51,47 @@ function render_invoice_button(frm) {
   }
 }
 
+async function apply_group_discount(frm) {
+  const { orx_group_discount } = frm.doc;
+  const items = frm
+    .get_field('items')
+    .grid.grid_rows.map(
+      ({ doc: { doctype, name: docname, brand: brand_name } }) => ({
+        doctype,
+        docname,
+        brand_name,
+      })
+    );
+  if (orx_group_discount) {
+    try {
+      const { brands } = await frappe.db.get_doc(
+        'Group Discount',
+        orx_group_discount
+      );
+      if (brands) {
+        items.forEach(({ doctype, docname, brand_name }) => {
+          if (brand_name) {
+            const { discount_rate = 0 } =
+              brands.find(({ brand }) => brand === brand_name) || {};
+            frappe.model.set_value(
+              doctype,
+              docname,
+              'discount_percentage',
+              discount_rate
+            );
+          }
+        });
+      }
+    } catch (e) {
+      frappe.throw(__('Cannot apply Group Discount'));
+    }
+  } else {
+    items.forEach(({ doctype, docname }) => {
+      frappe.model.set_value(doctype, docname, 'discount_percentage', 0);
+    });
+  }
+}
+
 export default {
   setup: function(frm) {
     frm.invoice_dialog = new InvoiceDialog();
@@ -62,4 +103,5 @@ export default {
   customer: setup_orx_name,
   orx_type: setup_orx_name,
   orx_name: render_prescription,
+  orx_group_discount: apply_group_discount,
 };

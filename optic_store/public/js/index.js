@@ -4,6 +4,7 @@ import {
   item,
   optical_prescription,
   optical_prescription_qe,
+  optical_store_settings,
 } from './scripts';
 
 frappe.ui.form.on('Sales Order', sales_order);
@@ -15,4 +16,4 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
 );
 
 frappe.provide('optic_store');
-optic_store = { optical_prescription };
+optic_store = { optical_prescription, optical_store_settings };
