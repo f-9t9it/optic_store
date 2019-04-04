@@ -4,8 +4,9 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 
 
 def validate(doc, method):
     if len(doc.items) > 5:
-        frappe.throw("Number of items cannot be greater than 5")
+        frappe.throw(_("Number of items cannot be greater than 5"))
