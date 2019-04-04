@@ -52,13 +52,16 @@ def make_customers():
 
 def make_items():
     records = [
+        ({"item_name": "Yellow Frame"}, {"item_group": "Frame"}),
+        ({"item_name": "Green Lens"}, {"item_group": "Prescription Lens"}),
         (
-            {"item_name": "Yellow Frame"},
-            {"item_name": "Yellow Frame", "item_group": "Frame"},
-        ),
-        (
-            {"item_name": "Green Lens"},
-            {"item_name": "Green Lens", "item_group": "Prescription Lens"},
+            {"item_name": "Gift Card"},
+            {
+                "item_group": "Products",
+                "is_gift_card": 1,
+                "gift_card_value": 100,
+                "gift_card_validity": 30,
+            },
         ),
     ]
     return map(lambda x: make_test_doc("Item", *x), records)
