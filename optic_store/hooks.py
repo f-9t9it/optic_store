@@ -25,6 +25,11 @@ fixtures = [
                     "Customer-branch",
                     "Item Group-item_group_abbr",
                     "Item-manual_item_code",
+                    "Item-gift_card_sec",
+                    "Item-is_gift_card",
+                    "Item-gift_card_col",
+                    "Item-gift_card_value",
+                    "Item-gift_card_validity",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
                     "Sales Order-orx_frame_size",
@@ -145,6 +150,8 @@ doc_events = {
     "Item": {
         "before_naming": "optic_store.doc_events.item.before_naming",
         "autoname": "optic_store.doc_events.item.autoname",
+        "validate": "optic_store.doc_events.item.validate",
+        "before_save": "optic_store.doc_events.item.before_save",
     },
 }
 
