@@ -153,7 +153,10 @@ doc_events = {
         "validate": "optic_store.doc_events.item.validate",
         "before_save": "optic_store.doc_events.item.before_save",
     },
-    "Serial No": {"after_insert": "optic_store.doc_events.serial_no.after_insert"},
+    "Serial No": {
+        "after_insert": "optic_store.doc_events.serial_no.after_insert",
+        "on_trash": "optic_store.doc_events.serial_no.on_trash",
+    },
 }
 
 # Scheduled Tasks

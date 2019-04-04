@@ -41,3 +41,15 @@ class TestSerialNo(unittest.TestCase):
         )
         amount = frappe.db.get_value("Gift Card", "Test Serial No", "amount")
         self.assertEqual(gift_card_value, amount)
+
+    def test_gift_card_on_serial_no_delete(self):
+        serial_no = frappe.get_doc(
+            {
+                "doctype": "Serial No",
+                "serial_no": "Test Serial No",
+                "item_code": self.test_item_name,
+            }
+        ).insert()
+        serial_no.delete()
+        gift_card = frappe.db.exists("Gift Card", {"gift_card_no": "Test Serial No"})
+        self.assertIsNone(gift_card)
