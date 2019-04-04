@@ -6,6 +6,8 @@ from __future__ import unicode_literals
 import frappe
 from toolz import merge
 
+from optic_store.api.install import _setup_accounts
+
 
 def make_sales_orders():
     make_users()
@@ -125,7 +127,9 @@ def make_companies():
             },
         )
     ]
-    return map(lambda x: make_test_doc("Company", *x), records)
+    companies = map(lambda x: make_test_doc("Company", *x), records)
+    map(_setup_accounts, map(lambda x: x.name, companies))
+    return companies
 
 
 def make_test_doc(doctype, exists_dict, args, submit=False):
