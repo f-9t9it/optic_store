@@ -67,6 +67,12 @@ def make_items():
     return map(lambda x: make_test_doc("Item", *x), records)
 
 
+def make_serials():
+    items = make_items()
+    records = [({"serial_no": "GC0001"}, {"item_code": items[2].name})]
+    return map(lambda x: make_test_doc("Serial No", *x), records)
+
+
 def make_employees():
     make_companies()
     make_users()

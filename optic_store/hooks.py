@@ -157,6 +157,7 @@ doc_events = {
         "after_insert": "optic_store.doc_events.serial_no.after_insert",
         "on_trash": "optic_store.doc_events.serial_no.on_trash",
     },
+    "Sales Invoice": {"on_submit": "optic_store.doc_events.sales_invoice.on_submit"},
 }
 
 # Scheduled Tasks
