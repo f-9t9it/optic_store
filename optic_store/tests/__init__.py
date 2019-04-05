@@ -9,6 +9,48 @@ from toolz import merge
 from optic_store.api.install import _setup_accounts
 
 
+def make_sales_invoices():
+    make_users()
+    make_companies()
+    customer = make_customers()[0]
+    items = make_items()
+    serial_nos = make_serials()
+    records = [
+        (
+            {"customer": customer.name, "posting_date": "2019-02-28"},
+            {
+                "company": "Optix",
+                "set_posting_time": 1,
+                "posting_date": "2019-02-28",
+                "due_date": "2019-03-02",
+                "items": [
+                    {
+                        "item_code": items[2].name,
+                        "qty": 1,
+                        "rate": 100,
+                        "conversion_factor": 1,
+                        "warehouse": "Stores - O",
+                        "cost_center": "Main - O",
+                        "enable_deferred_revenue": 1,
+                        "serial_no": serial_nos[2].name,
+                    },
+                    {
+                        "item_code": items[3].name,
+                        "qty": 1,
+                        "rate": 200,
+                        "conversion_factor": 1,
+                        "warehouse": "Stores - O",
+                        "cost_center": "Main - O",
+                        "enable_deferred_revenue": 1,
+                        "serial_no": serial_nos[1].name,
+                    },
+                ],
+            },
+        )
+    ]
+    return map(lambda x: make_test_doc("Sales Invoice", submit=True, *x), records)
+
+
 def make_sales_orders():
     make_users()
     make_companies()
@@ -65,13 +107,21 @@ def make_items():
                 "gift_card_validity": 30,
             },
         ),
+        (
+            {"item_name": "Gift Card Unlimited"},
+            {"item_group": "Products", "is_gift_card": 1, "gift_card_value": 200},
+        ),
     ]
     return map(lambda x: make_test_doc("Item", *x), records)
 
 
 def make_serials():
     items = make_items()
-    records = [({"serial_no": "GC0001"}, {"item_code": items[2].name})]
+    records = [
+        ({"serial_no": "GC0001"}, {"item_code": items[2].name}),
+        ({"serial_no": "GCU0001"}, {"item_code": items[3].name}),
+        ({"serial_no": "GC0002"}, {"item_code": items[2].name}),
+    ]
     return map(lambda x: make_test_doc("Serial No", *x), records)
 
 

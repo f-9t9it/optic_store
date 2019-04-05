@@ -160,8 +160,10 @@ doc_events = {
         "on_trash": "optic_store.doc_events.serial_no.on_trash",
     },
     "Sales Invoice": {
+        "validate": "optic_store.doc_events.sales_invoice.validate",
         "before_submit": "optic_store.doc_events.sales_invoice.before_submit",
         "on_submit": "optic_store.doc_events.sales_invoice.on_submit",
+        "on_cancel": "optic_store.doc_events.sales_invoice.on_cancel",
     },
 }
 
