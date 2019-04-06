@@ -251,3 +251,31 @@ def _setup_accounts(company):
             },
         )
         mop.save(ignore_permissions=True)
+
+    jea_options = (
+        frappe.get_meta("Journal Entry Account").get_field("reference_type").options
+    )
+    if "Gift Card" not in jea_options:
+        existing_ps = frappe.db.exists(
+            "Property Setter",
+            {
+                "doc_type": "Journal Entry Account",
+                "field_name": "reference_type",
+                "property": "options",
+            },
+        )
+        if existing_ps:
+            ps = frappe.get_doc("Property Setter", existing_ps)
+            ps.value = ps.value + "\nGift Card"
+            ps.save(ignore_permissions=True)
+        else:
+            frappe.get_doc(
+                {
+                    "doctype": "Property Setter",
+                    "doc_type": "Journal Entry Account",
+                    "doctype_or_field": "DocField",
+                    "field_name": "reference_type",
+                    "property": "options",
+                    "value": jea_options + "\nGift Card",
+                }
+            ).insert(ignore_permissions=True)
