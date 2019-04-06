@@ -7,6 +7,7 @@ import {
   optical_prescription,
   optical_prescription_qe,
   optical_store_settings,
+  gift_card,
 } from './scripts';
 
 frappe.ui.form.on('Sales Invoice', sales_invoice);
@@ -20,4 +21,4 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
 );
 
 frappe.provide('optic_store');
-optic_store = { optical_prescription, optical_store_settings };
+optic_store = { optical_prescription, optical_store_settings, gift_card };
