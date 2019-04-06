@@ -11,7 +11,6 @@ from toolz import merge
 def setup_defaults():
     frappe.only_for("System Manager")
     company = frappe.defaults.get_global_default("company")
-    _create_item_groups()
     _update_settings()
     _setup_workflow()
     _setup_accounts(company)
