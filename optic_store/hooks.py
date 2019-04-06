@@ -166,6 +166,7 @@ doc_events = {
         "on_submit": "optic_store.doc_events.sales_invoice.on_submit",
         "on_cancel": "optic_store.doc_events.sales_invoice.on_cancel",
     },
+    "Journal Entry": {"on_cancel": "optic_store.doc_events.journal_entry.on_cancel"},
 }
 
 # Scheduled Tasks
