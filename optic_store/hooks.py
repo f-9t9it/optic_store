@@ -172,23 +172,13 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"optic_store.tasks.all"
-# 	],
-# 	"daily": [
-# 		"optic_store.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"optic_store.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"optic_store.tasks.weekly"
-# 	]
-# 	"monthly": [
-# 		"optic_store.tasks.monthly"
-# 	]
-# }
+scheduler_events = {
+    # "all": ["optic_store.tasks.all"],
+    "daily": ["optic_store.api.gift_card.write_off_expired_gift_cards"],
+    # "hourly": ["optic_store.tasks.hourly"],
+    # "weekly": ["optic_store.tasks.weekly"],
+    # "monthly": ["optic_store.tasks.monthly"],
+}
 
 # Testing
 # -------

@@ -5,7 +5,9 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import getdate
+from frappe.utils import getdate, today
+from functools import partial
+from toolz import compose
 
 
 @frappe.whitelist()
@@ -38,7 +40,11 @@ def write_off(gift_card_no, posting_date):
                 )
             )
         )
+    _make_je([gc], posting_date)
+    frappe.db.set_value("Gift Card", gift_card_no, "balance", 0)
 
+
+def _make_je(gift_cards, posting_date):
     gc_account = frappe.db.get_single_value(
         "Optical Store Settings", "gift_card_deferred_revenue"
     )
@@ -47,27 +53,53 @@ def write_off(gift_card_no, posting_date):
         "Company", company, "write_off_account"
     ) or frappe.db.exists("Account", {"company": company, "account_name": "Write Off"})
     cost_center = frappe.db.get_value("Company", company, "cost_center")
+
+    def make_journal_entry_account(gc):
+        return {
+            "account": gc_account,
+            "debit_in_account_currency": gc.balance,
+            "reference_type": "Gift Card",
+            "reference_name": gc.gift_card_no,
+        }
+
+    sum_of_balances = compose(sum, partial(map, lambda x: x.balance))
+
     je = frappe.get_doc(
         {
             "doctype": "Journal Entry",
             "voucher_type": "Write Off Entry",
             "posting_date": posting_date,
             "company": company,
-            "accounts": [
-                {
-                    "account": gc_account,
-                    "debit_in_account_currency": gc.balance,
-                    "reference_type": "Gift Card",
-                    "reference_name": gift_card_no,
-                },
+            "accounts": map(make_journal_entry_account, gift_cards)
+            + [
                 {
                     "account": wo_account,
                     "cost_center": cost_center,
-                    "credit_in_account_currency": gc.balance,
-                },
+                    "credit_in_account_currency": sum_of_balances(gift_cards),
+                }
             ],
         }
     )
     je.insert()
     je.submit()
-    frappe.db.set_value("Gift Card", gift_card_no, "balance", 0)
+
+
+def write_off_expired_gift_cards():
+    posting_date = today()
+    gift_cards = map(
+        frappe._dict,
+        frappe.db.sql(
+            """
+            SELECT gift_card_no, balance FROM `tabGift Card`
+            WHERE IFNULL(balance, 0) > 0 AND expiry_date < %(posting_date)s
+        """,
+            values={"posting_date": posting_date},
+            as_dict=1,
+        ),
+    )
+
+    _make_je(gift_cards, posting_date)
+    map(
+        lambda x: frappe.db.set_value("Gift Card", x.gift_card_no, "balance", 0),
+        gift_cards,
+    )
