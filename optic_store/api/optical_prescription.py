@@ -9,7 +9,6 @@ from toolz import compose
 
 
 def query_latest(doctype, txt, searchfield, start, page_len, filters):
-    print("here")
     return frappe.db.sql(
         """
             SELECT name, type, customer_name, test_date

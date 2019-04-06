@@ -48,6 +48,7 @@ fixtures = [
                     "Sales Order-os_recall_col",
                     "Sales Order-os_recall_reason",
                     "Sales Invoice-os_gift_card_sec",
+                    "Sales Invoice-os_gift_card_entry",
                     "Sales Invoice-os_gift_cards",
                 ],
             ]
