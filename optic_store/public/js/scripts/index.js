@@ -1,4 +1,7 @@
-export { default as sales_invoice } from './sales_invoice';
+export {
+  sales_invoice_gift_cards,
+  default as sales_invoice,
+} from './sales_invoice';
 export { default as sales_order } from './sales_order';
 export { default as customer } from './customer';
 export { default as item } from './item';

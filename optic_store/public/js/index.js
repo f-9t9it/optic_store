@@ -1,5 +1,6 @@
 import {
   sales_invoice,
+  sales_invoice_gift_cards,
   sales_order,
   customer,
   item,
@@ -9,6 +10,7 @@ import {
 } from './scripts';
 
 frappe.ui.form.on('Sales Invoice', sales_invoice);
+frappe.ui.form.on('Sales Invoice Gift Card', sales_invoice_gift_cards);
 frappe.ui.form.on('Sales Order', sales_order);
 frappe.ui.form.on('Customer', customer);
 frappe.ui.form.on('Item', item);
