@@ -3,6 +3,9 @@ export default {
     frm.set_query('item_group', 'dashboard_item_groups', {
       filters: [['is_group', '=', '0']],
     });
+    frm.set_query('gift_card_deferred_revenue', {
+      filters: [['root_type', '=', 'Liability'], ['is_group', '=', '0']],
+    });
 
     // hack to enable this button during development
     const development = true;

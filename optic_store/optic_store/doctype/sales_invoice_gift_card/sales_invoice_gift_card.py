@@ -4,9 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
+from frappe.model.document import Document
 
-
-def validate(doc, method):
-    if len(doc.items) > 5:
-        frappe.throw(_("Number of items cannot be greater than 5"))
+class SalesInvoiceGiftCard(Document):
+	pass

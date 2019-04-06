@@ -25,6 +25,11 @@ fixtures = [
                     "Customer-branch",
                     "Item Group-item_group_abbr",
                     "Item-manual_item_code",
+                    "Item-gift_card_sec",
+                    "Item-is_gift_card",
+                    "Item-gift_card_col",
+                    "Item-gift_card_value",
+                    "Item-gift_card_validity",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
                     "Sales Order-orx_frame_size",
@@ -42,6 +47,8 @@ fixtures = [
                     "Sales Order-os_recall_months",
                     "Sales Order-os_recall_col",
                     "Sales Order-os_recall_reason",
+                    "Sales Invoice-os_gift_card_sec",
+                    "Sales Invoice-os_gift_cards",
                 ],
             ]
         ],
@@ -145,6 +152,18 @@ doc_events = {
     "Item": {
         "before_naming": "optic_store.doc_events.item.before_naming",
         "autoname": "optic_store.doc_events.item.autoname",
+        "validate": "optic_store.doc_events.item.validate",
+        "before_save": "optic_store.doc_events.item.before_save",
+    },
+    "Serial No": {
+        "after_insert": "optic_store.doc_events.serial_no.after_insert",
+        "on_trash": "optic_store.doc_events.serial_no.on_trash",
+    },
+    "Sales Invoice": {
+        "validate": "optic_store.doc_events.sales_invoice.validate",
+        "before_submit": "optic_store.doc_events.sales_invoice.before_submit",
+        "on_submit": "optic_store.doc_events.sales_invoice.on_submit",
+        "on_cancel": "optic_store.doc_events.sales_invoice.on_cancel",
     },
 }
 

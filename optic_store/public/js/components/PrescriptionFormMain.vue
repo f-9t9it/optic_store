@@ -7,6 +7,7 @@
     <div class="os-row-header first">Distance</div>
     <div v-for="side in sides" :class="get_side_class(side, ['os-value'])">
       <prescription-form-field
+        :key="`${param}_${side}`"
         v-for="param in params"
         v-bind="get_field_props(side, param)"
       />
@@ -63,16 +64,14 @@ export default {
       });
     },
     get_field_props: function(side, param) {
+      const field = `${param}_${side}`;
       return {
         param,
         side,
         disabled: this.doc.docstatus !== 0,
         step: this.get_step(param),
         type: param === 'va' ? 'text' : 'number',
-        value:
-          param === 'va'
-            ? this.doc[`${param}_${side}`]
-            : parseFloat(this.doc[`${param}_${side}`]),
+        value: param === 'va' ? this.doc[field] : parseFloat(this.doc[field]),
         get_formatted: this.get_formatted,
         on_change: this.on_change,
       };

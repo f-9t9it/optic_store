@@ -10,9 +10,11 @@ from toolz import merge
 @frappe.whitelist()
 def setup_defaults():
     frappe.only_for("System Manager")
+    company = frappe.defaults.get_global_default("company")
     _create_item_groups()
     _update_settings()
     _setup_workflow()
+    _setup_accounts(company)
 
 
 def _create_item_groups():
@@ -207,3 +209,46 @@ def _setup_workflow():
             }
         ],
     )
+
+
+def _setup_accounts(company):
+    def create_or_get_account_name():
+        parent_account = frappe.db.exists(
+            "Account", {"company": company, "account_name": "Current Liabilities"}
+        )
+        account_args = {"company": company, "account_name": "Gift Card"}
+        account_name = frappe.db.exists("Account", account_args)
+        if account_name:
+            return account_name
+        account = frappe.get_doc(
+            merge(
+                {"doctype": "Account"},
+                account_args,
+                {"parent_account": parent_account, "account_type": "Cash"},
+            )
+        ).insert(ignore_permissions=True)
+        return account.name
+
+    def create_or_get_mode_of_payment():
+        mop_args = {"mode_of_payment": "Gift Card"}
+        mop_name = frappe.db.exists("Mode of Payment", mop_args)
+        if mop_name:
+            return frappe.get_doc("Mode of Payment", mop_name)
+        return frappe.get_doc(
+            merge({"doctype": "Mode of Payment"}, mop_args, {"type": "General"})
+        ).insert(ignore_permissions=True)
+
+    settings = frappe.get_single("Optical Store Settings")
+    settings.gift_card_deferred_revenue = create_or_get_account_name()
+    settings.save(ignore_permissions=True)
+
+    mop = create_or_get_mode_of_payment()
+    if company not in map(lambda x: x.company, mop.accounts):
+        mop.append(
+            "accounts",
+            {
+                "company": company,
+                "default_account": settings.gift_card_deferred_revenue,
+            },
+        )
+        mop.save(ignore_permissions=True)

@@ -37,59 +37,26 @@ class TestSalesOrder(unittest.TestCase):
         frappe.set_user(self.old_user)
         remove_test_doc("Sales Order", {"owner": "simpson@optix.com"})
 
-    def test_validation_for_specs_frame(self):
+    def test_validation_to_limit_items_to_5(self):
         so = frappe.get_doc(
             merge(
                 _so_args,
                 {
-                    "orx_type": "Spectacles",
                     "items": [
                         {
                             "item_code": frappe.db.exists(
                                 "Item", {"item_name": "Green Lens"}
                             ),
-                            "qty": 2,
+                            "qty": 1,
                             "rate": 100,
                             "conversion_factor": 1,
                             "warehouse": "Stores - O",
                         }
-                    ],
+                        for x in range(0, 6)
+                    ]
                 },
             )
         )
         with self.assertRaises(frappe.ValidationError) as cm:
             so.insert()
-        self.assertTrue("without a Frame" in cm.exception.message)
-
-    def test_validation_for_specs_lens(self):
-        so = frappe.get_doc(
-            merge(
-                _so_args,
-                {
-                    "orx_type": "Spectacles",
-                    "items": [
-                        {
-                            "item_code": frappe.db.exists(
-                                "Item", {"item_name": "Yellow Frame"}
-                            ),
-                            "qty": 1,
-                            "rate": 100,
-                            "conversion_factor": 1,
-                            "warehouse": "Stores - O",
-                        },
-                        {
-                            "item_code": frappe.db.exists(
-                                "Item", {"item_name": "Green Lens"}
-                            ),
-                            "qty": 1,
-                            "rate": 100,
-                            "conversion_factor": 1,
-                            "warehouse": "Stores - O",
-                        },
-                    ],
-                },
-            )
-        )
-        with self.assertRaises(frappe.ValidationError) as cm:
-            so.insert()
-        self.assertTrue("without Lenses" in cm.exception.message)
+        self.assertTrue("cannot be greater than 5" in cm.exception.message)

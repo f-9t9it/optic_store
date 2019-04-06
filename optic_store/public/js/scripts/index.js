@@ -1,3 +1,4 @@
+export { default as sales_invoice } from './sales_invoice';
 export { default as sales_order } from './sales_order';
 export { default as customer } from './customer';
 export { default as item } from './item';

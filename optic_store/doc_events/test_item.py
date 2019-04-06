@@ -57,3 +57,59 @@ class TestItem(unittest.TestCase):
             }
         ).insert()
         self.assertEqual(item.item_code, "Overridden")
+
+    def test_gift_card_item_requires_value(self):
+        item = frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_name": "Test Green Solution",
+                "item_group": "Products",
+                "is_gift_card": 1,
+            }
+        )
+        with self.assertRaises(frappe.ValidationError) as cm:
+            item.insert()
+        self.assertTrue("value is required" in cm.exception.message)
+
+    def test_gift_card_item_sets_serial_no_and_enable_deferred_revenue(self):
+        item = frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_name": "Test Green Solution",
+                "item_group": "Products",
+                "is_gift_card": 1,
+                "gift_card_value": 1,
+            }
+        ).insert()
+        self.assertEqual(item.has_serial_no, 1)
+        self.assertEqual(item.enable_deferred_revenue, 1)
+
+    def test_gift_card_item_sets_deferred_revenue_account_from_settings(self):
+        item = frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_name": "Test Green Solution",
+                "item_group": "Products",
+                "is_gift_card": 1,
+                "gift_card_value": 1,
+            }
+        ).insert()
+        deferred_revenue_account = frappe.db.get_single_value(
+            "Optical Store Settings", "gift_card_deferred_revenue"
+        )
+        self.assertEqual(item.deferred_revenue_account, deferred_revenue_account)
+
+    def test_gift_card_item_requires_zero_deferred_no_of_months(self):
+        item = frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_name": "Test Green Solution",
+                "item_group": "Products",
+                "is_gift_card": 1,
+                "gift_card_value": 1,
+                "no_of_months": 1,
+            }
+        )
+        with self.assertRaises(frappe.ValidationError) as cm:
+            item.insert()
+        self.assertTrue("needs to be zero" in cm.exception.message)
