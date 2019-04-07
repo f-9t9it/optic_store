@@ -30,6 +30,7 @@ fixtures = [
                     "Item-gift_card_col",
                     "Item-gift_card_value",
                     "Item-gift_card_validity",
+                    "Brand-brand_category",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
                     "Sales Order-orx_frame_size",
