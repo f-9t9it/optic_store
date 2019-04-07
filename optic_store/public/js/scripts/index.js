@@ -8,4 +8,5 @@ export { default as item } from './item';
 export { default as optical_prescription } from './optical_prescription';
 export { default as optical_prescription_qe } from './optical_prescription_qe';
 export { default as optical_store_settings } from './optical_store_settings';
+export { default as group_discount } from './group_discount';
 export { default as gift_card } from './gift_card';
