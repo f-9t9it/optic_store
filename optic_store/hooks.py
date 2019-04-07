@@ -48,6 +48,7 @@ fixtures = [
                     "Sales Order-os_recall_col",
                     "Sales Order-os_recall_reason",
                     "Sales Invoice-os_gift_card_sec",
+                    "Sales Invoice-os_gift_card_entry",
                     "Sales Invoice-os_gift_cards",
                 ],
             ]
@@ -165,28 +166,19 @@ doc_events = {
         "on_submit": "optic_store.doc_events.sales_invoice.on_submit",
         "on_cancel": "optic_store.doc_events.sales_invoice.on_cancel",
     },
+    "Journal Entry": {"on_cancel": "optic_store.doc_events.journal_entry.on_cancel"},
 }
 
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"optic_store.tasks.all"
-# 	],
-# 	"daily": [
-# 		"optic_store.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"optic_store.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"optic_store.tasks.weekly"
-# 	]
-# 	"monthly": [
-# 		"optic_store.tasks.monthly"
-# 	]
-# }
+scheduler_events = {
+    # "all": ["optic_store.tasks.all"],
+    "daily": ["optic_store.api.gift_card.write_off_expired_gift_cards"],
+    # "hourly": ["optic_store.tasks.hourly"],
+    # "weekly": ["optic_store.tasks.weekly"],
+    # "monthly": ["optic_store.tasks.monthly"],
+}
 
 # Testing
 # -------
