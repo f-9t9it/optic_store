@@ -94,7 +94,31 @@ def make_customers():
     return map(lambda x: make_test_doc("Customer", *x), records)
 
 
+def make_group_discounts():
+    make_brand_categories()
+    make_brands()
+    make_items()
+    records = [
+        (
+            {"discount_name": "DomCo"},
+            {"discounts": [{"brand_category": "Cat 1", "discount_rate": 25}]},
+        ),
+        (
+            {"discount_name": "Hogwarts"},
+            {
+                "discounts": [
+                    {"brand_category": "Cat 1", "discount_rate": 10},
+                    {"brand_category": "Cat 2", "discount_rate": 5},
+                ]
+            },
+        ),
+    ]
+    return map(lambda x: make_test_doc("Group Discount", *x), records)
+
+
 def make_items():
+    make_brand_categories()
+    make_brands()
     records = [
         ({"item_name": "Yellow Frame"}, {"item_group": "Frame"}),
         ({"item_name": "Green Lens"}, {"item_group": "Prescription Lens"}),
@@ -111,8 +135,34 @@ def make_items():
             {"item_name": "Gift Card Unlimited"},
             {"item_group": "Products", "is_gift_card": 1, "gift_card_value": 200},
         ),
+        (
+            {"item_name": "Purple Contacts"},
+            {"item_group": "Contact Lens", "brand": None},
+        ),
+        (
+            {"item_name": "Red Lens"},
+            {"item_group": "Prescription Lens", "brand": "Acme"},
+        ),
+        (
+            {"item_name": "Blue Shades"},
+            {"item_group": "Sunglasses", "brand": "Derelique"},
+        ),
     ]
     return map(lambda x: make_test_doc("Item", *x), records)
+
+
+def make_brands():
+    make_brand_categories()
+    records = [
+        ({"brand": "Derelique"}, {"brand_category": "Cat 1"}),
+        ({"brand": "Acme"}, {"brand_category": "Cat 2"}),
+    ]
+    return map(lambda x: make_test_doc("Brand", *x), records)
+
+
+def make_brand_categories():
+    records = [({"category_name": "Cat 1"}, {}), ({"category_name": "Cat 2"}, {})]
+    return map(lambda x: make_test_doc("Brand Category", *x), records)
 
 
 def make_serials():

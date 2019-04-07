@@ -55,33 +55,30 @@ async function apply_group_discount(frm) {
   const { orx_group_discount } = frm.doc;
   const items = frm
     .get_field('items')
-    .grid.grid_rows.map(
-      ({ doc: { doctype, name: docname, brand: brand_name } }) => ({
-        doctype,
-        docname,
-        brand_name,
-      })
-    );
+    .grid.grid_rows.map(({ doc: { doctype, name: docname, item_code } }) => ({
+      doctype,
+      docname,
+      item_code,
+    }));
   if (orx_group_discount) {
     try {
-      const { brands } = await frappe.db.get_doc(
-        'Group Discount',
-        orx_group_discount
-      );
-      if (brands) {
-        items.forEach(({ doctype, docname, brand_name }) => {
-          if (brand_name) {
-            const { discount_rate = 0 } =
-              brands.find(({ brand }) => brand === brand_name) || {};
-            frappe.model.set_value(
-              doctype,
-              docname,
-              'discount_percentage',
-              discount_rate
-            );
-          }
-        });
-      }
+      const { message: discounts } = await frappe.call({
+        method: 'optic_store.api.group_discount.get_item_discounts',
+        args: {
+          discount_name: orx_group_discount,
+          item_codes: items.map(({ item_code }) => item_code),
+        },
+      });
+      items.forEach(({ doctype, docname, item_code }) => {
+        const { discount_rate = 0 } =
+          discounts.find(d => d.item_code === item_code) || {};
+        frappe.model.set_value(
+          doctype,
+          docname,
+          'discount_percentage',
+          discount_rate
+        );
+      });
     } catch (e) {
       frappe.throw(__('Cannot apply Group Discount'));
     }
