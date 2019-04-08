@@ -89,6 +89,13 @@ function setup_route_back(frm) {
   return null;
 }
 
+function set_expiry_date(frm) {
+  frm.set_value(
+    'expiry_date',
+    frappe.datetime.add_months(frm.doc.test_date, 6)
+  );
+}
+
 export default {
   setup: async function(frm) {
     const { message: settings = {} } = await frappe.db.get_value(
@@ -105,7 +112,11 @@ export default {
   },
   refresh: function(frm) {
     frm.detail_vue.doc = frm.doc;
+    if (frm.doc.__islocal) {
+      set_expiry_date(frm);
+    }
   },
+  test_date: set_expiry_date,
   on_submit: async function(frm) {
     if (frm.route_back) {
       await frappe.set_route(frm.route_back);
