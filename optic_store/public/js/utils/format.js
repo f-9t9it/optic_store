@@ -7,11 +7,14 @@ export function get_formatted(doc) {
     if ('axis' === param) {
       return `${value}°`;
     }
-    if (['pd', 'height'].includes(param)) {
-      return `${value.toFixed(0)}mm`;
+    if ('height' === param) {
+      return `${value.toFixed(2)}mm`;
+    }
+    if ('pd' === param) {
+      return `${value.toFixed(1)}mm`;
     }
     if ('prism' === param) {
-      return value.toFixed(1);
+      return value.toFixed(2);
     }
     if ('iop' === param) {
       return `${value.toFixed(2)}mmHg`;

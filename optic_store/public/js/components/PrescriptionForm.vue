@@ -27,7 +27,7 @@ function get_step(param) {
     return '0.25';
   }
   if ('prism' === param) {
-    return '0.1';
+    return '0.01';
   }
   if (['axis', 'pd'].includes(param)) {
     return '1';
