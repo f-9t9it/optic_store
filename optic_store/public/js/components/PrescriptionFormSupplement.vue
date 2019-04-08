@@ -6,8 +6,9 @@
     >
       {{ side }}
     </div>
-    <div class="os-row-header first">PD</div>
+    <div v-if="doc.type === 'Spectacles'" class="os-row-header first">PD</div>
     <div
+      v-if="doc.type === 'Spectacles'"
       v-for="side in ['right', 'left', 'total']"
       :class="get_side_class(side, ['os-value'])"
     >
@@ -16,8 +17,9 @@
         v-bind="get_field_props(side, 'pd')"
       />
     </div>
-    <div class="os-row-header">Prism</div>
+    <div v-if="doc.type === 'Spectacles'" class="os-row-header">Prism</div>
     <div
+      v-if="doc.type === 'Spectacles'"
       v-for="side in ['right', 'left']"
       :class="get_side_class(side, ['os-value'])"
     >
@@ -26,7 +28,9 @@
         v-bind="get_field_props(side, 'prism')"
       />
     </div>
-    <div class="os-row-header">IOP</div>
+    <div :class="{ 'os-row-header': true, first: doc.type !== 'Spectacles' }">
+      IOP
+    </div>
     <div
       v-for="side in ['right', 'left']"
       :class="get_side_class(side, ['os-value'])"
