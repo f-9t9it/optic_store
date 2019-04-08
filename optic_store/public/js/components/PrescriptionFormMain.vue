@@ -48,7 +48,7 @@ export default {
       if (this.doc.type === 'Spectacles') {
         return RX_PARAMS_SPEC_DIST;
       }
-      if (this.doc.type === 'Contacts') {
+      if (this.doc.type === 'Contact Lens') {
         return RX_PARAMS_CONT_DIST;
       }
       return [];
@@ -60,7 +60,7 @@ export default {
         right: side === 'right',
         left: side === 'left',
         four: this.doc.type === 'Spectacles',
-        six: this.doc.type === 'Contacts',
+        six: this.doc.type === 'Contact Lens',
       });
     },
     get_field_props: function(side, param) {
