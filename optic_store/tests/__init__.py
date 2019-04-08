@@ -78,6 +78,19 @@ def make_sales_orders():
     return map(lambda x: make_test_doc("Sales Order", submit=True, *x), records)
 
 
+def make_prescriptions():
+    make_customers()
+    records = [
+        (
+            {"customer": "Ned Flanders", "test_date": "2019-02-01"},
+            {"type": "Spectacles"},
+        )
+    ]
+    return map(
+        lambda x: make_test_doc("Optical Prescription", submit=True, *x), records
+    )
+
+
 def make_customers():
     make_branches()
     records = [
@@ -146,6 +159,10 @@ def make_items():
         (
             {"item_name": "Blue Shades"},
             {"item_group": "Sunglasses", "brand": "Derelique"},
+        ),
+        (
+            {"item_name": "Repair Service"},
+            {"item_group": "Services", "is_stock_item": 0},
         ),
     ]
     return map(lambda x: make_test_doc("Item", *x), records)

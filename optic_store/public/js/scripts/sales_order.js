@@ -89,6 +89,18 @@ async function apply_group_discount(frm) {
   }
 }
 
+function handle_order_type(frm) {
+  const { os_order_type } = frm.doc;
+  frm.toggle_display('orx_sec', ['Sales', 'Eye Test'].includes(os_order_type));
+  if (os_order_type === 'Eye Test') {
+    frm.set_query('item_code', 'items', function() {
+      return {
+        filters: { item_group: 'Services' },
+      };
+    });
+  }
+}
+
 export default {
   setup: function(frm) {
     frm.invoice_dialog = new InvoiceDialog();
@@ -96,7 +108,9 @@ export default {
   refresh: function(frm) {
     render_prescription(frm);
     render_invoice_button(frm);
+    handle_order_type(frm);
   },
+  os_order_type: handle_order_type,
   customer: setup_orx_name,
   orx_type: setup_orx_name,
   orx_name: render_prescription,
