@@ -101,6 +101,14 @@ function handle_order_type(frm) {
   }
 }
 
+async function set_source_warehouse(frm) {
+  const { message: warehouse } = await frappe.call({
+    method: 'optic_store.api.sales_order.get_warehouse',
+    args: { user: frappe.session.user },
+  });
+  frm.set_value('set_warehouse', warehouse);
+}
+
 export default {
   setup: function(frm) {
     frm.invoice_dialog = new InvoiceDialog();
@@ -109,6 +117,9 @@ export default {
     render_prescription(frm);
     render_invoice_button(frm);
     handle_order_type(frm);
+    if (frm.doc.__islocal) {
+      set_source_warehouse(frm);
+    }
   },
   os_order_type: handle_order_type,
   customer: setup_orx_name,

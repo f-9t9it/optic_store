@@ -202,5 +202,22 @@
   "property": "hidden", 
   "property_type": "Check", 
   "value": "1"
+ }, 
+ {
+  "_assign": null, 
+  "_comments": null, 
+  "_liked_by": null, 
+  "_user_tags": null, 
+  "default_value": null, 
+  "doc_type": "Sales Order", 
+  "docstatus": 0, 
+  "doctype": "Property Setter", 
+  "doctype_or_field": "DocField", 
+  "field_name": "set_warehouse", 
+  "modified": "2019-04-10 01:07:49.131150", 
+  "name": "Sales Order-set_warehouse-read_only", 
+  "property": "read_only", 
+  "property_type": "Check", 
+  "value": "1"
  }
 ]

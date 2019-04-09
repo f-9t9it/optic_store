@@ -9,6 +9,8 @@ from erpnext.stock.get_item_details import get_pos_profile
 from functools import partial
 from toolz import pluck, unique, compose
 
+from optic_store.api.customer import get_user_branch
+
 
 @frappe.whitelist()
 def invoice_qol(name, mode_of_payment=None, amount=None):
@@ -50,3 +52,9 @@ def get_invoice(name):
         "print_format": _get_print_format_from(pos_profile),
         "no_letterhead": "1" if pos_profile and pos_profile.letter_head else "0",
     }
+
+
+@frappe.whitelist()
+def get_warehouse():
+    branch = get_user_branch()
+    return frappe.db.get_value("Branch", branch, "warehouse") if branch else None

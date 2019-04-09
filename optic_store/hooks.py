@@ -22,6 +22,7 @@ fixtures = [
                 "name",
                 "in",
                 [
+                    "Branch-warehouse",
                     "Customer-branch",
                     "Item Group-item_group_abbr",
                     "Item-manual_item_code",
@@ -69,6 +70,7 @@ fixtures = [
                     "Item-quick_entry",
                     "Item-naming_series-options",
                     "Sales Order-order_type-hidden",
+                    "Sales Order-set_warehouse-read_only",
                     "Sales Order-po_no-hidden",
                     "Sales Order-terms_section_break-hidden",
                     "Sales Order-more_info-hidden",
