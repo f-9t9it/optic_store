@@ -1,7 +1,11 @@
 import Vue from 'vue/dist/vue.js';
 
 import PrescriptionForm from '../components/PrescriptionForm.vue';
-import { get_all_rx_params } from '../utils/constants';
+import {
+  get_all_rx_params,
+  get_signed_fields,
+  get_prec2_fields,
+} from '../utils/constants';
 import { format } from '../utils/format';
 
 function enable_sph_reading(side) {
@@ -28,25 +32,39 @@ function toggle_detail_entry(frm, state) {
 
 function calc_total_pd(frm) {
   const { pd_right = 0, pd_left = 0 } = frm.doc;
-  frm.set_value('pd_total', parseFloat(pd_right) + parseFloat(pd_left));
+  const fval = parseFloat(pd_right) + parseFloat(pd_left);
+  frm.set_value('pd_total', fval.toFixed(1));
 }
 
 function update_fields(frm) {
-  function scrub(field, value) {
-    if (['sph', 'cyl', 'add'].find(p => field.includes(p))) {
-      return /^(\+|-)?\d*\.?\d{0,2}$/.test(value) ? value : frm.doc[field];
+  const signed_fields = get_signed_fields();
+  const prec2_fields = get_prec2_fields();
+  function get_re(field) {
+    if (signed_fields.includes(field)) {
+      return /^(\+|-)?\d*\.?\d{0,2}$/;
     }
-    // if (field.includes('axis')) {
-    //   return value < 0 ? 0 : Math.min(value, 180);
-    // }
+    if (field.includes('axis')) {
+      return /^\d{0,3}$/;
+    }
     if (field.includes('va')) {
-      return /^\d*\/?\d*$/.test(value) ? value : frm.doc[field];
+      return /^\d*\/?\d*$/;
+    }
+    if (prec2_fields.includes(field)) {
+      return /^\d*\.?\d{0,2}$/;
+    }
+    if (field.includes('pd')) {
+      return /^\d*\.?\d{0,1}$/;
+    }
+  }
+  function scrub(field, value) {
+    const re = get_re(field);
+    if (re) {
+      return re.test(value) ? value : frm.doc[field];
     }
     return value;
   }
   return function(field, value) {
     const scrubbed = scrub(field, value);
-    console.log(scrubbed);
     frm.set_value(field, scrubbed);
     return scrubbed;
   };

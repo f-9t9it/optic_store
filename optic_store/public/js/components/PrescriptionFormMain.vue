@@ -45,7 +45,6 @@ export default {
     doc: Object,
     on_change: Function,
     get_formatted: Function,
-    get_step: Function,
     on_blur: Function,
   },
   data: function() {
@@ -73,12 +72,6 @@ export default {
     },
     get_field_props: function(side, param) {
       const field = `${param}_${side}`;
-      const text_fields = ['sph', 'add', 'cyl', 'va'];
-      const text_params = [
-        ...text_fields,
-        ...text_fields.map(p => `${p}_reading`),
-        'add_type',
-      ];
       const disabled =
         this.doc.docstatus !== 0 ||
         (param === 'sph_reading' && !!this.doc[`add_type_${side}`]);
@@ -86,11 +79,7 @@ export default {
         param,
         side,
         disabled,
-        step: this.get_step(param),
-        type: text_params.includes(param) ? 'text' : 'number',
-        value: text_params.includes(param)
-          ? this.doc[field]
-          : parseFloat(this.doc[field]),
+        value: this.doc[field],
         get_formatted: this.get_formatted,
         on_change: this.on_change,
         on_blur: this.on_blur,

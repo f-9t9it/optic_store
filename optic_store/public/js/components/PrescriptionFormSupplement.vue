@@ -53,7 +53,6 @@ export default {
     doc: Object,
     on_change: Function,
     get_formatted: Function,
-    get_step: Function,
   },
   methods: {
     get_side_class: function(side, always = []) {
@@ -68,8 +67,7 @@ export default {
         param,
         side,
         disabled: this.doc.docstatus !== 0 || side === 'total',
-        step: this.get_step(param),
-        value: parseFloat(this.doc[`${param}_${side}`]),
+        value: this.doc[`${param}_${side}`],
         get_formatted: this.get_formatted,
         on_change: this.on_change,
       };
@@ -128,6 +126,9 @@ input[type='number']::-webkit-outer-spin-button {
   & > * {
     margin: 2px;
     width: 100%;
+  }
+  & > input {
+    text-align: right;
   }
 }
 </style>

@@ -9,20 +9,21 @@ export function get_formatted(doc) {
       const fval = parseFloat((value || '') + '.0');
       return format(param, fval);
     }
-    if ('axis' === param) {
+    if (param.includes('axis')) {
       return `${value}°`;
     }
-    if ('height' === param) {
-      return `${value.toFixed(2)}mm`;
+    if (param.includes('pd')) {
+      return `${parseFloat(value).toFixed(1)}mm`;
     }
-    if ('pd' === param) {
-      return `${value.toFixed(1)}mm`;
+    if (
+      param.includes('bc') ||
+      param.includes('dia') ||
+      param.includes('prism')
+    ) {
+      return parseFloat(value).toFixed(2);
     }
-    if (['bc', 'dia', 'prism'].includes(param)) {
-      return value.toFixed(2);
-    }
-    if ('iop' === param) {
-      return `${value.toFixed(2)}mmHg`;
+    if (param.includes('iop')) {
+      return `${parseFloat(value).toFixed(2)}mmHg`;
     }
     return value;
   };
