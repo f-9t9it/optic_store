@@ -12,18 +12,24 @@
         v-bind="get_field_props(side, param)"
       />
     </div>
-    <div class="os-row-header">Add</div>
-    <div v-for="side in sides" :class="get_side_class(side, ['os-value'])">
-      <prescription-form-field v-bind="get_field_props(side, 'add')" />
-    </div>
     <div class="os-row-header">Reading</div>
+    <div v-for="side in sides" :class="get_side_class(side, ['os-value'])">
+      <prescription-form-field
+        :key="`${param}_${side}`"
+        v-for="param in params.map(p => `${p}_reading`)"
+        v-bind="get_field_props(side, param)"
+      />
+    </div>
+    <div class="os-row-header">Add</div>
     <div
       v-for="side in sides"
       :class="get_side_class(side, ['os-value', 'last'])"
     >
-      <span class="like-disabled-input">
-        {{ get_formatted(side, 'sph_reading') }}
-      </span>
+      <prescription-form-select v-bind="get_field_props(side, 'add_type')" />
+      <prescription-form-field
+        v-if="!!doc[`add_type_${side}`]"
+        v-bind="get_field_props(side, 'add')"
+      />
     </div>
   </div>
 </template>
@@ -31,14 +37,16 @@
 <script>
 import { RX_PARAMS_SPEC_DIST, RX_PARAMS_CONT_DIST } from '../utils/constants';
 import PrescriptionFormField from './PrescriptionFormField.vue';
+import PrescriptionFormSelect from './PrescriptionFormSelect.vue';
 
 export default {
-  components: { PrescriptionFormField },
+  components: { PrescriptionFormField, PrescriptionFormSelect },
   props: {
     doc: Object,
     on_change: Function,
     get_formatted: Function,
     get_step: Function,
+    on_blur: Function,
   },
   data: function() {
     return { sides: ['right', 'left'] };
@@ -65,15 +73,27 @@ export default {
     },
     get_field_props: function(side, param) {
       const field = `${param}_${side}`;
+      const text_fields = ['sph', 'add', 'cyl', 'va'];
+      const text_params = [
+        ...text_fields,
+        ...text_fields.map(p => `${p}_reading`),
+        'add_type',
+      ];
+      const disabled =
+        this.doc.docstatus !== 0 ||
+        (param === 'sph_reading' && !!this.doc[`add_type_${side}`]);
       return {
         param,
         side,
-        disabled: this.doc.docstatus !== 0,
+        disabled,
         step: this.get_step(param),
-        type: param === 'va' ? 'text' : 'number',
-        value: param === 'va' ? this.doc[field] : parseFloat(this.doc[field]),
+        type: text_params.includes(param) ? 'text' : 'number',
+        value: text_params.includes(param)
+          ? this.doc[field]
+          : parseFloat(this.doc[field]),
         get_formatted: this.get_formatted,
         on_change: this.on_change,
+        on_blur: this.on_blur,
       };
     },
   },
@@ -157,7 +177,12 @@ input[type='number']::-webkit-outer-spin-button {
     padding-top: 10px;
   }
 }
-.os-value > input {
-  text-align: right;
+.os-value {
+  & > input {
+    text-align: right;
+  }
+  & > .btn-group {
+    width: auto;
+  }
 }
 </style>

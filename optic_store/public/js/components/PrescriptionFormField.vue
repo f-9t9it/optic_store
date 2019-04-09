@@ -10,6 +10,7 @@
     :step="step"
     v-model="scrubbed"
     @input="on_input"
+    @blur="on_blur"
   />
 </template>
 
@@ -24,6 +25,7 @@ export default {
     value: [String, Number],
     disabled: Boolean,
     get_formatted: Function,
+    on_blur: { type: Function, default: () => {} },
   },
   data: function() {
     return {

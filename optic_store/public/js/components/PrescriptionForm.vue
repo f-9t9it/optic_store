@@ -5,7 +5,7 @@
       v-bind="{ doc, on_change, conditional_fields }"
     />
     <prescription-form-main
-      v-bind="{ doc, on_change, get_formatted, get_step }"
+      v-bind="{ doc, on_change, get_formatted, get_step, on_blur }"
     />
     <prescription-form-supplement
       v-bind="{ doc, on_change, get_formatted, get_step }"
@@ -20,16 +20,16 @@ import PrescriptionFormConditionals from './PrescriptionFormConditionals.vue';
 import PrescriptionFormSupplement from './PrescriptionFormSupplement.vue';
 
 function get_step(param) {
-  if (['sph', 'sph_reading', 'add', 'iop'].includes(param)) {
+  if (['prism', 'iop'].includes(param)) {
     return '0.01';
   }
-  if ('cyl' === param) {
+  if (['cyl'].includes(param)) {
     return '0.25';
   }
-  if ('prism' === param) {
-    return '0.01';
+  if ('pd' === param) {
+    return '0.1';
   }
-  if (['axis', 'pd'].includes(param)) {
+  if (['axis'].includes(param)) {
     return '1';
   }
   return null;
@@ -41,7 +41,7 @@ export default {
     PrescriptionFormConditionals,
     PrescriptionFormSupplement,
   },
-  props: { doc: Object, update: Function, fields: Object },
+  props: { doc: Object, update: Function, fields: Object, blur: Function },
   computed: {
     conditional_fields: function() {
       if (!this.fields || !this.fields.type_of_spectacle) {
@@ -56,12 +56,10 @@ export default {
     },
     get_step,
     on_change: function(e) {
-      return this.update(
-        e.target.name,
-        ['va_right', 'va_left'].includes(e.target.name)
-          ? e.target.value
-          : parseFloat(e.target.value || 0)
-      );
+      return this.update(e.target.name, e.target.value);
+    },
+    on_blur: function(e) {
+      return this.blur(e.target.name, e.target.value);
     },
   },
 };
