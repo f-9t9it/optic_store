@@ -120,7 +120,7 @@ input[type='number']::-webkit-outer-spin-button {
 .os-value {
   &.right {
     grid-column: right;
-    border-right: 1px solid #ebeff2;
+    border-right: 1px solid #d1d8dd;
   }
   &.left {
     grid-column: left;
@@ -159,7 +159,7 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 .os-label {
-  border-top: 1px solid #ebeff2;
+  border-top: 1px solid #d1d8dd;
   padding-top: 2px;
   & > span {
     text-align: center;
