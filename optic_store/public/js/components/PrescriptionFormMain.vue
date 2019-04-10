@@ -72,13 +72,10 @@ export default {
     },
     get_field_props: function(side, param) {
       const field = `${param}_${side}`;
-      const disabled =
-        this.doc.docstatus !== 0 ||
-        (param === 'sph_reading' && !!this.doc[`add_type_${side}`]);
       return {
         param,
         side,
-        disabled,
+        disabled: this.doc.docstatus !== 0,
         value: this.doc[field],
         get_formatted: this.get_formatted,
         on_change: this.on_change,
