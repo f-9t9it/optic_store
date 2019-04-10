@@ -1,18 +1,27 @@
 import Vue from 'vue/dist/vue.js';
 
 import PrescriptionForm from '../components/PrescriptionForm.vue';
+import {
+  get_all_rx_params,
+  get_signed_fields,
+  get_prec2_fields,
+} from '../utils/constants';
+import { format } from '../utils/format';
 
-function enable_sph_reading(frm) {
-  frm.toggle_enable('sph_reading_right', frm.doc.add_type_right === '');
-  frm.toggle_enable('sph_reading_left', frm.doc.add_type_left === '');
+function enable_sph_reading(side) {
+  const field = `sph_reading_${side}`;
+  return function(frm) {
+    frm.toggle_enable(field, frm.doc[`add_type_${side}`] === '');
+  };
 }
 
 function handle_add_sph(side) {
+  const field = `sph_reading_${side}`;
   return function(frm) {
-    frm.set_value(
-      `sph_reading_${side}`,
-      parseFloat(frm.doc[`sph_${side}`]) + parseFloat(frm.doc[`add_${side}`])
-    );
+    const fval =
+      parseFloat(frm.doc[`sph_${side}`] || 0) +
+      parseFloat(frm.doc[`add_${side}`] || 0);
+    frm.set_value(field, format(field, fval));
   };
 }
 
@@ -23,22 +32,34 @@ function toggle_detail_entry(frm, state) {
 
 function calc_total_pd(frm) {
   const { pd_right = 0, pd_left = 0 } = frm.doc;
-  frm.set_value('pd_total', parseFloat(pd_right) + parseFloat(pd_left));
+  const fval = parseFloat(pd_right) + parseFloat(pd_left);
+  frm.set_value('pd_total', fval.toFixed(1));
 }
 
 function update_fields(frm) {
+  const signed_fields = get_signed_fields();
+  const prec2_fields = get_prec2_fields();
+  function get_re(field) {
+    if (signed_fields.includes(field)) {
+      return /^(\+|-)?\d*\.?\d{0,2}$/;
+    }
+    if (field.includes('axis')) {
+      return /^\d{0,3}$/;
+    }
+    if (field.includes('va')) {
+      return /^\d*\/?\d*$/;
+    }
+    if (prec2_fields.includes(field)) {
+      return /^\d*\.?\d{0,2}$/;
+    }
+    if (field.includes('pd')) {
+      return /^\d*\.?\d{0,1}$/;
+    }
+  }
   function scrub(field, value) {
-    if (['va_right', 'va_left'].includes(field)) {
-      return value.replace(/[^0-9\/]*/g, '');
-    }
-    if (['axis_right', 'axis_left'].includes(field)) {
-      if (value < 0) {
-        return 0;
-      }
-      return Math.min(value, 180);
-    }
-    if (['cyl_right', 'cyl_left'].includes(field)) {
-      return Math.round(value * 4) / 4;
+    const re = get_re(field);
+    if (re) {
+      return re.test(value) ? value : frm.doc[field];
     }
     return value;
   }
@@ -49,20 +70,33 @@ function update_fields(frm) {
   };
 }
 
+function blur_fields(frm) {
+  return function(field, value) {
+    if (field.includes('sph') || field.includes('add')) {
+      // considers cases where the user might just enter '+' or '-', hence the + '.0'
+      const fval = parseFloat((value || '') + '.0');
+      frm.set_value(field, format(field, fval));
+    }
+    if (field.includes('cyl')) {
+      const fval = Math.round(parseFloat((value || '') + '.0') * 4) / 4;
+      frm.set_value(field, format(field, fval));
+    }
+  };
+}
+
 function render_detail_vue(frm) {
   const { $wrapper } = frm.get_field('details_html');
   $wrapper.empty();
   if (frm.doc.__islocal) {
     // this makes the below fields reactive in vue
-    frm.doc = Object.assign(frm.doc, {
-      add_right: undefined,
-      add_left: undefined,
-      sph_reading_right: undefined,
-      sph_reading_left: undefined,
-      va_right: undefined,
-      va_left: undefined,
-      pd_total: undefined,
-    });
+    frm.doc = Object.assign(
+      frm.doc,
+      get_all_rx_params().reduce(
+        (a, x) => Object.assign(a, { [x]: undefined }),
+        {}
+      ),
+      { pd_total: undefined }
+    );
   }
   return new Vue({
     el: $wrapper.html('<div />').children()[0],
@@ -73,6 +107,7 @@ function render_detail_vue(frm) {
           doc: this.doc,
           update: update_fields(frm),
           fields: frm.fields_dict,
+          blur: blur_fields(frm),
         },
       });
     },
@@ -87,6 +122,13 @@ function setup_route_back(frm) {
     return ['Form', doctype, docname];
   }
   return null;
+}
+
+function set_expiry_date(frm) {
+  frm.set_value(
+    'expiry_date',
+    frappe.datetime.add_months(frm.doc.test_date, 6)
+  );
 }
 
 export default {
@@ -105,7 +147,11 @@ export default {
   },
   refresh: function(frm) {
     frm.detail_vue.doc = frm.doc;
+    if (frm.doc.__islocal) {
+      set_expiry_date(frm);
+    }
   },
+  test_date: set_expiry_date,
   on_submit: async function(frm) {
     if (frm.route_back) {
       await frappe.set_route(frm.route_back);
@@ -118,13 +164,14 @@ export default {
   sph_left: handle_add_sph('left'),
   add_right: function(frm) {
     handle_add_sph('right')(frm);
-    if (!frm.doc.add_left) {
-      frm.set_value('add_left', frm.doc.add_right);
-    }
+    frm.set_value('add_left', frm.doc.add_right);
   },
   add_left: handle_add_sph('left'),
-  add_type_right: enable_sph_reading,
-  add_type_left: enable_sph_reading,
+  add_type_right: function(frm) {
+    enable_sph_reading('right')(frm);
+    frm.set_value('add_type_left', frm.doc.add_type_right);
+  },
+  add_type_left: enable_sph_reading('left'),
   pd_right: calc_total_pd,
   pd_left: calc_total_pd,
 };

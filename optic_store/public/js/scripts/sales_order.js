@@ -55,33 +55,30 @@ async function apply_group_discount(frm) {
   const { orx_group_discount } = frm.doc;
   const items = frm
     .get_field('items')
-    .grid.grid_rows.map(
-      ({ doc: { doctype, name: docname, brand: brand_name } }) => ({
-        doctype,
-        docname,
-        brand_name,
-      })
-    );
+    .grid.grid_rows.map(({ doc: { doctype, name: docname, item_code } }) => ({
+      doctype,
+      docname,
+      item_code,
+    }));
   if (orx_group_discount) {
     try {
-      const { brands } = await frappe.db.get_doc(
-        'Group Discount',
-        orx_group_discount
-      );
-      if (brands) {
-        items.forEach(({ doctype, docname, brand_name }) => {
-          if (brand_name) {
-            const { discount_rate = 0 } =
-              brands.find(({ brand }) => brand === brand_name) || {};
-            frappe.model.set_value(
-              doctype,
-              docname,
-              'discount_percentage',
-              discount_rate
-            );
-          }
-        });
-      }
+      const { message: discounts } = await frappe.call({
+        method: 'optic_store.api.group_discount.get_item_discounts',
+        args: {
+          discount_name: orx_group_discount,
+          item_codes: items.map(({ item_code }) => item_code),
+        },
+      });
+      items.forEach(({ doctype, docname, item_code }) => {
+        const { discount_rate = 0 } =
+          discounts.find(d => d.item_code === item_code) || {};
+        frappe.model.set_value(
+          doctype,
+          docname,
+          'discount_percentage',
+          discount_rate
+        );
+      });
     } catch (e) {
       frappe.throw(__('Cannot apply Group Discount'));
     }
@@ -92,6 +89,26 @@ async function apply_group_discount(frm) {
   }
 }
 
+function handle_order_type(frm) {
+  const { os_order_type } = frm.doc;
+  frm.toggle_display('orx_sec', ['Sales', 'Eye Test'].includes(os_order_type));
+  if (os_order_type === 'Eye Test') {
+    frm.set_query('item_code', 'items', function() {
+      return {
+        filters: { item_group: 'Services' },
+      };
+    });
+  }
+}
+
+async function set_source_warehouse(frm) {
+  const { message: warehouse } = await frappe.call({
+    method: 'optic_store.api.sales_order.get_warehouse',
+    args: { user: frappe.session.user },
+  });
+  frm.set_value('set_warehouse', warehouse);
+}
+
 export default {
   setup: function(frm) {
     frm.invoice_dialog = new InvoiceDialog();
@@ -99,7 +116,12 @@ export default {
   refresh: function(frm) {
     render_prescription(frm);
     render_invoice_button(frm);
+    handle_order_type(frm);
+    if (frm.doc.__islocal) {
+      set_source_warehouse(frm);
+    }
   },
+  os_order_type: handle_order_type,
   customer: setup_orx_name,
   orx_type: setup_orx_name,
   orx_name: render_prescription,

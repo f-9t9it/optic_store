@@ -6,10 +6,9 @@
     v-else
     class="form-control"
     :name="`${param}_${side}`"
-    :type="type"
-    :step="step"
     v-model="scrubbed"
     @input="on_input"
+    @blur="on_blur"
   />
 </template>
 
@@ -18,12 +17,11 @@ export default {
   props: {
     param: String,
     side: String,
-    type: { type: String, default: 'number' },
-    step: String,
     on_change: Function,
-    value: [String, Number],
+    value: String,
     disabled: Boolean,
     get_formatted: Function,
+    on_blur: { type: Function, default: () => {} },
   },
   data: function() {
     return {
