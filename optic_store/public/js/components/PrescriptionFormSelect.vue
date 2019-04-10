@@ -1,23 +1,14 @@
 <template>
-  <div class="btn-group btn-group-xs" role="group">
-    <button
-      :class="get_class('Near')"
-      type="button"
-      :name="name"
-      value="Near"
-      @click="on_change"
-    >
-      Near
-    </button>
-    <button
-      :class="get_class('Intermediate')"
-      type="button"
-      :name="name"
-      value="Intermediate"
-      @click="on_change"
-    >
-      Intermediate
-    </button>
+  <div class="checkbox">
+    <label>
+      <span v-if="disabled" class="disp-area">
+        <i :class="get_disp_class(`${param}_${side}`)" />
+      </span>
+      <span v-else class="input-area">
+        <input type="checkbox" :name="`${param}_${side}`" @click="on_click" />
+      </span>
+      <span class="label-area small">{{ param }}</span>
+    </label>
   </div>
 </template>
 
@@ -27,24 +18,32 @@ export default {
     param: String,
     side: String,
     on_change: Function,
-    value: String,
+    value: Number,
     disabled: Boolean,
   },
-  computed: {
-    name: function() {
-      return `${this.param}_${this.side}`;
-    },
-  },
   methods: {
-    get_class: function(value) {
-      return {
-        btn: true,
-        'btn-info': value === this.value,
-        disabled: this.disabled,
-      };
+    get_disp_class: function(value) {
+      if (this.value) {
+        return 'octicon octicon-check';
+      }
+      return 'fa fa-square disabled-check';
+    },
+    on_click: function(e) {
+      const { name, checked } = e.target;
+      return this.on_change({ target: { name, value: checked ? 1 : 0 } });
     },
   },
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.checkbox {
+  margin: 0 0.5em;
+  & .octicon {
+    margin-right: 3px;
+  }
+  & .label-area {
+    text-transform: capitalize;
+  }
+}
+</style>

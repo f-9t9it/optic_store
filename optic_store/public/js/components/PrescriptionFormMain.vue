@@ -25,11 +25,11 @@
       v-for="side in sides"
       :class="get_side_class(side, ['os-value', 'last'])"
     >
-      <prescription-form-select v-bind="get_field_props(side, 'add_type')" />
-      <prescription-form-field
-        v-if="!!doc[`add_type_${side}`]"
-        v-bind="get_field_props(side, 'add')"
+      <prescription-form-select v-bind="get_field_props(side, 'near')" />
+      <prescription-form-select
+        v-bind="get_field_props(side, 'intermediate')"
       />
+      <prescription-form-field v-bind="get_field_props(side, 'add')" />
     </div>
   </div>
 </template>
@@ -167,7 +167,7 @@ input[type='number']::-webkit-outer-spin-button {
   & > input {
     text-align: right;
   }
-  & > .btn-group {
+  & > .checkbox {
     width: auto;
   }
 }
