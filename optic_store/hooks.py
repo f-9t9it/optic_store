@@ -22,6 +22,9 @@ fixtures = [
                 "name",
                 "in",
                 [
+                    "Branch-branch_code",
+                    "Branch-location",
+                    "Branch-main_col",
                     "Branch-warehouse",
                     "Customer-branch",
                     "Item Group-item_group_abbr",
