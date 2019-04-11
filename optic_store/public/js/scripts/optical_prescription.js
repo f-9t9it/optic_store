@@ -15,7 +15,7 @@ function enable_sph_reading(side) {
   };
 }
 
-function handle_add_sph(side) {
+function handle_sph_reading(side) {
   const field = `sph_reading_${side}`;
   return function(frm) {
     const fval =
@@ -160,13 +160,11 @@ export default {
       }
     }
   },
-  sph_right: handle_add_sph('right'),
-  sph_left: handle_add_sph('left'),
   add_right: function(frm) {
-    handle_add_sph('right')(frm);
+    handle_sph_reading('right')(frm);
     frm.set_value('add_left', frm.doc.add_right);
   },
-  add_left: handle_add_sph('left'),
+  add_left: handle_sph_reading('left'),
   add_type_right: function(frm) {
     enable_sph_reading('right')(frm);
     frm.set_value('add_type_left', frm.doc.add_type_right);

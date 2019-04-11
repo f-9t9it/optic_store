@@ -25,11 +25,11 @@
       v-for="side in sides"
       :class="get_side_class(side, ['os-value', 'last'])"
     >
-      <prescription-form-select v-bind="get_field_props(side, 'add_type')" />
-      <prescription-form-field
-        v-if="!!doc[`add_type_${side}`]"
-        v-bind="get_field_props(side, 'add')"
+      <prescription-form-select v-bind="get_field_props(side, 'near')" />
+      <prescription-form-select
+        v-bind="get_field_props(side, 'intermediate')"
       />
+      <prescription-form-field v-bind="get_field_props(side, 'add')" />
     </div>
   </div>
 </template>
@@ -72,13 +72,10 @@ export default {
     },
     get_field_props: function(side, param) {
       const field = `${param}_${side}`;
-      const disabled =
-        this.doc.docstatus !== 0 ||
-        (param === 'sph_reading' && !!this.doc[`add_type_${side}`]);
       return {
         param,
         side,
-        disabled,
+        disabled: this.doc.docstatus !== 0,
         value: this.doc[field],
         get_formatted: this.get_formatted,
         on_change: this.on_change,
@@ -120,7 +117,7 @@ input[type='number']::-webkit-outer-spin-button {
 .os-value {
   &.right {
     grid-column: right;
-    border-right: 1px solid #ebeff2;
+    border-right: 1px solid #d1d8dd;
   }
   &.left {
     grid-column: left;
@@ -159,7 +156,7 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 .os-label {
-  border-top: 1px solid #ebeff2;
+  border-top: 1px solid #d1d8dd;
   padding-top: 2px;
   & > span {
     text-align: center;
@@ -170,7 +167,7 @@ input[type='number']::-webkit-outer-spin-button {
   & > input {
     text-align: right;
   }
-  & > .btn-group {
+  & > .checkbox {
     width: auto;
   }
 }

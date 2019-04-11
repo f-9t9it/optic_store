@@ -101,12 +101,18 @@ function handle_order_type(frm) {
   }
 }
 
-async function set_source_warehouse(frm) {
-  const { message: warehouse } = await frappe.call({
-    method: 'optic_store.api.sales_order.get_warehouse',
-    args: { user: frappe.session.user },
-  });
+async function set_fields(frm) {
+  const [{ message: warehouse }, { message: branch }] = await Promise.all([
+    frappe.call({
+      method: 'optic_store.api.sales_order.get_warehouse',
+      args: { user: frappe.session.user },
+    }),
+    frappe.call({
+      method: 'optic_store.api.customer.get_user_branch',
+    }),
+  ]);
   frm.set_value('set_warehouse', warehouse);
+  frm.set_value('branch', branch);
 }
 
 export default {
@@ -118,7 +124,7 @@ export default {
     render_invoice_button(frm);
     handle_order_type(frm);
     if (frm.doc.__islocal) {
-      set_source_warehouse(frm);
+      set_fields(frm);
     }
   },
   os_order_type: handle_order_type,
