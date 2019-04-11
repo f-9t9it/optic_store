@@ -6,6 +6,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 
+from optic_store.api.customer import get_user_branch
+
 
 def validate(doc, method):
     if len(doc.items) > 5:
@@ -44,3 +46,19 @@ def validate(doc, method):
                         )
                     )
                 )
+
+
+def on_update(doc, method):
+    settings = frappe.db.get_single("Optical Store Settings")
+    doc.db_set(
+        {
+            "os_is_special_order": 1
+            if settings.special_order_item_group
+            in map(lambda x: x.item_group, doc.items)
+            else 0,
+            "os_is_same_branch": 1
+            if (settings.hqm_branch and doc.os_branch == settings.hqm_branch)
+            or doc.os_branch == get_user_branch()
+            else 0,
+        }
+    )

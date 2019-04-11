@@ -37,6 +37,8 @@ fixtures = [
                     "Brand-brand_category",
                     "Sales Order-os_order_type",
                     "Sales Order-os_branch",
+                    "Sales Order-os_is_special_order",
+                    "Sales Order-os_is_same_branch",
                     "Sales Order-os_sales_person",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
@@ -160,7 +162,10 @@ app_include_js = "/assets/js/optic_store.min.js"
 
 doc_events = {
     "Delivery Note": {"validate": "optic_store.doc_events.delivery_note.validate"},
-    "Sales Order": {"validate": "optic_store.doc_events.sales_order.validate"},
+    "Sales Order": {
+        "validate": "optic_store.doc_events.sales_order.validate",
+        "on_update": "optic_store.doc_events.sales_order.on_update",
+    },
     "Customer": {"before_naming": "optic_store.doc_events.customer.before_naming"},
     "Item": {
         "before_naming": "optic_store.doc_events.item.before_naming",
