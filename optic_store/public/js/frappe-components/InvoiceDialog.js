@@ -64,7 +64,6 @@ export default class InvoiceDialog {
         })),
       ],
     });
-    console.log(this.dialog);
   }
   create_and_print(frm) {
     const print_formats = this.print_formats;
