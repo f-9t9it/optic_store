@@ -49,7 +49,7 @@ def validate(doc, method):
 
 
 def on_update(doc, method):
-    settings = frappe.db.get_single("Optical Store Settings")
+    settings = frappe.get_single("Optical Store Settings")
     doc.db_set(
         {
             "os_is_special_order": 1

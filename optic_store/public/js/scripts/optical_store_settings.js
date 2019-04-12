@@ -1,7 +1,10 @@
 export default {
   refresh: function(frm) {
-    frm.set_query('default_print_format', {
-      filters: [['doc_type', '=', 'Sales Invoice']],
+    frm.set_query('print_format', 'invoice_pfs', {
+      filters: [
+        ['doc_type', '=', 'Sales Invoice'],
+        ['print_format_type', '=', 'Server'],
+      ],
     });
     frm.set_query('item_group', 'dashboard_item_groups', {
       filters: [['is_group', '=', '0']],
