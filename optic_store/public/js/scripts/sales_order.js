@@ -34,18 +34,14 @@ async function render_prescription(frm) {
 
 function render_invoice_button(frm) {
   // from /erpnext/selling/doctype/sales_order/sales_order.js
-  if (
-    frm.invoice_dialog &&
-    frm.doc.docstatus === 1 &&
-    frm.doc.status !== 'Closed'
-  ) {
+  if (frm.doc.docstatus === 1 && frm.doc.status !== 'Closed') {
     if (flt(frm.doc.per_billed, 6) < 100) {
       frm.add_custom_button(__('Invoice & Print'), function() {
-        frm.invoice_dialog.create_and_print(frm);
+        frm.invoice_dialog && frm.invoice_dialog.create_and_print(frm);
       });
     } else {
       frm.add_custom_button(__('Print Invoice'), function() {
-        frm.invoice_dialog.print_invoice(frm);
+        frm.invoice_dialog && frm.invoice_dialog.print_invoice(frm);
       });
     }
   }
@@ -112,12 +108,19 @@ async function set_fields(frm) {
     }),
   ]);
   frm.set_value('set_warehouse', warehouse);
-  frm.set_value('branch', branch);
+  frm.set_value('os_branch', branch);
 }
 
 export default {
-  setup: function(frm) {
-    frm.invoice_dialog = new InvoiceDialog();
+  setup: async function(frm) {
+    const { invoice_pfs = [], invoice_mops = [] } = await frappe.db.get_doc(
+      'Optical Store Settings'
+    );
+    const print_formats = invoice_pfs.map(({ print_format }) => print_format);
+    const mode_of_payments = invoice_mops.map(
+      ({ mode_of_payment }) => mode_of_payment
+    );
+    frm.invoice_dialog = new InvoiceDialog(print_formats, mode_of_payments);
   },
   refresh: function(frm) {
     render_prescription(frm);

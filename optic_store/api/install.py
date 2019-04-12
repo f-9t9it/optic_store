@@ -137,6 +137,12 @@ def _setup_workflow():
                         "allow_edit": "Store User",
                     },
                     {
+                        "state": "With Special Order Incharge",
+                        "style": "Warning",
+                        "doc_status": "1",
+                        "allow_edit": "Store User",
+                    },
+                    {
                         "state": "Processing at HQM",
                         "style": "Primary",
                         "doc_status": "1",
@@ -167,6 +173,7 @@ def _setup_workflow():
                         "action": "Process at Branch",
                         "next_state": "Processing at Branch",
                         "allowed": "Sales User",
+                        "condition": "not doc.os_is_special_order and doc.os_is_same_branch",
                     },
                     {
                         "state": "Processing at Branch",
@@ -179,10 +186,24 @@ def _setup_workflow():
                         "action": "Send to HQM",
                         "next_state": "Sent to HQM",
                         "allowed": "Sales User",
+                        "condition": "not doc.os_is_special_order and not doc.os_is_same_branch",
                     },
                     {
                         "state": "Sent to HQM",
                         "action": "Process at HQM",
+                        "next_state": "Processing at HQM",
+                        "allowed": "Store User",
+                    },
+                    {
+                        "state": "Draft",
+                        "action": "Send as Special Order",
+                        "next_state": "With Special Order Incharge",
+                        "allowed": "Sales User",
+                        "condition": "doc.os_is_special_order",
+                    },
+                    {
+                        "state": "With Special Order Incharge",
+                        "action": "Process Special Order",
                         "next_state": "Processing at HQM",
                         "allowed": "Store User",
                     },
