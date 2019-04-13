@@ -131,6 +131,12 @@ function set_expiry_date(frm) {
   );
 }
 
+function copy_to_reading(param, side) {
+  return function(frm) {
+    frm.set_value(`${param}_reading_${side}`, frm.doc[`${param}_${side}`]);
+  };
+}
+
 export default {
   setup: async function(frm) {
     const { message: settings = {} } = await frappe.db.get_value(
@@ -160,6 +166,18 @@ export default {
       }
     }
   },
+  sph_right: copy_to_reading('sph', 'right'),
+  cyl_right: copy_to_reading('cyl', 'right'),
+  axis_right: copy_to_reading('axis', 'right'),
+  va_right: copy_to_reading('va', 'right'),
+  bc_right: copy_to_reading('bc', 'right'),
+  dia_right: copy_to_reading('dia', 'right'),
+  sph_left: copy_to_reading('sph', 'left'),
+  cyl_left: copy_to_reading('cyl', 'left'),
+  axis_left: copy_to_reading('axis', 'left'),
+  va_left: copy_to_reading('va', 'left'),
+  bc_left: copy_to_reading('bc', 'left'),
+  dia_left: copy_to_reading('dia', 'left'),
   add_right: function(frm) {
     handle_sph_reading('right')(frm);
     frm.set_value('add_left', frm.doc.add_right);

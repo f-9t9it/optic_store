@@ -4,3 +4,4 @@
 *.swp
 tags
 optic_store/docs/current
+**/__pycache__
