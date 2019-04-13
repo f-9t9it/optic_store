@@ -166,7 +166,7 @@ doc_events = {
         "validate": "optic_store.doc_events.sales_order.validate",
         "on_update": "optic_store.doc_events.sales_order.on_update",
     },
-    "Customer": {"before_naming": "optic_store.doc_events.customer.before_naming"},
+    "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
     "Item": {
         "before_naming": "optic_store.doc_events.item.before_naming",
         "autoname": "optic_store.doc_events.item.autoname",

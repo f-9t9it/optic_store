@@ -5,23 +5,6 @@
   "_liked_by": null, 
   "_user_tags": null, 
   "default_value": null, 
-  "doc_type": "Customer", 
-  "docstatus": 0, 
-  "doctype": "Property Setter", 
-  "doctype_or_field": "DocField", 
-  "field_name": "naming_series", 
-  "modified": "2019-02-25 20:54:19.389670", 
-  "name": "Customer-naming_series-options", 
-  "property": "options", 
-  "property_type": "Text", 
-  "value": "CUST-.branch.-.YYYY.-\nCUST-.YYYY.-"
- }, 
- {
-  "_assign": null, 
-  "_comments": null, 
-  "_liked_by": null, 
-  "_user_tags": null, 
-  "default_value": null, 
   "doc_type": "Item", 
   "docstatus": 0, 
   "doctype": "Property Setter", 
@@ -219,5 +202,22 @@
   "property": "read_only", 
   "property_type": "Check", 
   "value": "1"
+ }, 
+ {
+  "_assign": null, 
+  "_comments": null, 
+  "_liked_by": null, 
+  "_user_tags": null, 
+  "default_value": null, 
+  "doc_type": "Customer", 
+  "docstatus": 0, 
+  "doctype": "Property Setter", 
+  "doctype_or_field": "DocField", 
+  "field_name": "naming_series", 
+  "modified": "2019-04-13 15:17:32.553762", 
+  "name": "Customer-naming_series-options", 
+  "property": "options", 
+  "property_type": "Text", 
+  "value": "C#########\nCUST-.YYYY.-"
  }
 ]
