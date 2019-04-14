@@ -173,7 +173,7 @@ def _setup_workflow():
                         "action": "Process at Branch",
                         "next_state": "Processing at Branch",
                         "allowed": "Sales User",
-                        "condition": "not doc.os_is_special_order and doc.os_is_same_branch",
+                        "condition": "not doc.os_is_special_order and doc.os_is_branch_order",
                     },
                     {
                         "state": "Processing at Branch",
@@ -186,7 +186,7 @@ def _setup_workflow():
                         "action": "Send to HQM",
                         "next_state": "Sent to HQM",
                         "allowed": "Sales User",
-                        "condition": "not doc.os_is_special_order and not doc.os_is_same_branch",
+                        "condition": "not doc.os_is_special_order and not doc.os_is_branch_order",
                     },
                     {
                         "state": "Sent to HQM",

@@ -3,11 +3,10 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
 
 from optic_store.api.customer import get_user_branch
 
 
-def before_naming(doc, method):
-    if not doc.branch:
-        doc.branch = get_user_branch()
+def before_insert(doc, method):
+    if not doc.os_branch:
+        doc.os_branch = get_user_branch()

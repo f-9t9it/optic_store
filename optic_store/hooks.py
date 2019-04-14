@@ -22,6 +22,7 @@ fixtures = [
                 "name",
                 "in",
                 [
+                    "Branch-process_at_branch",
                     "Branch-branch_code",
                     "Branch-location",
                     "Branch-main_col",
@@ -37,8 +38,8 @@ fixtures = [
                     "Brand-brand_category",
                     "Sales Order-os_order_type",
                     "Sales Order-os_branch",
+                    "Sales Order-os_is_branch_order",
                     "Sales Order-os_is_special_order",
-                    "Sales Order-os_is_same_branch",
                     "Sales Order-os_sales_person",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
@@ -166,7 +167,7 @@ doc_events = {
         "validate": "optic_store.doc_events.sales_order.validate",
         "on_update": "optic_store.doc_events.sales_order.on_update",
     },
-    "Customer": {"before_naming": "optic_store.doc_events.customer.before_naming"},
+    "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
     "Item": {
         "before_naming": "optic_store.doc_events.item.before_naming",
         "autoname": "optic_store.doc_events.item.autoname",
