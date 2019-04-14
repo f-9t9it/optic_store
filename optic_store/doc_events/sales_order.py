@@ -50,15 +50,17 @@ def validate(doc, method):
 
 def on_update(doc, method):
     settings = frappe.get_single("Optical Store Settings")
+    process_at_branch = (
+        frappe.db.get_value("Branch", doc.os_branch, "process_at_branch")
+        if doc.os_branch
+        else 0
+    )
     doc.db_set(
         {
             "os_is_special_order": 1
             if settings.special_order_item_group
             in map(lambda x: x.item_group, doc.items)
             else 0,
-            "os_is_same_branch": 1
-            if (settings.hqm_branch and doc.os_branch == settings.hqm_branch)
-            or doc.os_branch == get_user_branch()
-            else 0,
+            "os_is_branch_order": process_at_branch,
         }
     )

@@ -22,6 +22,7 @@ fixtures = [
                 "name",
                 "in",
                 [
+                    "Branch-process_at_branch",
                     "Branch-branch_code",
                     "Branch-location",
                     "Branch-main_col",
@@ -37,8 +38,8 @@ fixtures = [
                     "Brand-brand_category",
                     "Sales Order-os_order_type",
                     "Sales Order-os_branch",
+                    "Sales Order-os_is_branch_order",
                     "Sales Order-os_is_special_order",
-                    "Sales Order-os_is_same_branch",
                     "Sales Order-os_sales_person",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
