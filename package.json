@@ -4,7 +4,7 @@
   "description": "ERPNext App for Optical Store",
   "main": "optic_store/public/index.js",
   "scripts": {
-    "version": "sed -i \"s/__version__.*/__version__ = '$npm_package_version'/\" $npm_package_name/{__init__.py,public/js/index.js}; git add -A $npm_package_name/{__init__.py,public/js/index.js}",
+    "version": "sed -i \"s/__version__ = .*/__version__ = \\\"$npm_package_version\\\"/\" optic_store/__init__.py; sed -i \"s/__version__ = '.*';/__version__ = '$npm_package_version';/\" optic_store/public/js/index.js; git add -A $npm_package_name/{__init__.py,public/js/index.js}",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
