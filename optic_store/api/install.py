@@ -173,6 +173,7 @@ def _setup_workflow():
                         "action": "Process at Branch",
                         "next_state": "Processing at Branch",
                         "allowed": "Sales User",
+                        "allow_self_approval": 1,
                         "condition": "not doc.os_is_special_order and doc.os_is_branch_order",
                     },
                     {
@@ -180,12 +181,14 @@ def _setup_workflow():
                         "action": "Complete",
                         "next_state": "Ready to Deliver",
                         "allowed": "Sales User",
+                        "allow_self_approval": 1,
                     },
                     {
                         "state": "Draft",
                         "action": "Send to HQM",
                         "next_state": "Sent to HQM",
                         "allowed": "Sales User",
+                        "allow_self_approval": 1,
                         "condition": "not doc.os_is_special_order and not doc.os_is_branch_order",
                     },
                     {
@@ -193,12 +196,14 @@ def _setup_workflow():
                         "action": "Process at HQM",
                         "next_state": "Processing at HQM",
                         "allowed": "Store User",
+                        "allow_self_approval": 1,
                     },
                     {
                         "state": "Draft",
                         "action": "Send as Special Order",
                         "next_state": "With Special Order Incharge",
                         "allowed": "Sales User",
+                        "allow_self_approval": 1,
                         "condition": "doc.os_is_special_order",
                     },
                     {
@@ -206,24 +211,28 @@ def _setup_workflow():
                         "action": "Process Special Order",
                         "next_state": "Processing at HQM",
                         "allowed": "Store User",
+                        "allow_self_approval": 1,
                     },
                     {
                         "state": "Processing at HQM",
                         "action": "Proceed to Deliver",
                         "next_state": "Processing for Delivery",
                         "allowed": "Lab Tech",
+                        "allow_self_approval": 1,
                     },
                     {
                         "state": "Processing for Delivery",
                         "action": "Send to Branch",
                         "next_state": "In Transit (with Driver)",
                         "allowed": "Store User",
+                        "allow_self_approval": 1,
                     },
                     {
                         "state": "In Transit (with Driver)",
                         "action": "Complete",
                         "next_state": "Ready to Deliver",
                         "allowed": "Sales User",
+                        "allow_self_approval": 1,
                     },
                 ],
             }
