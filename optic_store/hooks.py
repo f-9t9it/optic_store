@@ -25,6 +25,7 @@ fixtures = [
                     "Branch-process_at_branch",
                     "Branch-branch_code",
                     "Branch-location",
+                    "Branch-branch_phone",
                     "Branch-main_col",
                     "Branch-warehouse",
                     "Customer-branch",
