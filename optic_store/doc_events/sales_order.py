@@ -48,6 +48,11 @@ def validate(doc, method):
                 )
 
 
+def before_insert(doc, method):
+    if not doc.os_branch:
+        doc.os_branch = get_user_branch()
+
+
 def on_update(doc, method):
     settings = frappe.get_single("Optical Store Settings")
     process_at_branch = (

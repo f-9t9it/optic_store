@@ -166,6 +166,7 @@ doc_events = {
     "Delivery Note": {"validate": "optic_store.doc_events.delivery_note.validate"},
     "Sales Order": {
         "validate": "optic_store.doc_events.sales_order.validate",
+        "before_insert": "optic_store.doc_events.sales_order.before_insert",
         "on_update": "optic_store.doc_events.sales_order.on_update",
     },
     "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
