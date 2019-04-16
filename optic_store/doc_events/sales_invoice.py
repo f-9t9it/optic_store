@@ -9,6 +9,9 @@ from frappe.utils import getdate
 from functools import partial
 from toolz import compose
 
+from optic_store.api.customer import get_user_branch
+
+
 _get_gift_card_amounts = compose(
     sum,
     partial(map, lambda x: x.amount),
@@ -95,3 +98,8 @@ def _set_gift_card_balances(doc, cancel=False):
 
 def on_cancel(doc, method):
     _set_gift_card_balances(doc, cancel=True)
+
+
+def before_insert(doc, method):
+    if not doc.os_branch:
+        doc.os_branch = get_user_branch()

@@ -1,3 +1,10 @@
+import {
+  render_prescription,
+  set_fields,
+  setup_orx_name,
+  apply_group_discount,
+} from './sales_order';
+
 function set_gift_card_payment(frm) {
   const row =
     (frm.get_field('payments').grid.grid_rows || [])
@@ -31,6 +38,10 @@ export default {
         filters: [['balance', '>', 0]],
       };
     });
+    render_prescription(frm);
+    if (frm.doc.__islocal) {
+      set_fields(frm);
+    }
   },
   os_gift_card_entry: async function(frm) {
     function set_desc(description) {
@@ -79,4 +90,8 @@ export default {
     }
     return false;
   },
+  customer: setup_orx_name,
+  orx_type: setup_orx_name,
+  orx_name: render_prescription,
+  orx_group_discount: apply_group_discount,
 };
