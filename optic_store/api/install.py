@@ -12,6 +12,7 @@ def setup_defaults():
     frappe.only_for("System Manager")
     company = frappe.defaults.get_global_default("company")
     _update_settings()
+    _add_price_lists()
     _setup_workflow()
     _setup_accounts(company)
 
@@ -310,3 +311,31 @@ def _setup_accounts(company):
                     "value": jea_options + "\nGift Card",
                 }
             ).insert(ignore_permissions=True)
+
+
+def _add_price_lists():
+    currency = frappe.defaults.get_global_default("currency")
+
+    def create_price_list(name, buying=0, selling=0):
+        if not frappe.db.exists("Price List", name):
+            frappe.get_doc(
+                {
+                    "doctype": "Price List",
+                    "price_list_name": name,
+                    "currency": currency,
+                    "buying": buying,
+                    "selling": selling,
+                }
+            ).insert(ignore_permissions=True)
+        else:
+            doc = frappe.get_doc("Price List", name)
+            doc.update({"buying": buying, "selling": selling})
+            doc.save(ignore_permissions=True)
+
+    price_lists = {
+        "Minimum Selling": {"selling": 1},
+        "Minimum Selling 2": {"selling": 1},
+        "Wholesale": {"selling": 1},
+    }
+
+    map(lambda x: create_price_list(x[0], **x[1]), price_lists.items())
