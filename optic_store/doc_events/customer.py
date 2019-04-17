@@ -8,5 +8,5 @@ from optic_store.api.customer import get_user_branch
 
 
 def before_insert(doc, method):
-    if not doc.os_branch:
-        doc.os_branch = get_user_branch()
+    if not doc.branch:
+        doc.branch = get_user_branch()
