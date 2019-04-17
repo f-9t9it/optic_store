@@ -4,6 +4,7 @@ import {
   setup_orx_name,
   apply_group_discount,
   handle_gift_card_entry,
+  setup_employee_queries,
 } from './sales_order';
 import DeliverDialog from '../frappe-components/DeliverDialog';
 
@@ -62,6 +63,9 @@ export default {
     );
     const print_formats = invoice_pfs.map(({ print_format }) => print_format);
     frm.deliver_dialog = new DeliverDialog(print_formats);
+  },
+  onload: function(frm) {
+    setup_employee_queries(frm);
   },
   refresh: function(frm) {
     frm.set_query('gift_card', 'os_gift_cards', function() {

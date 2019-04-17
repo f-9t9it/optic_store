@@ -158,6 +158,18 @@ export async function handle_gift_card_entry(frm) {
   return false;
 }
 
+export async function setup_employee_queries(frm) {
+  const settings = await frappe.db.get_doc('Optical Store Settings');
+  ['sales_person', 'dispensor', 'lab_tech']
+    .map(employee => ({
+      field: `os_${employee}`,
+      department: settings[`${employee}_department`],
+    }))
+    .forEach(({ field, department }) => {
+      frm.set_query(field, { filters: [['department', '=', department]] });
+    });
+}
+
 export default {
   setup: async function(frm) {
     const { invoice_pfs = [], invoice_mops = [] } = await frappe.db.get_doc(
@@ -168,6 +180,9 @@ export default {
       ({ mode_of_payment }) => mode_of_payment
     );
     frm.invoice_dialog = new InvoiceDialog(print_formats, mode_of_payments);
+  },
+  onload: function(frm) {
+    setup_employee_queries(frm);
   },
   refresh: function(frm) {
     render_prescription(frm);
