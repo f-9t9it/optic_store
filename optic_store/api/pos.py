@@ -5,10 +5,15 @@
 from __future__ import unicode_literals
 import frappe
 
+from optic_store.api.group_discount import get_brand_discounts
+
 
 @frappe.whitelist()
 def get_extended_pos_data():
-    return {"sales_persons": _get_sales_persons()}
+    return {
+        "sales_persons": _get_sales_persons(),
+        "group_discounts": get_brand_discounts(),
+    }
 
 
 def _get_sales_persons():
