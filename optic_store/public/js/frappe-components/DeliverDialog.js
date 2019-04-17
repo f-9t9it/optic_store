@@ -1,4 +1,4 @@
-import InvoiceDialog, { print_invoice } from './InvoiceDialog';
+import { print_invoice } from './InvoiceDialog';
 
 export default class DeliverDialog {
   constructor(print_formats = []) {
