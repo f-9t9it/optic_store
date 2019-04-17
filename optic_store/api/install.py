@@ -59,6 +59,7 @@ def _update_settings():
     settings = {
         "Selling Settings": {"cust_master_name": "Naming Series"},
         "Stock Settings": {"item_naming_by": "Naming Series", "show_barcode_field": 1},
+        "POS Settings": {"use_pos_in_offline_mode": 1},
     }
 
     map(lambda x: update(*x), settings.items())

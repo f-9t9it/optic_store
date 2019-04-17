@@ -56,6 +56,7 @@ fixtures = [
                     "Sales Order-orx_dispensor",
                     "Sales Order-orx_lab",
                     "Sales Order-os_lab_tech",
+                    # "Sales Order-redeem_loyalty_points",
                     "Sales Order-orx_group_discount",
                     "Sales Order-os_recall_sec",
                     "Sales Order-os_recall",
@@ -104,6 +105,9 @@ fixtures = [
                     "Sales Order-order_type-hidden",
                     "Sales Order-set_warehouse-read_only",
                     "Sales Order-po_no-hidden",
+                    # "Sales Order-loyalty_points_redemption-hidden",
+                    # "Sales Order-loyalty_points-hidden",
+                    # "Sales Order-loyalty_amount-hidden",
                     "Sales Order-terms_section_break-hidden",
                     "Sales Order-more_info-hidden",
                     "Sales Order-printing_details-hidden",
@@ -129,7 +133,7 @@ app_include_js = "/assets/js/optic_store.min.js"
 # web_include_js = "/assets/optic_store/js/optic_store.js"
 
 # include js in page
-# page_js = {"page" : "public/js/file.js"}
+page_js = {"pos": "public/js/pos.js"}
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}

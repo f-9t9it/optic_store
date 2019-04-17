@@ -10,6 +10,7 @@ import {
   group_discount,
   gift_card,
 } from './scripts';
+import extend_pos from './pages/pos';
 
 frappe.ui.form.on('Sales Invoice', sales_invoice);
 frappe.ui.form.on('Sales Invoice Gift Card', sales_invoice_gift_cards);
@@ -30,4 +31,5 @@ optic_store = {
   optical_store_settings,
   group_discount,
   gift_card,
+  extend_pos,
 };
