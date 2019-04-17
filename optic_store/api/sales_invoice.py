@@ -4,10 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
-from functools import partial
-from toolz import pluck, unique, compose, keyfilter
 
 
 @frappe.whitelist()
