@@ -1,4 +1,4 @@
-function print_invoice(sales_invoice_name, print_format, no_letterhead) {
+export function print_invoice(sales_invoice_name, print_format, no_letterhead) {
   // from /frappe/public/js/frappe/form/print.js
   const w = window.open(
     frappe.urllib.get_full_url(
