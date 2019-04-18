@@ -6,7 +6,9 @@ from __future__ import unicode_literals
 import frappe
 import json
 from functools import partial, reduce
-from toolz import compose, groupby, merge, keyfilter, valmap
+from toolz import compose, groupby, merge, valmap
+
+from optic_store.utils import pick
 
 
 @frappe.whitelist()
@@ -77,12 +79,8 @@ def _convert_to_brands(brands):
     def fn(discount):
         brands = brands_by_category.get(discount.get("brand_category"), [])
         return map(
-            lambda x: merge(_pick(["brand"], x), _pick(["discount_rate"], discount)),
+            lambda x: merge(pick(["brand"], x), pick(["discount_rate"], discount)),
             brands,
         )
 
     return fn
-
-
-def _pick(whitelist, d):
-    return keyfilter(lambda k: k in whitelist, d)
