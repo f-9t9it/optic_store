@@ -1,4 +1,4 @@
-function print_invoice(sales_invoice_name, print_format, no_letterhead) {
+export function print_invoice(sales_invoice_name, print_format, no_letterhead) {
   // from /frappe/public/js/frappe/form/print.js
   const w = window.open(
     frappe.urllib.get_full_url(
@@ -90,10 +90,25 @@ export default class InvoiceDialog {
     });
 
     this.dialog.set_df_property('payment_sec', 'hidden', 0);
-    const first_payment_gr = this.dialog.fields_dict.payments.grid.get_row(0);
+    let amount_to_set = frm.doc.rounded_total;
+    const gift_card_balance = frm.doc.os_gift_cards.reduce(
+      (a, { balance }) => a + balance,
+      0
+    );
+    const gift_card_gr = this.dialog.fields_dict.payments.grid.grid_rows.find(
+      ({ doc }) => doc.mode_of_payment === 'Gift Card'
+    );
+    if (gift_card_balance && gift_card_gr) {
+      gift_card_gr.doc.amount = Math.min(gift_card_balance, amount_to_set);
+      gift_card_gr.refresh_field('amount');
+      amount_to_set -= gift_card_gr.doc.amount;
+    }
+    const first_payment_gr = this.dialog.fields_dict.payments.grid.grid_rows.filter(
+      ({ doc }) => doc.mode_of_payment !== 'Gift Card'
+    )[0];
     if (first_payment_gr) {
-      (first_payment_gr.doc.amount = frm.doc.rounded_total),
-        first_payment_gr.refresh_field('amount');
+      first_payment_gr.doc.amount = amount_to_set;
+      first_payment_gr.refresh_field('amount');
     }
     this.dialog.show();
   }

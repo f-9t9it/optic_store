@@ -25,9 +25,24 @@ fixtures = [
                     "Branch-process_at_branch",
                     "Branch-branch_code",
                     "Branch-location",
+                    "Branch-branch_phone",
                     "Branch-main_col",
                     "Branch-warehouse",
                     "Customer-branch",
+                    "Customer-os_details_sec",
+                    "Customer-os_detail_bio_col",
+                    "Customer-os_short_name",
+                    "Customer-os_crp_no",
+                    "Customer-os_date_of_birth",
+                    "Customer-os_occupation",
+                    "Customer-os_nationality",
+                    "Customer-os_detail_contact_col",
+                    "Customer-os_office_number",
+                    "Customer-os_mobile_number",
+                    "Customer-os_home_number",
+                    "Customer-os_other_number",
+                    "Customer-os_email",
+                    "Customer-os_address",
                     "Item Group-item_group_abbr",
                     "Item-manual_item_code",
                     "Item-gift_card_sec",
@@ -54,6 +69,8 @@ fixtures = [
                     "Sales Order-os_others_col",
                     "Sales Order-orx_dispensor",
                     "Sales Order-orx_lab",
+                    "Sales Order-os_lab_tech",
+                    # "Sales Order-redeem_loyalty_points",
                     "Sales Order-orx_group_discount",
                     "Sales Order-os_recall_sec",
                     "Sales Order-os_recall",
@@ -63,6 +80,28 @@ fixtures = [
                     "Sales Invoice-os_gift_card_sec",
                     "Sales Invoice-os_gift_card_entry",
                     "Sales Invoice-os_gift_cards",
+                    "Sales Invoice-os_branch",
+                    "Sales Invoice-os_sales_person",
+                    "Sales Invoice-orx_sec",
+                    "Sales Invoice-orx_type",
+                    "Sales Invoice-orx_col",
+                    "Sales Invoice-orx_name",
+                    "Sales Invoice-orx_html_sec",
+                    "Sales Invoice-orx_html",
+                    "Sales Invoice-os_others_sec",
+                    "Sales Invoice-orx_frame_size",
+                    "Sales Invoice-orx_height_type",
+                    "Sales Invoice-orx_height",
+                    "Sales Invoice-os_others_col",
+                    "Sales Invoice-orx_dispensor",
+                    "Sales Invoice-orx_lab",
+                    "Sales Invoice-os_lab_tech",
+                    "Sales Invoice-orx_group_discount",
+                    "Sales Invoice-os_recall_sec",
+                    "Sales Invoice-os_recall",
+                    "Sales Invoice-os_recall_months",
+                    "Sales Invoice-os_recall_col",
+                    "Sales Invoice-os_recall_reason",
                 ],
             ]
         ],
@@ -80,6 +119,9 @@ fixtures = [
                     "Sales Order-order_type-hidden",
                     "Sales Order-set_warehouse-read_only",
                     "Sales Order-po_no-hidden",
+                    # "Sales Order-loyalty_points_redemption-hidden",
+                    # "Sales Order-loyalty_points-hidden",
+                    # "Sales Order-loyalty_amount-hidden",
                     "Sales Order-terms_section_break-hidden",
                     "Sales Order-more_info-hidden",
                     "Sales Order-printing_details-hidden",
@@ -105,7 +147,7 @@ app_include_js = "/assets/js/optic_store.min.js"
 # web_include_js = "/assets/optic_store/js/optic_store.js"
 
 # include js in page
-# page_js = {"page" : "public/js/file.js"}
+page_js = {"pos": "public/js/pos.js"}
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
@@ -165,6 +207,7 @@ doc_events = {
     "Delivery Note": {"validate": "optic_store.doc_events.delivery_note.validate"},
     "Sales Order": {
         "validate": "optic_store.doc_events.sales_order.validate",
+        "before_insert": "optic_store.doc_events.sales_order.before_insert",
         "on_update": "optic_store.doc_events.sales_order.on_update",
     },
     "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
@@ -180,6 +223,7 @@ doc_events = {
     },
     "Sales Invoice": {
         "validate": "optic_store.doc_events.sales_invoice.validate",
+        "before_insert": "optic_store.doc_events.sales_invoice.before_insert",
         "before_submit": "optic_store.doc_events.sales_invoice.before_submit",
         "on_submit": "optic_store.doc_events.sales_invoice.on_submit",
         "on_cancel": "optic_store.doc_events.sales_invoice.on_cancel",
@@ -205,7 +249,7 @@ before_tests = "optic_store.api.install.setup_defaults"
 
 # Overriding Whitelisted Methods
 # ------------------------------
-#
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "optic_store.event.get_events"
-# }
+
+override_whitelisted_methods = {
+    "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice"
+}

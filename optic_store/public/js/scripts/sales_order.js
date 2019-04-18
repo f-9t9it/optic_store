@@ -3,7 +3,7 @@ import Vue from 'vue/dist/vue.js';
 import PrescriptionForm from '../components/PrescriptionForm.vue';
 import InvoiceDialog from '../frappe-components/InvoiceDialog';
 
-function setup_orx_name(frm) {
+export function setup_orx_name(frm) {
   const { customer, orx_type: type } = frm.doc;
   if (customer && type) {
     const orx_name = frm.get_docfield('orx_name');
@@ -19,7 +19,7 @@ function setup_orx_name(frm) {
   }
 }
 
-async function render_prescription(frm) {
+export async function render_prescription(frm) {
   const { orx_name } = frm.doc;
   const { $wrapper } = frm.get_field('orx_html');
   $wrapper.empty();
@@ -47,7 +47,7 @@ function render_invoice_button(frm) {
   }
 }
 
-async function apply_group_discount(frm) {
+export async function apply_group_discount(frm) {
   const { orx_group_discount } = frm.doc;
   const items = frm
     .get_field('items')
@@ -97,7 +97,7 @@ function handle_order_type(frm) {
   }
 }
 
-async function set_fields(frm) {
+export async function set_fields(frm) {
   const [{ message: warehouse }, { message: branch }] = await Promise.all([
     frappe.call({
       method: 'optic_store.api.sales_order.get_warehouse',
@@ -111,6 +111,65 @@ async function set_fields(frm) {
   frm.set_value('os_branch', branch);
 }
 
+export async function handle_gift_card_entry(frm) {
+  function set_desc(description) {
+    frm.get_field('os_gift_card_entry').set_new_description(description);
+  }
+  const { os_gift_card_entry: gift_card_no } = frm.doc;
+  const posting_date = frm.doc.posting_date || frm.doc.transaction_date;
+  if (gift_card_no) {
+    const already_added = (frm.get_field('os_gift_cards').grid.grid_rows || [])
+      .map(({ doc }) => doc.gift_card)
+      .includes(gift_card_no);
+    if (already_added) {
+      set_desc(__('Gift Card already present in Table'));
+    } else {
+      const { message: details } = await frappe.call({
+        method: 'optic_store.api.gift_card.get_details',
+        args: { gift_card_no, posting_date },
+      });
+      if (!details) {
+        set_desc(__('Unable to find Gift Card'));
+      } else {
+        const { gift_card, balance, has_expired } = details;
+        if (!balance) {
+          set_desc(__('Gift Card balance is depleted'));
+        } else if (has_expired) {
+          set_desc(__('Gift Card has expired'));
+        } else {
+          // using this instead of just frm.add_child because
+          // Sales Invoice Gift Card 'balance' can only be triggered by set_value
+          const row = frappe.model.add_child(
+            frm.doc,
+            'Sales Invoice Gift Card',
+            'os_gift_cards'
+          );
+          frappe.model.set_value(row.doctype, row.name, {
+            gift_card,
+            balance,
+          });
+          set_desc('');
+          frm.refresh_field('os_gift_cards');
+        }
+        frm.set_value('os_gift_card_entry', null);
+      }
+    }
+  }
+  return false;
+}
+
+export async function setup_employee_queries(frm) {
+  const settings = await frappe.db.get_doc('Optical Store Settings');
+  ['sales_person', 'dispensor', 'lab_tech']
+    .map(employee => ({
+      field: `os_${employee}`,
+      department: settings[`${employee}_department`],
+    }))
+    .forEach(({ field, department }) => {
+      frm.set_query(field, { filters: [['department', '=', department]] });
+    });
+}
+
 export default {
   setup: async function(frm) {
     const { invoice_pfs = [], invoice_mops = [] } = await frappe.db.get_doc(
@@ -122,6 +181,9 @@ export default {
     );
     frm.invoice_dialog = new InvoiceDialog(print_formats, mode_of_payments);
   },
+  onload: function(frm) {
+    setup_employee_queries(frm);
+  },
   refresh: function(frm) {
     render_prescription(frm);
     render_invoice_button(frm);
@@ -130,9 +192,9 @@ export default {
       set_fields(frm);
     }
   },
-  os_order_type: handle_order_type,
   customer: setup_orx_name,
   orx_type: setup_orx_name,
   orx_name: render_prescription,
   orx_group_discount: apply_group_discount,
+  os_gift_card_entry: handle_gift_card_entry,
 };

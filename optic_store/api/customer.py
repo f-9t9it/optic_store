@@ -7,6 +7,20 @@ import frappe
 from functools import partial
 from toolz import compose, pluck
 
+CUSTOMER_DETAILS_FIELDS = [
+    "os_short_name",
+    "os_crp_no",
+    "os_date_of_birth",
+    "os_occupation",
+    "os_nationality",
+    "os_office_number",
+    "os_mobile_number",
+    "os_home_number",
+    "os_other_number",
+    "os_email",
+    "os_address",
+]
+
 
 @frappe.whitelist()
 def get_user_branch():

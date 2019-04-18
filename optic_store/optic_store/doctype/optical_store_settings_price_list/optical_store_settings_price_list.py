@@ -3,10 +3,9 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+import frappe
+from frappe.model.document import Document
 
-from optic_store.api.customer import get_user_branch
 
-
-def before_insert(doc, method):
-    if not doc.branch:
-        doc.branch = get_user_branch()
+class OpticalStoreSettingsPriceList(Document):
+    pass
