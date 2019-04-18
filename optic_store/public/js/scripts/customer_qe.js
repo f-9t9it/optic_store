@@ -1,5 +1,4 @@
 export const customer_qe_fields = [
-  { fieldtype: 'Section Break', label: __('Details'), collapsible: 1 },
   { fieldtype: 'Column Break', label: __('Bio') },
   {
     fieldtype: 'Data',
@@ -66,6 +65,9 @@ export const customer_qe_fields = [
 
 export default {
   get_variant_fields: function() {
-    return customer_qe_fields;
+    return [
+      { fieldtype: 'Section Break', label: __('Details'), collapsible: 1 },
+      ...customer_qe_fields,
+    ];
   },
 };

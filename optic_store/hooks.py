@@ -249,7 +249,7 @@ before_tests = "optic_store.api.install.setup_defaults"
 
 # Overriding Whitelisted Methods
 # ------------------------------
-#
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "optic_store.event.get_events"
-# }
+
+override_whitelisted_methods = {
+    "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice"
+}
