@@ -9,7 +9,6 @@ export default class PricelistDialog {
         label: __(pl),
       })),
     });
-    console.log(this.dialog);
   }
   async set_prices(frm) {
     const { message: prices } = await frappe.call({

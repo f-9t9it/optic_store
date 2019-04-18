@@ -41,3 +41,5 @@ def before_save(doc, method):
             doc.deferred_revenue_account = frappe.db.get_single_value(
                 "Optical Store Settings", "gift_card_deferred_revenue"
             )
+    if not doc.os_has_commission:
+        doc.os_commissions = []
