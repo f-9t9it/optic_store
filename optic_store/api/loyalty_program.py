@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
     get_loyalty_details,
     get_loyalty_program_details,
@@ -14,7 +15,11 @@ from optic_store.utils import pick
 
 
 @frappe.whitelist()
-def get_customer_loyalty_details(customer, expiry_date, company):
+def get_customer_loyalty_details(customer, loyalty_card_no, expiry_date, company):
+    if loyalty_card_no != frappe.db.get_value(
+        "Customer", customer, "os_loyalty_card_no"
+    ):
+        frappe.throw(_("Loyalty Card does not belong to this Customer"))
     program = get_loyalty_program_details(
         customer, expiry_date=expiry_date, company=company
     )
