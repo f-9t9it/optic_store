@@ -1,4 +1,10 @@
+import pick from 'lodash/pick';
+
 import { customer_qe_fields } from '../scripts/customer_qe';
+
+const CUSTOMER_DETAILS_FIELDS = customer_qe_fields
+  .filter(({ fieldtype }) => ['Data', 'Date', 'Small Text'].includes(fieldtype))
+  .map(({ fieldname }) => fieldname);
 
 export default function extend_pos(PosClass) {
   class PosClassExtended extends PosClass {
@@ -65,24 +71,20 @@ export default function extend_pos(PosClass) {
         }
       });
       this.customer_doc.add_fields(customer_qe_fields);
-      const { name, ...details } =
-        this.customers_details_data[this.frm.doc.customer] || {};
-      this.customer_doc.set_values(details);
+      this.customer_doc.set_values(
+        pick(
+          this.customers_details_data[this.frm.doc.customer] || {},
+          CUSTOMER_DETAILS_FIELDS
+        )
+      );
     }
     make_offline_customer(new_customer) {
       super.make_offline_customer(new_customer);
-      const fields = customer_qe_fields
-        .filter(({ fieldtype }) =>
-          ['Data', 'Date', 'Small Text'].includes(fieldtype)
-        )
-        .map(({ fieldname }) => fieldname);
       const values = this.customer_doc.get_values();
-      this.customers_details_data[this.frm.doc.customer] = Object.keys(
-        values
-      ).reduce(
-        (a, x) =>
-          fields.includes(x) ? Object.assign(a, { [x]: values[x] }) : a,
-        {}
+      this.customers_details_data[this.frm.doc.customer] = Object.assign(
+        {},
+        this.customers_details_data[this.frm.doc.customer],
+        pick(values, CUSTOMER_DETAILS_FIELDS)
       );
     }
     make_sales_person_field() {
