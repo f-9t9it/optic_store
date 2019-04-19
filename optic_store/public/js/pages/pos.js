@@ -6,6 +6,10 @@ const CUSTOMER_DETAILS_FIELDS = customer_qe_fields
   .filter(({ fieldtype }) => ['Data', 'Date', 'Small Text'].includes(fieldtype))
   .map(({ fieldname }) => fieldname);
 
+function list2dict(key, list) {
+  return Object.assign({}, ...list.map(item => ({ [item[key]]: item })));
+}
+
 export default function extend_pos(PosClass) {
   class PosClassExtended extends PosClass {
     async init_master_data(r) {
@@ -16,6 +20,8 @@ export default function extend_pos(PosClass) {
             sales_persons = [],
             group_discounts = {},
             customers_details = [],
+            loyalty_programs = [],
+            gift_cards = [],
           } = {},
         } = await frappe.call({
           method: 'optic_store.api.pos.get_extended_pos_data',
@@ -30,10 +36,9 @@ export default function extend_pos(PosClass) {
           })
         );
         this.group_discounts_data = group_discounts;
-        this.customers_details_data = customers_details.reduce(
-          (a, x) => Object.assign(a, { [x.name]: x }),
-          {}
-        );
+        this.customers_details_data = list2dict('name', customers_details);
+        this.loyalty_programs_data = list2dict('name', loyalty_programs);
+        this.gift_cards_data = list2dict('name', gift_cards);
         this.make_sales_person_field();
         this.make_group_discount_field();
       } catch (e) {
