@@ -109,6 +109,7 @@ export default class InvoiceDialog {
       loyalty_program: null,
       loyalty_points: 0,
       conversion_factor: 0,
+      loyalty_points_redeem: 0,
       loyalty_amount_redeem: 0,
     };
   }
