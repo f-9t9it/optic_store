@@ -84,4 +84,7 @@ export default {
   orx_type: setup_orx_name,
   orx_name: render_prescription,
   orx_group_discount: apply_group_discount,
+  redeem_loyalty_points: function(frm) {
+    frm.toggle_reqd('os_loyalty_card_no', frm.doc.redeem_loyalty_points);
+  },
 };

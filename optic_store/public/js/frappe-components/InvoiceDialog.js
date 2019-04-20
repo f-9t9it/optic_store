@@ -90,6 +90,11 @@ export default class InvoiceDialog {
     });
 
     this.dialog.set_df_property('payment_sec', 'hidden', 0);
+    this.dialog.fields_dict.payments.grid.grid_rows.forEach(gr => {
+      gr.doc.amount = 0;
+      gr.refresh_field('amount');
+    });
+
     let amount_to_set = frm.doc.rounded_total;
     const gift_card_balance = frm.doc.os_gift_cards.reduce(
       (a, { balance }) => a + balance,

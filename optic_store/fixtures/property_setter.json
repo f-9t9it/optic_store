@@ -214,10 +214,27 @@
   "doctype": "Property Setter", 
   "doctype_or_field": "DocField", 
   "field_name": "naming_series", 
-  "modified": "2019-04-13 15:17:32.553762", 
+  "modified": "2019-04-18 01:19:09.241241", 
   "name": "Customer-naming_series-options", 
   "property": "options", 
   "property_type": "Text", 
-  "value": "C#########\nCUST-.YYYY.-"
+  "value": "C.#########\nCUST-.YYYY.-"
+ }, 
+ {
+  "_assign": null, 
+  "_comments": null, 
+  "_liked_by": null, 
+  "_user_tags": null, 
+  "default_value": null, 
+  "doc_type": "Customer", 
+  "docstatus": 0, 
+  "doctype": "Property Setter", 
+  "doctype_or_field": "DocType", 
+  "field_name": null, 
+  "modified": "2019-04-18 20:52:27.754494", 
+  "name": "Customer-search_fields", 
+  "property": "search_fields", 
+  "property_type": "Data", 
+  "value": "customer_name,customer_group,territory, mobile_no,primary_address,os_loyalty_card_no"
  }
 ]

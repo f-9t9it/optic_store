@@ -39,4 +39,26 @@ export default {
   },
   manual_item_code: toggle_naming,
   is_gift_card: enable_gift_card,
+  os_commission_by: function(frm) {
+    const { os_commission_by } = frm.doc;
+    frm.fields_dict['os_commissions'].grid.set_column_disp(
+      'commission_rate',
+      os_commission_by === 'Percentage'
+    );
+    frm.fields_dict['os_commissions'].grid.set_column_disp(
+      'commission_amount',
+      os_commission_by === 'Amount'
+    );
+    const field_map = {
+      Percentage: 'commission_rate',
+      Amount: 'commission_amount',
+    };
+    if (field_map[os_commission_by]) {
+      frm.fields_dict['os_commissions'].grid.grid_rows
+        .map(({ doc }) => doc)
+        .map(({ doctype: cdt, name: cdn }) =>
+          frappe.model.set_value(cdt, cdn, field_map[os_commission_by], null)
+        );
+    }
+  },
 };

@@ -43,6 +43,8 @@ fixtures = [
                     "Customer-os_other_number",
                     "Customer-os_email",
                     "Customer-os_address",
+                    "Customer-os_loyalty_col",
+                    "Customer-os_loyalty_card_no",
                     "Item Group-item_group_abbr",
                     "Item-manual_item_code",
                     "Item-gift_card_sec",
@@ -50,6 +52,20 @@ fixtures = [
                     "Item-gift_card_col",
                     "Item-gift_card_value",
                     "Item-gift_card_validity",
+                    "Item-os_commission_sec",
+                    "Item-os_has_commission",
+                    "Item-os_commission_by",
+                    "Item-os_commission_table_sec",
+                    "Item-os_commissions",
+                    "Item-os_more_info_sec",
+                    "Item-os_color",
+                    "Item-os_model",
+                    "Item-os_size",
+                    "Item-os_life_span",
+                    "Item-os_more_info_col",
+                    "Item-os_promotional_discount",
+                    "Item-os_promotion_start_date",
+                    "Item-os_promotion_end_date",
                     "Brand-brand_category",
                     "Sales Order-os_order_type",
                     "Sales Order-os_branch",
@@ -72,6 +88,9 @@ fixtures = [
                     "Sales Order-os_lab_tech",
                     # "Sales Order-redeem_loyalty_points",
                     "Sales Order-orx_group_discount",
+                    "Sales Order-os_gift_card_sec",
+                    "Sales Order-os_gift_card_entry",
+                    "Sales Order-os_gift_cards",
                     "Sales Order-os_recall_sec",
                     "Sales Order-os_recall",
                     "Sales Order-os_recall_months",
@@ -96,6 +115,7 @@ fixtures = [
                     "Sales Invoice-orx_dispensor",
                     "Sales Invoice-orx_lab",
                     "Sales Invoice-os_lab_tech",
+                    "Sales Invoice-os_loyalty_card_no",
                     "Sales Invoice-orx_group_discount",
                     "Sales Invoice-os_recall_sec",
                     "Sales Invoice-os_recall",
@@ -114,6 +134,7 @@ fixtures = [
                 "in",
                 [
                     "Customer-naming_series-options",
+                    "Customer-search_fields",
                     "Item-quick_entry",
                     "Item-naming_series-options",
                     "Sales Order-order_type-hidden",
@@ -251,5 +272,6 @@ before_tests = "optic_store.api.install.setup_defaults"
 # ------------------------------
 
 override_whitelisted_methods = {
-    "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice"
+    "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice",
+    "erpnext.selling.page.point_of_sale.point_of_sale.search_serial_or_batch_or_barcode_number": "optic_store.api.sales_invoice.search_serial_or_batch_or_barcode_number",
 }

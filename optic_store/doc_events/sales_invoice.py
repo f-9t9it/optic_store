@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import getdate
+from frappe.utils import getdate, cint
 from functools import partial
 from toolz import compose
 
@@ -25,6 +25,8 @@ def validate(doc, method):
     )
     map(partial(_validate_gift_card_expiry, doc.posting_date), gift_cards)
     _validate_gift_card_balance(doc.payments, gift_cards)
+    if cint(doc.redeem_loyalty_points):
+        _validate_loyalty_card_no(doc.customer, doc.os_loyalty_card_no)
 
 
 def _validate_gift_card_expiry(posting_date, giftcard):
@@ -36,6 +38,19 @@ def _validate_gift_card_balance(payments, gift_cards):
     get_gift_card_balances = compose(sum, partial(map, lambda x: x.balance))
     if _get_gift_card_amounts(payments) > get_gift_card_balances(gift_cards):
         frappe.throw(_("Gift Card(s) has insufficient balance."))
+
+
+def _validate_loyalty_card_no(customer, loyalty_card_no):
+    if loyalty_card_no != frappe.db.get_value(
+        "Customer", customer, "os_loyalty_card_no"
+    ):
+        frappe.throw(
+            _(
+                "Loyalty Card No: {} does not belong to this Customer".format(
+                    loyalty_card_no
+                )
+            )
+        )
 
 
 def before_submit(doc, method):
