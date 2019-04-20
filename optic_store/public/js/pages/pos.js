@@ -10,6 +10,12 @@ function list2dict(key, list) {
   return Object.assign({}, ...list.map(item => ({ [item[key]]: item })));
 }
 
+function set_description(field) {
+  return function(description) {
+    field.set_new_description(description);
+  };
+}
+
 export default function extend_pos(PosClass) {
   class PosClassExtended extends PosClass {
     async init_master_data(r) {
@@ -92,6 +98,42 @@ export default function extend_pos(PosClass) {
         pick(values, CUSTOMER_DETAILS_FIELDS)
       );
     }
+    make_keyboard() {
+      super.make_keyboard();
+      this.add_more_payment_options();
+    }
+    update_payment_amount() {
+      const { idx: gift_card_idx } =
+        this.frm.doc.payments.find(
+          ({ mode_of_payment }) => mode_of_payment === 'Gift Card'
+        ) || {};
+      if (cint(gift_card_idx) === cint(this.idx)) {
+        if (
+          this.payment_val >
+          flt(this.os_payment_fg.get_value('gift_card_balance'))
+        ) {
+          this.selected_mode.val(0);
+          return frappe.throw(
+            __('Payment with Gift Card cannot exceed available balance')
+          );
+        }
+      }
+      super.update_payment_amount();
+    }
+    submit_invoice() {
+      const gift_card_no = this.os_payment_fg.get_value('gift_card_no');
+      const { amount } = this.frm.doc.payments.find(
+        ({ mode_of_payment }) => mode_of_payment === 'Gift Card'
+      ) || { amount: 0 };
+      const gift_card = this.gift_cards_data[gift_card_no];
+      if (gift_card) {
+        this.gift_cards_data[gift_card_no] = Object.assign(gift_card, {
+          balance: flt(gift_card.balance) - amount,
+        });
+      }
+      super.submit_invoice();
+    }
+
     make_sales_person_field() {
       if (!this.sales_person_field) {
         this.sales_person_field = new frappe.ui.form.ControlAutocomplete({
@@ -137,6 +179,85 @@ export default function extend_pos(PosClass) {
           this.group_discount_field.set_data(group_discounts);
         }
       }
+    }
+    add_more_payment_options() {
+      this.os_payment_fg = new frappe.ui.FieldGroup({
+        parent: $('<div style="margin: 0 15px;" />').insertAfter(
+          $(this.$body).find('.pos_payment .amount-row')
+        ),
+        fields: [
+          {
+            fieldtype: 'Section Break',
+            label: __('Other Payments'),
+            collapsible: 1,
+          },
+          {
+            fieldtype: 'Column Break',
+            label: __('Gift Card'),
+          },
+          {
+            fieldname: 'gift_card_no',
+            fieldtype: 'Data',
+            label: __('Enter Gift Card No'),
+          },
+          {
+            fieldname: 'gift_card_balance',
+            fieldtype: 'Currency',
+            label: __('Gift Card Balance'),
+            read_only: 1,
+            depends_on: 'gift_card_no',
+          },
+          {
+            fieldtype: 'Column Break',
+            label: __('Loyalty Program'),
+          },
+          {
+            fieldname: 'loyalty_card_no',
+            fieldtype: 'Data',
+            label: __('Enter Loyalty Card No'),
+          },
+          {
+            fieldname: 'loyalty_points_available',
+            fieldtype: 'Int',
+            label: __('Available Loyalty Points'),
+            read_only: 1,
+            depends_on: 'loyalty_card_no',
+          },
+          {
+            fieldname: 'loyalty_points_redeem',
+            fieldtype: 'Int',
+            label: __('Points to Redeem'),
+            depends_on: 'loyalty_card_no',
+          },
+          {
+            fieldname: 'loyalty_amount_redeem',
+            fieldtype: 'Int',
+            label: __('Amount to Redeem'),
+            read_only: 1,
+            depends_on: 'loyalty_card_no',
+          },
+        ],
+      });
+      this.os_payment_fg.make();
+
+      const gift_card_field = this.os_payment_fg.get_field('gift_card_no');
+      const set_gift_card_desc = set_description(gift_card_field);
+      gift_card_field.$input.off('change');
+      gift_card_field.$input.on('change', () => {
+        const gift_card_no = gift_card_field.get_value();
+        const details = this.gift_cards_data[gift_card_no];
+        if (!details) {
+          set_gift_card_desc(__('Unable to find Gift Card'));
+        } else {
+          const { gift_card, balance } = details;
+          if (!balance) {
+            set_gift_card_desc(__('Gift Card balance is depleted'));
+          } else {
+            set_gift_card_desc('');
+            this.os_payment_fg.set_value('gift_card_balance', balance);
+          }
+        }
+      });
     }
   }
   return PosClassExtended;
