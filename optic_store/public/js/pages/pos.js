@@ -240,12 +240,13 @@ export default function extend_pos(PosClass) {
         if (!details) {
           set_gift_card_desc(__('Unable to find Gift Card'));
         } else {
-          const { gift_card, balance } = details;
+          const { name: gift_card, balance } = details;
           if (!balance) {
             set_gift_card_desc(__('Gift Card balance is depleted'));
           } else {
             set_gift_card_desc('');
             this.os_payment_fg.set_value('gift_card_balance', balance);
+            this.frm.doc.os_gift_cards = [{ gift_card, balance }];
           }
         }
       });
@@ -260,11 +261,11 @@ export default function extend_pos(PosClass) {
           loyalty_program: customer_loyalty_program,
           loyalty_points: customer_loyalty_points,
         } = this.customers_details_data[this.frm.doc.customer] || {};
-        const { loyalty_program_name, conversion_rate } =
+        const { name: loyalty_program, conversion_rate } =
           this.loyalty_programs_data[customer_loyalty_program] || {};
-        if (!loyalty_program_name) {
+        if (!loyalty_program) {
           set_loyalty_card_desc(__('Loyalty Program not found'));
-        } else if (loyalty_program_name !== customer_loyalty_program) {
+        } else if (loyalty_program !== customer_loyalty_program) {
           set_loyalty_card_desc(__('Customer is not under this Loyalty Program'));
         } else if (loyalty_card_no !== customer_card_no) {
           set_loyalty_card_desc(

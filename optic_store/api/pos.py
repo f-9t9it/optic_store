@@ -72,7 +72,7 @@ def _get_customers_details(pos_profile, query_date):
 def _get_loyalty_programs(company):
     return frappe.get_all(
         "Loyalty Program",
-        fields=["name", "loyalty_program_name", "conversion_factor"],
+        fields=["name", "conversion_factor"],
         filters={"company": company},
     )
 
@@ -94,7 +94,7 @@ def _get_gift_cards(query_date):
 
 @frappe.whitelist()
 def make_invoice(doc_list={}, email_queue_list={}, customers_list={}):
-    result = erpnext_make_invoice(doc_list={}, email_queue_list={}, customers_list={})
+    result = erpnext_make_invoice(doc_list, email_queue_list, customers_list)
     _update_customer_details(customers_list)
     return result
 
