@@ -35,12 +35,10 @@ export default function extend_pos(PosClass) {
           freeze: true,
           freeze_message: __('Syncing extended details'),
         });
-        this.sales_persons_data = sales_persons.map(
-          ({ name, employee_name }) => ({
-            label: employee_name,
-            value: name,
-          })
-        );
+        this.sales_persons_data = sales_persons.map(({ name, employee_name }) => ({
+          label: employee_name,
+          value: name,
+        }));
         this.group_discounts_data = group_discounts;
         this.customers_details_data = list2dict('name', customers_details);
         this.loyalty_programs_data = list2dict('name', loyalty_programs);
@@ -52,9 +50,7 @@ export default function extend_pos(PosClass) {
         frappe.msgprint({
           indicator: 'orange',
           title: __('Warning'),
-          message: __(
-            'Unable to load extended details. Usage will be restricted.'
-          ),
+          message: __('Unable to load extended details. Usage will be restricted.'),
         });
       }
     }
@@ -108,10 +104,7 @@ export default function extend_pos(PosClass) {
           ({ mode_of_payment }) => mode_of_payment === 'Gift Card'
         ) || {};
       if (cint(gift_card_idx) === cint(this.idx)) {
-        if (
-          this.payment_val >
-          flt(this.os_payment_fg.get_value('gift_card_balance'))
-        ) {
+        if (this.payment_val > flt(this.os_payment_fg.get_value('gift_card_balance'))) {
           this.selected_mode.val(0);
           return frappe.throw(
             __('Payment with Gift Card cannot exceed available balance')
@@ -167,9 +160,7 @@ export default function extend_pos(PosClass) {
           this.group_discount_field.refresh();
           this.group_discount_field.$input.on('change', () => {
             const discounts_by_brand =
-              this.group_discounts_data[
-                this.group_discount_field.get_value()
-              ] || {};
+              this.group_discounts_data[this.group_discount_field.get_value()] || {};
             this.frm.doc.items.forEach(({ item_code, brand }) => {
               const discount_rate = discounts_by_brand[brand] || 0;
               this.update_discount(item_code, discount_rate);
@@ -231,7 +222,7 @@ export default function extend_pos(PosClass) {
           },
           {
             fieldname: 'loyalty_amount_redeem',
-            fieldtype: 'Int',
+            fieldtype: 'Currency',
             label: __('Amount to Redeem'),
             read_only: 1,
             depends_on: 'loyalty_card_no',
@@ -257,6 +248,75 @@ export default function extend_pos(PosClass) {
             this.os_payment_fg.set_value('gift_card_balance', balance);
           }
         }
+      });
+
+      const loyalty_card_field = this.os_payment_fg.get_field('loyalty_card_no');
+      const set_loyalty_card_desc = set_description(loyalty_card_field);
+      loyalty_card_field.$input.off('change');
+      loyalty_card_field.$input.on('change', () => {
+        const loyalty_card_no = loyalty_card_field.get_value();
+        const {
+          os_loyalty_card_no: customer_card_no,
+          loyalty_program: customer_loyalty_program,
+          loyalty_points: customer_loyalty_points,
+        } = this.customers_details_data[this.frm.doc.customer] || {};
+        const { loyalty_program_name, conversion_rate } =
+          this.loyalty_programs_data[customer_loyalty_program] || {};
+        if (!loyalty_program_name) {
+          set_loyalty_card_desc(__('Loyalty Program not found'));
+        } else if (loyalty_program_name !== customer_loyalty_program) {
+          set_loyalty_card_desc(__('Customer is not under this Loyalty Program'));
+        } else if (loyalty_card_no !== customer_card_no) {
+          set_loyalty_card_desc(
+            __('The Loyalty Card does not belong to this Customer')
+          );
+        } else {
+          set_loyalty_card_desc('');
+          this.os_payment_fg.set_value(
+            'loyalty_points_available',
+            customer_loyalty_points
+          );
+        }
+      });
+
+      const loyalty_points_field = this.os_payment_fg.get_field(
+        'loyalty_points_redeem'
+      );
+      loyalty_points_field.$input.off('change');
+      loyalty_points_field.$input.on('change', () => {
+        const loyalty_points = loyalty_points_field.get_value();
+        const { loyalty_points: customer_loyalty_points = 0, loyalty_program } =
+          this.customers_details_data[this.frm.doc.customer] || {};
+        const { conversion_factor = 0 } =
+          this.loyalty_programs_data[loyalty_program] || {};
+        const { grand_total } = this.frm.doc;
+        const allowed_amount = Math.min(
+          flt(customer_loyalty_points) * conversion_factor,
+          grand_total
+        );
+        const loyalty_amount =
+          loyalty_points > allowed_amount ? 0 : flt(loyalty_points) * conversion_factor;
+        this.os_payment_fg.set_value('loyalty_amount_redeem', loyalty_amount);
+        if (loyalty_points > allowed_amount) {
+          loyalty_points_field.$input.val(0);
+          return frappe.throw(
+            __(
+              `Cannot redeem more than ${format_currency(
+                allowed_amount,
+                this.frm.doc.currency
+              )}`
+            )
+          );
+        }
+        this.frm.doc = Object.assign(this.frm.doc, {
+          redeem_loyalty_points: 1,
+          os_loyalty_card_no: this.os_payment_fg.get_value('loyalty_card_no'),
+          loyalty_program,
+          loyalty_points,
+          loyalty_amount,
+        });
+        this.selected_mode.val(grand_total - loyalty_amount);
+        this.update_payment_amount();
       });
     }
   }

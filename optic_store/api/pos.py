@@ -72,7 +72,7 @@ def _get_customers_details(pos_profile, query_date):
 def _get_loyalty_programs(company):
     return frappe.get_all(
         "Loyalty Program",
-        fields=["name", "conversion_factor"],
+        fields=["name", "loyalty_program_name", "conversion_factor"],
         filters={"company": company},
     )
 
