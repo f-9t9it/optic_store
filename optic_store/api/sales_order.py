@@ -111,6 +111,12 @@ workflow = {
             "doc_status": "1",
             "allow_edit": "Sales User",
         },
+        {
+            "state": "Cancelled",
+            "style": "Danger",
+            "doc_status": "2",
+            "allow_edit": "Sales User",
+        },
     ],
     "transitions": [
         {
@@ -125,6 +131,13 @@ workflow = {
             "state": "Processing at Branch",
             "action": "Complete",
             "next_state": "Ready to Deliver",
+            "allowed": "Sales User",
+            "allow_self_approval": 1,
+        },
+        {
+            "state": "Processing at Branch",
+            "action": "Cancel",
+            "next_state": "Cancelled",
             "allowed": "Sales User",
             "allow_self_approval": 1,
         },
@@ -144,6 +157,13 @@ workflow = {
             "allow_self_approval": 1,
         },
         {
+            "state": "Sent to HQM",
+            "action": "Cancel",
+            "next_state": "Cancelled",
+            "allowed": "Store User",
+            "allow_self_approval": 1,
+        },
+        {
             "state": "Draft",
             "action": "Send as Special Order",
             "next_state": "With Special Order Incharge",
@@ -159,9 +179,23 @@ workflow = {
             "allow_self_approval": 1,
         },
         {
+            "state": "With Special Order Incharge",
+            "action": "Cancel",
+            "next_state": "Cancelled",
+            "allowed": "Store User",
+            "allow_self_approval": 1,
+        },
+        {
             "state": "Processing at HQM",
             "action": "Proceed to Deliver",
             "next_state": "Processing for Delivery",
+            "allowed": "Lab Tech",
+            "allow_self_approval": 1,
+        },
+        {
+            "state": "Processing at HQM",
+            "action": "Cancel",
+            "next_state": "Cancelled",
             "allowed": "Lab Tech",
             "allow_self_approval": 1,
         },
@@ -173,9 +207,23 @@ workflow = {
             "allow_self_approval": 1,
         },
         {
+            "state": "Processing for Delivery",
+            "action": "Cancel",
+            "next_state": "Cancelled",
+            "allowed": "Store User",
+            "allow_self_approval": 1,
+        },
+        {
             "state": "In Transit (with Driver)",
             "action": "Complete",
             "next_state": "Ready to Deliver",
+            "allowed": "Sales User",
+            "allow_self_approval": 1,
+        },
+        {
+            "state": "In Transit (with Driver)",
+            "action": "Cancel",
+            "next_state": "Cancelled",
             "allowed": "Sales User",
             "allow_self_approval": 1,
         },
