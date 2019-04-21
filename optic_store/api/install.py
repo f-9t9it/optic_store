@@ -7,6 +7,8 @@ import frappe
 from toolz import merge
 
 from optic_store.api.sales_order import workflow as sales_order_workflow
+from optic_store.api.stock_transfer import workflow as stock_transfer_workflow
+
 
 @frappe.whitelist()
 def setup_defaults():
@@ -15,7 +17,12 @@ def setup_defaults():
     _update_settings()
     _add_price_lists()
     _setup_workflow()
-    _setup_accounts(company)
+    accounts = _setup_accounts(company)
+    warehouses = _setup_warehouses(company)
+
+    settings = frappe.get_single("Optical Store Settings")
+    settings.update(merge({"defaults_installed": "No"}, accounts, warehouses))
+    settings.save(ignore_permissions=True)
 
 
 def _create_item_groups():
@@ -141,18 +148,13 @@ def _setup_accounts(company):
             merge({"doctype": "Mode of Payment"}, mop_args, {"type": "General"})
         ).insert(ignore_permissions=True)
 
-    settings = frappe.get_single("Optical Store Settings")
-    settings.gift_card_deferred_revenue = create_or_get_account_name()
-    settings.save(ignore_permissions=True)
+    gift_card_deferred_revenue = create_or_get_account_name()
 
     mop = create_or_get_mode_of_payment()
     if company not in map(lambda x: x.company, mop.accounts):
         mop.append(
             "accounts",
-            {
-                "company": company,
-                "default_account": settings.gift_card_deferred_revenue,
-            },
+            {"company": company, "default_account": gift_card_deferred_revenue},
         )
         mop.save(ignore_permissions=True)
 
@@ -184,6 +186,8 @@ def _setup_accounts(company):
                 }
             ).insert(ignore_permissions=True)
 
+    return {"gift_card_deferred_revenue": gift_card_deferred_revenue}
+
 
 def _add_price_lists():
     currency = frappe.defaults.get_global_default("currency")
@@ -211,3 +215,30 @@ def _add_price_lists():
     }
 
     map(lambda x: create_price_list(x[0], **x[1]), price_lists.items())
+
+
+def _setup_warehouses(company):
+    def create_warehouse(name, parent="All Warehouses"):
+        warehouse = frappe.db.exists(
+            "Warehouse", {"warehouse_name": name, "company": company}
+        )
+        if warehouse:
+            return warehouse
+        parent_warehouse = frappe.db.exists(
+            "Warehouse", {"warehouse_name": parent, "company": company}
+        )
+        if parent_warehouse:
+            doc = frappe.get_doc(
+                {
+                    "doctype": "Warehouse",
+                    "warehouse_name": name,
+                    "company": company,
+                    "parent_warehouse": parent_warehouse,
+                }
+            ).insert(ignore_permissions=True)
+            return doc.name
+        return None
+
+    transit_warehouse = create_warehouse("Transit")
+
+    return {"transit_warehouse": transit_warehouse}
