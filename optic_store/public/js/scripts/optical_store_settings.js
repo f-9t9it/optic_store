@@ -23,8 +23,7 @@ export default {
             freeze: true,
             freeze_message: __('Setting up defaults...'),
           });
-          await frm.set_value('defaults_installed', 'Yes');
-          await frm.save();
+          frm.reload_doc();
           frappe.show_alert({
             message: __('Defaults setup successfully'),
             indicator: 'green',
