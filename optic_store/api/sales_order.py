@@ -3,8 +3,9 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
 import json
+import frappe
+from frappe.utils import cint
 from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
 from functools import partial
 from toolz import pluck, unique, compose, keyfilter
@@ -13,8 +14,13 @@ from optic_store.api.customer import get_user_branch
 
 
 @frappe.whitelist()
-def invoice_qol(name, payments):
+def invoice_qol(name, payments, loyalty_card_no, loyalty_program, loyalty_points):
     doc = make_sales_invoice(name)
+    if loyalty_program and loyalty_points:
+        doc.redeem_loyalty_points = 1
+        doc.os_loyalty_card_no = loyalty_card_no
+        doc.loyalty_program = loyalty_program
+        doc.loyalty_points = cint(loyalty_points)
     if payments:
         doc.is_pos = 1
         add_payments = compose(

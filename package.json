@@ -1,6 +1,6 @@
 {
   "name": "optic_store",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "ERPNext App for Optical Store",
   "main": "optic_store/public/index.js",
   "scripts": {
@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/f-9t9it/optic_store/issues"
   },
-  "homepage": "https://github.com/f-9t9it/optic_store#readme"
+  "homepage": "https://github.com/f-9t9it/optic_store#readme",
+  "dependencies": {
+    "lodash": "^4.17.11"
+  }
 }
