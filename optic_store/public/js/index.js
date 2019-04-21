@@ -10,6 +10,8 @@ import {
   optical_store_settings,
   group_discount,
   gift_card,
+  stock_transfer,
+  stock_transfer_item,
 } from './scripts';
 import extend_pos from './pages/pos';
 
@@ -38,5 +40,7 @@ optic_store = {
   optical_store_settings,
   group_discount,
   gift_card,
+  stock_transfer,
+  stock_transfer_item,
   extend_pos,
 };
