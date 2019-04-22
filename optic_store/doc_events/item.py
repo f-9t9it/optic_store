@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.utils import flt
 
 
 def before_naming(doc, method):
@@ -30,6 +31,30 @@ def validate(doc, method):
         frappe.throw(_("Gift Card value is required."))
     if doc.is_gift_card and doc.no_of_months:
         frappe.throw(_("No of Months for Deferred Revenue needs to be zero."))
+
+
+def after_insert(doc, method):
+    def add_price(price_list, price):
+        if flt(price) and frappe.db.exists(
+            "Price List", {"price_list_name": price_list}
+        ):
+            frappe.get_doc(
+                {
+                    "doctype": "Item Price",
+                    "price_list": price_list,
+                    "item_code": doc.item_code,
+                    "currency": frappe.defaults.get_global_default("currency"),
+                    "price_list_rate": price,
+                }
+            ).insert()
+
+    field_pl_map = {
+        "Minimum Selling": doc.os_minimum_selling_rate,
+        "Minimum Selling 2": doc.os_minimum_selling_2_rate,
+        "Wholesale": doc.os_wholesale_rate,
+        "Standard Buying": doc.os_cost_price,
+    }
+    map(lambda x: add_price(*x), field_pl_map.items())
 
 
 def before_save(doc, method):
