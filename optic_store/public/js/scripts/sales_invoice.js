@@ -51,21 +51,60 @@ function render_deliver_button(frm) {
   }
 }
 
-export const sales_invoice_gift_cards = {
+async function get_cost_center(frm) {
+  if (frm.os_cost_center) {
+    return frm.os_cost_center;
+  }
+  const { message: { os_cost_center } = {} } = await frappe.db.get_value(
+    'Branch',
+    frm.doc.os_branch,
+    'os_cost_center'
+  );
+  frm.os_cost_center = os_cost_center;
+  return os_cost_center;
+}
+
+export async function set_cost_center(frm) {
+  const { os_branch } = frm.doc;
+  if (os_branch) {
+    const cost_center = await get_cost_center(frm);
+    frm.doc.items.forEach(({ doctype: cdt, name: cdn }) => {
+      frappe.model.set_value(cdt, cdn, 'cost_center', cost_center);
+    });
+  }
+}
+
+export async function handle_items_cost_center(frm, cdt, cdn) {
+  const { cost_center } = frappe.get_doc(cdt, cdn);
+  const branch_cost_center = await get_cost_center(frm);
+  if (branch_cost_center !== cost_center) {
+    frappe.model.set_value(cdt, cdn, 'cost_center', branch_cost_center);
+  }
+}
+
+export const sales_invoice_item = {
+  items_add: handle_items_cost_center,
+};
+
+export const sales_invoice_gift_card = {
   balance: set_gift_card_payment,
   os_gift_cards_remove: set_gift_card_payment,
 };
 
 export default {
   setup: async function(frm) {
-    const { invoice_pfs = [] } = await frappe.db.get_doc(
-      'Optical Store Settings'
-    );
+    const { invoice_pfs = [] } = await frappe.db.get_doc('Optical Store Settings');
     const print_formats = invoice_pfs.map(({ print_format }) => print_format);
     frm.deliver_dialog = new DeliverDialog(print_formats);
   },
-  onload: function(frm) {
+  onload: async function(frm) {
     setup_employee_queries(frm);
+    if (frm.is_new()) {
+      await set_fields(frm);
+      if (frm.doc.items.length > 0) {
+        set_cost_center(frm);
+      }
+    }
   },
   refresh: function(frm) {
     frm.set_query('gift_card', 'os_gift_cards', function() {
@@ -75,15 +114,13 @@ export default {
     });
     render_prescription(frm);
     render_deliver_button(frm);
-    if (frm.doc.__islocal) {
-      set_fields(frm);
-    }
   },
-  os_gift_card_entry: handle_gift_card_entry,
+  os_branch: set_cost_center,
   customer: setup_orx_name,
   orx_type: setup_orx_name,
   orx_name: render_prescription,
   orx_group_discount: apply_group_discount,
+  os_gift_card_entry: handle_gift_card_entry,
   redeem_loyalty_points: function(frm) {
     frm.toggle_reqd('os_loyalty_card_no', frm.doc.redeem_loyalty_points);
   },

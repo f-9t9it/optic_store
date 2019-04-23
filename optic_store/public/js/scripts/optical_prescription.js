@@ -8,20 +8,23 @@ import {
 } from '../utils/constants';
 import { format } from '../utils/format';
 
-function enable_sph_reading(side) {
-  const field = `sph_reading_${side}`;
+function handle_reading(side) {
+  const params = ['sph', 'cyl', 'axis', 'va', 'bc', 'dia'];
   return function(frm) {
-    frm.toggle_enable(field, frm.doc[`add_type_${side}`] === '');
-  };
-}
-
-function handle_sph_reading(side) {
-  const field = `sph_reading_${side}`;
-  return function(frm) {
-    const fval =
-      parseFloat(frm.doc[`sph_${side}`] || 0) +
-      parseFloat(frm.doc[`add_${side}`] || 0);
-    frm.set_value(field, format(field, fval));
+    params.forEach(param => {
+      const dval = frm.doc[`${param}_${side}`];
+      const field = `${param}_reading_${side}`;
+      if (dval) {
+        const rval =
+          param === 'sph'
+            ? format(
+                field,
+                parseFloat(dval || 0) + parseFloat(frm.doc[`add_${side}`] || 0)
+              )
+            : dval;
+        frm.set_value(field, rval);
+      }
+    });
   };
 }
 
@@ -91,10 +94,7 @@ function render_detail_vue(frm) {
     // this makes the below fields reactive in vue
     frm.doc = Object.assign(
       frm.doc,
-      get_all_rx_params().reduce(
-        (a, x) => Object.assign(a, { [x]: undefined }),
-        {}
-      ),
+      get_all_rx_params().reduce((a, x) => Object.assign(a, { [x]: undefined }), {}),
       { pd_total: undefined }
     );
   }
@@ -125,16 +125,7 @@ function setup_route_back(frm) {
 }
 
 function set_expiry_date(frm) {
-  frm.set_value(
-    'expiry_date',
-    frappe.datetime.add_months(frm.doc.test_date, 6)
-  );
-}
-
-function copy_to_reading(param, side) {
-  return function(frm) {
-    frm.set_value(`${param}_reading_${side}`, frm.doc[`${param}_${side}`]);
-  };
+  frm.set_value('expiry_date', frappe.datetime.add_months(frm.doc.test_date, 6));
 }
 
 export default {
@@ -147,7 +138,6 @@ export default {
     toggle_detail_entry(frm, settings.prescription_entry === 'ERPNext');
   },
   onload: function(frm) {
-    enable_sph_reading(frm);
     frm.detail_vue = render_detail_vue(frm);
     frm.route_back = setup_route_back(frm);
   },
@@ -166,28 +156,11 @@ export default {
       }
     }
   },
-  sph_right: copy_to_reading('sph', 'right'),
-  cyl_right: copy_to_reading('cyl', 'right'),
-  axis_right: copy_to_reading('axis', 'right'),
-  va_right: copy_to_reading('va', 'right'),
-  bc_right: copy_to_reading('bc', 'right'),
-  dia_right: copy_to_reading('dia', 'right'),
-  sph_left: copy_to_reading('sph', 'left'),
-  cyl_left: copy_to_reading('cyl', 'left'),
-  axis_left: copy_to_reading('axis', 'left'),
-  va_left: copy_to_reading('va', 'left'),
-  bc_left: copy_to_reading('bc', 'left'),
-  dia_left: copy_to_reading('dia', 'left'),
   add_right: function(frm) {
-    handle_sph_reading('right')(frm);
+    handle_reading('right')(frm);
     frm.set_value('add_left', frm.doc.add_right);
   },
-  add_left: handle_sph_reading('left'),
-  add_type_right: function(frm) {
-    enable_sph_reading('right')(frm);
-    frm.set_value('add_type_left', frm.doc.add_type_right);
-  },
-  add_type_left: enable_sph_reading('left'),
+  add_left: handle_reading('left'),
   pd_right: calc_total_pd,
   pd_left: calc_total_pd,
 };

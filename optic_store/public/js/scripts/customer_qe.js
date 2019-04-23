@@ -1,3 +1,5 @@
+import { NATIONALITIES } from '../utils/data';
+
 export const customer_qe_fields = [
   { fieldtype: 'Column Break', label: __('Bio') },
   {
@@ -21,9 +23,10 @@ export const customer_qe_fields = [
     label: __('Occupation'),
   },
   {
-    fieldtype: 'Data',
+    fieldtype: 'Select',
     fieldname: 'os_nationality',
     label: __('Nationality'),
+    options: ['', ...NATIONALITIES],
   },
   { fieldtype: 'Column Break', label: __('Contact') },
   {

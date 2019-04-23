@@ -15,7 +15,14 @@ from optic_store.api.customer import get_user_branch
 
 @frappe.whitelist()
 def invoice_qol(name, payments, loyalty_card_no, loyalty_program, loyalty_points):
+    def set_cost_center(item):
+        if cost_center:
+            item.cost_center = cost_center
+
     doc = make_sales_invoice(name)
+    if doc.os_branch:
+        cost_center = frappe.db.get_value("Branch", doc.os_branch, "os_cost_center")
+        map(set_cost_center, doc.items)
     if loyalty_program and loyalty_points:
         doc.redeem_loyalty_points = 1
         doc.os_loyalty_card_no = loyalty_card_no
