@@ -12,14 +12,12 @@ export const delivery_note_item = {
 };
 
 export default {
-  onload: function(frm) {
-    if (frm.is_new() && frm.doc.items.length > 0) {
-      set_cost_center(frm);
-    }
-  },
-  refresh: function(frm) {
-    if (frm.doc.__islocal) {
-      set_fields(frm);
+  onload: async function(frm) {
+    if (frm.is_new()) {
+      await set_fields(frm);
+      if (frm.doc.items.length > 0) {
+        set_cost_center(frm);
+      }
     }
   },
   os_branch: set_cost_center,

@@ -97,10 +97,13 @@ export default {
     const print_formats = invoice_pfs.map(({ print_format }) => print_format);
     frm.deliver_dialog = new DeliverDialog(print_formats);
   },
-  onload: function(frm) {
+  onload: async function(frm) {
     setup_employee_queries(frm);
-    if (frm.is_new() && frm.doc.items.length > 0) {
-      set_cost_center(frm);
+    if (frm.is_new()) {
+      await set_fields(frm);
+      if (frm.doc.items.length > 0) {
+        set_cost_center(frm);
+      }
     }
   },
   refresh: function(frm) {
@@ -111,9 +114,6 @@ export default {
     });
     render_prescription(frm);
     render_deliver_button(frm);
-    if (frm.doc.__islocal) {
-      set_fields(frm);
-    }
   },
   os_branch: set_cost_center,
   customer: setup_orx_name,
