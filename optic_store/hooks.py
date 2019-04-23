@@ -140,6 +140,8 @@ fixtures = [
                     "Sales Invoice-os_recall_months",
                     "Sales Invoice-os_recall_col",
                     "Sales Invoice-os_recall_reason",
+                    "Sales Invoice Item-os_minimum_selling_rate",
+                    "Sales Invoice Item-os_minimum_selling_2_rate",
                     "Delivery Note-os_branch",
                 ],
             ]
