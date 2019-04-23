@@ -68,12 +68,7 @@ export async function apply_group_discount(frm) {
       items.forEach(({ doctype, docname, item_code }) => {
         const { discount_rate = 0 } =
           discounts.find(d => d.item_code === item_code) || {};
-        frappe.model.set_value(
-          doctype,
-          docname,
-          'discount_percentage',
-          discount_rate
-        );
+        frappe.model.set_value(doctype, docname, 'discount_percentage', discount_rate);
       });
     } catch (e) {
       frappe.throw(__('Cannot apply Group Discount'));
@@ -176,9 +171,7 @@ export default {
       'Optical Store Settings'
     );
     const print_formats = invoice_pfs.map(({ print_format }) => print_format);
-    const mode_of_payments = invoice_mops.map(
-      ({ mode_of_payment }) => mode_of_payment
-    );
+    const mode_of_payments = invoice_mops.map(({ mode_of_payment }) => mode_of_payment);
     frm.invoice_dialog = new InvoiceDialog(print_formats, mode_of_payments);
   },
   onload: function(frm) {

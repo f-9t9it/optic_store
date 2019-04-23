@@ -1,6 +1,7 @@
 import {
   sales_invoice,
-  sales_invoice_gift_cards,
+  sales_invoice_item,
+  sales_invoice_gift_card,
   sales_order,
   customer,
   customer_qe,
@@ -16,7 +17,8 @@ import {
 import extend_pos from './pages/pos';
 
 frappe.ui.form.on('Sales Invoice', sales_invoice);
-frappe.ui.form.on('Sales Invoice Gift Card', sales_invoice_gift_cards);
+frappe.ui.form.on('Sales Invoice Item', sales_invoice_item);
+frappe.ui.form.on('Sales Invoice Gift Card', sales_invoice_gift_card);
 frappe.ui.form.on('Sales Order', sales_order);
 frappe.ui.form.on('Customer', customer);
 frappe.ui.form.on('Item', item);

@@ -165,6 +165,7 @@ fixtures = [
                     "Sales Order-sales_team_section_break-hidden",
                     "Sales Order-section_break1-hidden",
                     "Sales Order-subscription_section-hidden",
+                    "Sales Invoice Item-cost_center-default",
                 ],
             ]
         ],
