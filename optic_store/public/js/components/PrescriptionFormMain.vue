@@ -20,15 +20,13 @@
         v-bind="get_field_props(side, param)"
       />
     </div>
-    <div class="os-row-header">Add</div>
-    <div
-      v-for="side in sides"
-      :class="get_side_class(side, ['os-value', 'last'])"
-    >
+    <div class="os-row-header" />
+    <div v-for="side in sides" :class="get_side_class(side, ['os-value'])">
       <prescription-form-select v-bind="get_field_props(side, 'near')" />
-      <prescription-form-select
-        v-bind="get_field_props(side, 'intermediate')"
-      />
+      <prescription-form-select v-bind="get_field_props(side, 'intermediate')" />
+    </div>
+    <div class="os-row-header">Add</div>
+    <div v-for="side in sides" :class="get_side_class(side, ['os-value', 'last'])">
       <prescription-form-field v-bind="get_field_props(side, 'add')" />
     </div>
   </div>
