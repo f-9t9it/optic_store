@@ -1,3 +1,18 @@
+export const SPEC_TYPES = [
+  'Bifocal',
+  'Bifocal Tint',
+  'Distance',
+  'Dist/Sun',
+  'Dist/Tint',
+  'Intermediate',
+  'PalPal/M-Con',
+  'Pal/Multifocal',
+  'Pal/Off',
+  'Pal/Sun',
+  'Pal/Tint',
+  'Reading',
+];
+
 export const NATIONALITIES = [
   'Afghan',
   'Albanian',

@@ -5,6 +5,7 @@ import {
   apply_group_discount,
   handle_gift_card_entry,
   setup_employee_queries,
+  set_spec_types_options,
 } from './sales_order';
 import DeliverDialog from '../frappe-components/DeliverDialog';
 
@@ -99,6 +100,7 @@ export default {
   },
   onload: async function(frm) {
     setup_employee_queries(frm);
+    set_spec_types_options(frm);
     if (frm.is_new()) {
       await set_fields(frm);
       if (frm.doc.items.length > 0) {
