@@ -14,6 +14,20 @@ from optic_store.utils import pick, sum_by
 
 
 class StockTransfer(Document):
+    def validate(self):
+        if self.source_branch == self.target_branch:
+            frappe.throw(_("Source and Target Branches cannot be the same"))
+        if not self.source_warehouse:
+            self.source_warehouse = frappe.db.get_value(
+                "Branch", self.source_branch, "warehouse"
+            )
+        if not self.target_warehouse:
+            self.target_warehouse = frappe.db.get_value(
+                "Branch", self.target_branch, "warehouse"
+            )
+        if not self.source_warehouse or not self.target_warehouse:
+            frappe.throw(_("Warehouse not found for one or both Branches"))
+
     def before_save(self):
         if not self.outgoing_datetime:
             self.outgoing_datetime = now()
