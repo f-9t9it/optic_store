@@ -140,6 +140,7 @@ fixtures = [
                     "Sales Invoice-os_recall_months",
                     "Sales Invoice-os_recall_col",
                     "Sales Invoice-os_recall_reason",
+                    "Delivery Note-os_branch",
                 ],
             ]
         ],
@@ -166,6 +167,7 @@ fixtures = [
                     "Sales Order-section_break1-hidden",
                     "Sales Order-subscription_section-hidden",
                     "Sales Invoice Item-cost_center-default",
+                    "Delivery Note Item-cost_center-default",
                 ],
             ]
         ],

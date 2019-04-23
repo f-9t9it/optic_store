@@ -78,7 +78,7 @@ export async function handle_items_cost_center(frm, cdt, cdn) {
   const { cost_center } = frappe.get_doc(cdt, cdn);
   const branch_cost_center = await get_cost_center(frm);
   if (branch_cost_center !== cost_center) {
-    frappe.model.set_value(cdt, cdn, 'cost_center', cost_center);
+    frappe.model.set_value(cdt, cdn, 'cost_center', branch_cost_center);
   }
 }
 

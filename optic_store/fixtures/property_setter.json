@@ -298,5 +298,25 @@
   "property": "default", 
   "property_type": "Text", 
   "value": ""
+ }, 
+ {
+  "_assign": null, 
+  "_comments": null, 
+  "_liked_by": null, 
+  "_user_tags": null, 
+  "default_value": null, 
+  "doc_type": "Delivery Note Item", 
+  "docstatus": 0, 
+  "doctype": "Property Setter", 
+  "doctype_or_field": "DocField", 
+  "field_name": "cost_center", 
+  "modified": "2019-04-23 11:59:48.333190", 
+  "name": "Delivery Note Item-cost_center-default", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "property": "default", 
+  "property_type": "Text", 
+  "value": ""
  }
 ]

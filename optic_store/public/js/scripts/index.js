@@ -3,6 +3,7 @@ export {
   sales_invoice_gift_card,
   default as sales_invoice,
 } from './sales_invoice';
+export { delivery_note_item, default as delivery_note } from './delivery_note';
 export { default as sales_order } from './sales_order';
 export { default as customer } from './customer';
 export { default as customer_qe } from './customer_qe';
