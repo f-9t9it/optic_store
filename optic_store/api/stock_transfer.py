@@ -23,6 +23,12 @@ workflow = {
             "doc_status": "1",
             "allow_edit": "Stock User",
         },
+        {
+            "state": "Cancelled",
+            "style": "Danger",
+            "doc_status": "2",
+            "allow_edit": "Stock User",
+        },
     ],
     "transitions": [
         {
@@ -34,9 +40,23 @@ workflow = {
         },
         {
             "state": "In Transit",
+            "action": "Cancel",
+            "next_state": "Cancelled",
+            "allowed": "Stock User",
+            "allow_self_approval": 1,
+        },
+        {
+            "state": "In Transit",
             "action": "Receive",
             "next_state": "Received",
             "allowed": "Sales User",
+            "allow_self_approval": 1,
+        },
+        {
+            "state": "Received",
+            "action": "Cancel",
+            "next_state": "Cancelled",
+            "allowed": "Stock User",
             "allow_self_approval": 1,
         },
     ],

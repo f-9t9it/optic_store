@@ -52,6 +52,14 @@ class StockTransfer(Document):
             )
             self.set_ref_doc("incoming_stock_entry", ref_doc)
 
+    def on_cancel(self):
+        if self.incoming_stock_entry:
+            se = frappe.get_doc("Stock Entry", self.incoming_stock_entry)
+            se.cancel()
+        if self.outgoing_stock_entry:
+            se = frappe.get_doc("Stock Entry", self.outgoing_stock_entry)
+            se.cancel()
+
     def set_missing_fields(self):
         for item in self.items:
             item.amount = flt(item.qty) * flt(item.basic_rate)
