@@ -2,6 +2,7 @@ import Vue from 'vue/dist/vue.js';
 
 import PrescriptionForm from '../components/PrescriptionForm.vue';
 import InvoiceDialog from '../frappe-components/InvoiceDialog';
+import { SPEC_TYPES } from '../utils/data';
 
 export function setup_orx_name(frm) {
   const { customer, orx_type: type } = frm.doc;
@@ -165,6 +166,10 @@ export async function setup_employee_queries(frm) {
     });
 }
 
+export function set_spec_types_options(frm) {
+  frm.set_df_property('os_type_of_spectacle', 'options', ['', ...SPEC_TYPES]);
+}
+
 export default {
   setup: async function(frm) {
     const { invoice_pfs = [], invoice_mops = [] } = await frappe.db.get_doc(
@@ -176,6 +181,7 @@ export default {
   },
   onload: function(frm) {
     setup_employee_queries(frm);
+    set_spec_types_options(frm);
   },
   refresh: function(frm) {
     render_prescription(frm);

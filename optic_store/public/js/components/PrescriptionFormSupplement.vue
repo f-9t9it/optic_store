@@ -1,9 +1,6 @@
 <template>
   <div class="os-root">
-    <div
-      v-for="side in ['right', 'left', 'total']"
-      :class="`os-header ${side}`"
-    >
+    <div v-for="side in ['right', 'left', 'total']" :class="`os-header ${side}`">
       {{ side }}
     </div>
     <div v-if="doc.type === 'Spectacles'" class="os-row-header first">PD</div>
@@ -28,13 +25,8 @@
         v-bind="get_field_props(side, 'prism')"
       />
     </div>
-    <div :class="{ 'os-row-header': true, first: doc.type !== 'Spectacles' }">
-      IOP
-    </div>
-    <div
-      v-for="side in ['right', 'left']"
-      :class="get_side_class(side, ['os-value'])"
-    >
+    <div :class="{ 'os-row-header': true, first: doc.type !== 'Spectacles' }">IOP</div>
+    <div v-for="side in ['right', 'left']" :class="get_side_class(side, ['os-value'])">
       <prescription-form-field
         :key="`iop_${side}`"
         v-bind="get_field_props(side, 'iop')"
@@ -66,7 +58,7 @@ export default {
       return {
         param,
         side,
-        disabled: this.doc.docstatus !== 0 || side === 'total',
+        disabled: this.doc.docstatus !== 0,
         value: this.doc[`${param}_${side}`],
         get_formatted: this.get_formatted,
         on_change: this.on_change,
