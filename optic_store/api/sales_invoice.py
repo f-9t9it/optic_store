@@ -23,4 +23,8 @@ def deliver_qol(name):
 # upstream code has been patched
 @frappe.whitelist()
 def search_serial_or_batch_or_barcode_number(search_value):
-    return search_item(search_value) or None
+    return (
+        frappe.db.get_value("Item", search_value, ["name as item_code"], as_dict=True)
+        or search_item(search_value)
+        or None
+    )

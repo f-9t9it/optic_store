@@ -40,7 +40,7 @@ class StockTransfer(Document):
 
     def on_update_after_submit(self):
         if self.workflow_state == "Received":
-            warehouses = self.get_warehouses(incoming=False)
+            warehouses = self.get_warehouses(incoming=True)
             accounts = self.get_accounts()
             ref_doc = _make_stock_entry(
                 merge(
