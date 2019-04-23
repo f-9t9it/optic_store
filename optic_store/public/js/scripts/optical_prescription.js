@@ -75,12 +75,8 @@ function update_fields(frm) {
 
 function blur_fields(frm) {
   return function(field, value) {
-    if (field.includes('sph') || field.includes('add')) {
+    if (field.includes('sph') || field.includes('add') || field.includes('cyl')) {
       // considers cases where the user might just enter '+' or '-', hence the + '.0'
-      const fval = parseFloat((value || '') + '.0');
-      frm.set_value(field, format(field, fval));
-    }
-    if (field.includes('cyl')) {
       const fval = Math.round(parseFloat((value || '') + '.0') * 4) / 4;
       frm.set_value(field, format(field, fval));
     }
