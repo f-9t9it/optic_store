@@ -116,6 +116,13 @@ export default function extend_pos(PosClass) {
       super.update_payment_amount();
     }
     submit_invoice() {
+      if (this.frm.doc.grand_total !== this.frm.doc.paid_amount) {
+        return frappe.throw(
+          __(
+            '<strong>Paid Amount</strong> must be equal to <strong>Total Amount</strong>'
+          )
+        );
+      }
       const gift_card_no = this.os_payment_fg.get_value('gift_card_no');
       const { amount } = this.frm.doc.payments.find(
         ({ mode_of_payment }) => mode_of_payment === 'Gift Card'
@@ -127,6 +134,12 @@ export default function extend_pos(PosClass) {
         });
       }
       super.submit_invoice();
+    }
+    show_amounts() {
+      super.show_amounts();
+      this.dialog
+        .get_primary_btn()
+        .toggleClass('disabled', this.frm.doc.grand_total !== this.frm.doc.paid_amount);
     }
 
     make_sales_person_field() {
