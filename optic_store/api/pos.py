@@ -31,6 +31,8 @@ def get_extended_pos_data(company):
         "customers_details": _get_customers_details(pos_profile, query_date),
         "loyalty_programs": _get_loyalty_programs(company),
         "gift_cards": _get_gift_cards(query_date),
+        "territories": _get_territories(),
+        "customer_groups": _get_customer_groups(),
     }
 
 
@@ -91,6 +93,13 @@ def _get_gift_cards(query_date):
         as_dict=1,
     )
 
+
+def _get_territories():
+    return compose(list, partial(pluck, "name"))(frappe.get_all("Territory"))
+
+
+def _get_customer_groups():
+    return compose(list, partial(pluck, "name"))(frappe.get_all("Customer Group"))
 
 @frappe.whitelist()
 def make_invoice(doc_list={}, email_queue_list={}, customers_list={}):
