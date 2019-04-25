@@ -176,6 +176,18 @@ export default function extend_pos(PosClass) {
         }
       }
     }
+    make_payment() {
+      if (this.dialog) {
+        this.dialog.$wrapper.remove();
+      }
+      super.make_payment();
+      ['.change_amount', '.write_off_amount'].forEach(q => {
+        this.dialog.$body
+          .find(q)
+          .parent()
+          .addClass('hidden');
+      });
+    }
     add_more_payment_options() {
       this.os_payment_fg = new frappe.ui.FieldGroup({
         parent: $('<div style="margin: 0 15px;" />').insertAfter(
