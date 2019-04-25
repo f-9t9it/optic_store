@@ -59,10 +59,6 @@ export default function extend_pos(PosClass) {
       this.make_sales_person_field();
       this.make_group_discount_field();
     }
-    create_invoice() {
-      this.frm.doc.os_sales_person = this.sales_person_field.get_value();
-      super.create_invoice();
-    }
     toggle_totals_area(show) {
       super.toggle_totals_area(show);
       this.wrapper
@@ -84,6 +80,12 @@ export default function extend_pos(PosClass) {
           CUSTOMER_DETAILS_FIELDS
         )
       );
+    }
+    validate() {
+      if (!this.frm.doc.os_sales_person) {
+        frappe.throw(__('Sales Person is mandatory'));
+      }
+      super.validate();
     }
     make_offline_customer(new_customer) {
       super.make_offline_customer(new_customer);
@@ -133,9 +135,12 @@ export default function extend_pos(PosClass) {
           parent: $('<div style="margin-top: 10px;" />').insertAfter(
             this.pos_bill.find('.totals-area')
           ),
-          df: { options: this.sales_persons_data, label: __('Sales Person') },
+          df: { options: this.sales_persons_data, label: __('Sales Person'), bold: 1 },
         });
         this.sales_person_field.refresh();
+        this.sales_person_field.$input.on('change', () => {
+          this.frm.doc.os_sales_person = this.sales_person_field.get_value();
+        });
       } else {
         this.sales_person_field.set_data(this.sales_persons_data);
       }
