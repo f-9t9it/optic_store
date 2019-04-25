@@ -160,6 +160,7 @@ fixtures = [
                     "Sales Invoice Item-os_minimum_selling_rate",
                     "Sales Invoice Item-os_minimum_selling_2_rate",
                     "Delivery Note-os_branch",
+                    "Payment Entry-os_gift_card",
                 ],
             ]
         ],
@@ -286,6 +287,11 @@ doc_events = {
         "before_submit": "optic_store.doc_events.sales_invoice.before_submit",
         "on_submit": "optic_store.doc_events.sales_invoice.on_submit",
         "on_cancel": "optic_store.doc_events.sales_invoice.on_cancel",
+    },
+    "Payment Entry": {
+        "validate": "optic_store.doc_events.payment_entry.validate",
+        "on_submit": "optic_store.doc_events.payment_entry.on_submit",
+        "on_cancel": "optic_store.doc_events.payment_entry.on_cancel",
     },
     "Journal Entry": {"on_cancel": "optic_store.doc_events.journal_entry.on_cancel"},
 }
