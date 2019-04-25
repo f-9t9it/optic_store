@@ -8,13 +8,10 @@ import frappe
 from frappe.utils import today
 from erpnext.stock.get_item_details import get_pos_profile
 from erpnext.accounts.doctype.sales_invoice.pos import get_customers_list
-from erpnext.accounts.doctype.sales_invoice.pos import (
-    make_invoice as erpnext_make_invoice,
-    get_customer_id,
-)
+from erpnext.accounts.doctype.sales_invoice.pos import get_customer_id
 from erpnext.accounts.doctype.loyalty_program.loyalty_program import get_loyalty_details
 from functools import partial
-from toolz import pluck, compose, valfilter, valmap, merge
+from toolz import pluck, compose, valfilter, valmap, merge, get
 
 from optic_store.api.group_discount import get_brand_discounts
 from optic_store.api.customer import CUSTOMER_DETAILS_FIELDS
@@ -101,9 +98,28 @@ def _get_territories():
 def _get_customer_groups():
     return compose(list, partial(pluck, "name"))(frappe.get_all("Customer Group"))
 
+
+@frappe.whitelist()
+def get_pos_data():
+    from erpnext.accounts.doctype.sales_invoice.pos import get_pos_data
+
+    data = get_pos_data()
+    allowed_items = get("bin_data", data, {}).keys()
+    return merge(
+        data,
+        {
+            "items": filter(
+                lambda x: x.get("name") in allowed_items, get("items", data, [])
+            )
+        },
+    )
+
+
 @frappe.whitelist()
 def make_invoice(doc_list={}, email_queue_list={}, customers_list={}):
-    result = erpnext_make_invoice(doc_list, email_queue_list, customers_list)
+    from erpnext.accounts.doctype.sales_invoice.pos import make_invoice
+
+    result = make_invoice(doc_list, email_queue_list, customers_list)
     _update_customer_details(customers_list)
     return result
 
