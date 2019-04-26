@@ -64,6 +64,8 @@ fixtures = [
                     "Customer-os_date_of_birth",
                     "Customer-os_occupation",
                     "Customer-os_nationality",
+                    "Customer-os_permit_sms",
+                    "Customer-os_permit_email",
                     "Customer-os_detail_contact_col",
                     "Customer-os_office_number",
                     "Customer-os_mobile_number",
@@ -160,6 +162,7 @@ fixtures = [
                     "Sales Invoice Item-os_minimum_selling_rate",
                     "Sales Invoice Item-os_minimum_selling_2_rate",
                     "Delivery Note-os_branch",
+                    "Payment Entry-os_gift_card",
                 ],
             ]
         ],
@@ -287,6 +290,11 @@ doc_events = {
         "on_submit": "optic_store.doc_events.sales_invoice.on_submit",
         "on_cancel": "optic_store.doc_events.sales_invoice.on_cancel",
     },
+    "Payment Entry": {
+        "validate": "optic_store.doc_events.payment_entry.validate",
+        "on_submit": "optic_store.doc_events.payment_entry.on_submit",
+        "on_cancel": "optic_store.doc_events.payment_entry.on_cancel",
+    },
     "Journal Entry": {"on_cancel": "optic_store.doc_events.journal_entry.on_cancel"},
 }
 
@@ -310,6 +318,7 @@ before_tests = "optic_store.api.install.setup_defaults"
 # ------------------------------
 
 override_whitelisted_methods = {
+    "erpnext.accounts.doctype.sales_invoice.pos.get_pos_data": "optic_store.api.pos.get_pos_data",
     "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice",
     "erpnext.selling.page.point_of_sale.point_of_sale.search_serial_or_batch_or_barcode_number": "optic_store.api.sales_invoice.search_serial_or_batch_or_barcode_number",
 }

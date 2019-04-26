@@ -6,6 +6,7 @@ export const customer_qe_fields = [
     fieldtype: 'Data',
     fieldname: 'os_short_name',
     label: __('Short Name'),
+    reqd: 1,
   },
   {
     fieldtype: 'Data',
@@ -70,7 +71,7 @@ export default {
   get_variant_fields: function() {
     return [
       { fieldtype: 'Section Break', label: __('Details'), collapsible: 1 },
-      ...customer_qe_fields,
+      ...customer_qe_fields.filter(({ reqd }) => !reqd),
     ];
   },
 };

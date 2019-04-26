@@ -40,7 +40,12 @@ function render_deliver_button(frm) {
       (a, { delivered_qty }) => a + delivered_qty,
       0
     );
-    if (delivered_qty < actual_qty) {
+    const { status } = frm.doc;
+    if (['Unpaid', 'Overdue'].includes(status)) {
+      frm.add_custom_button(__('Pay, Deliver & Print'), function() {
+        frm.deliver_dialog && frm.deliver_dialog.create_and_print(frm);
+      });
+    } else if (delivered_qty < actual_qty) {
       frm.add_custom_button(__('Deliver & Print'), function() {
         frm.deliver_dialog && frm.deliver_dialog.create_and_print(frm);
       });

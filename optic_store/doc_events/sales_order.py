@@ -20,22 +20,6 @@ def validate(doc, method):
                 )
         except IndexError:
             break
-    if not doc.orx_name and doc.os_order_type in ["Sales", "Eye Test"]:
-        frappe.throw(
-            _(
-                "Prescription is required is for Order Type: {}".format(
-                    doc.os_order_type
-                )
-            )
-        )
-    if doc.orx_name and doc.os_order_type in ["Repair"]:
-        frappe.throw(
-            _(
-                "Prescription is not allowed for Order Type: {}".format(
-                    doc.os_order_type
-                )
-            )
-        )
     if doc.os_order_type == "Eye Test":
         for item in doc.items:
             if item.item_group != "Services":

@@ -28,6 +28,8 @@ export default function extend_pos(PosClass) {
             customers_details = [],
             loyalty_programs = [],
             gift_cards = [],
+            territories = [],
+            customer_groups = [],
           } = {},
         } = await frappe.call({
           method: 'optic_store.api.pos.get_extended_pos_data',
@@ -41,6 +43,7 @@ export default function extend_pos(PosClass) {
         }));
         this.group_discounts_data = group_discounts;
         this.customers_details_data = list2dict('name', customers_details);
+        this.customers_master_data = { territories, customer_groups };
         this.loyalty_programs_data = list2dict('name', loyalty_programs);
         this.gift_cards_data = list2dict('name', gift_cards);
         this.make_sales_person_field();
@@ -59,10 +62,6 @@ export default function extend_pos(PosClass) {
       this.make_sales_person_field();
       this.make_group_discount_field();
     }
-    create_invoice() {
-      this.frm.doc.os_sales_person = this.sales_person_field.get_value();
-      super.create_invoice();
-    }
     toggle_totals_area(show) {
       super.toggle_totals_area(show);
       this.wrapper
@@ -77,13 +76,44 @@ export default function extend_pos(PosClass) {
           section.wrapper.hide();
         }
       });
+      this.customer_doc.add_fields([
+        {
+          fieldtype: 'Select',
+          fieldname: 'territory',
+          label: __('Territory'),
+          default: this.pos_profile_data.territory,
+          options: this.customers_master_data.territories,
+        },
+        { fieldtype: 'Column Break' },
+        {
+          fieldtype: 'Select',
+          fieldname: 'customer_group',
+          label: __('Customer Group'),
+          default: this.pos_profile_data.customer_group,
+          options: this.customers_master_data.customer_groups,
+        },
+      ]);
       this.customer_doc.add_fields(customer_qe_fields);
       this.customer_doc.set_values(
-        pick(
-          this.customers_details_data[this.frm.doc.customer] || {},
-          CUSTOMER_DETAILS_FIELDS
-        )
+        pick(this.customers_details_data[this.frm.doc.customer] || {}, [
+          ...CUSTOMER_DETAILS_FIELDS,
+          'territory',
+          'customer_group',
+        ])
       );
+    }
+    get_prompt_details() {
+      super.get_prompt_details();
+      const { territory, customer_group } = this.customer_doc.get_values();
+      this.prompt_details.territory = territory;
+      this.prompt_details.customer_group = customer_group;
+      return JSON.stringify(this.prompt_details);
+    }
+    validate() {
+      if (!this.frm.doc.os_sales_person) {
+        frappe.throw(__('Sales Person is mandatory'));
+      }
+      super.validate();
     }
     make_offline_customer(new_customer) {
       super.make_offline_customer(new_customer);
@@ -114,6 +144,13 @@ export default function extend_pos(PosClass) {
       super.update_payment_amount();
     }
     submit_invoice() {
+      if (this.frm.doc.grand_total !== this.frm.doc.paid_amount) {
+        return frappe.throw(
+          __(
+            '<strong>Paid Amount</strong> must be equal to <strong>Total Amount</strong>'
+          )
+        );
+      }
       const gift_card_no = this.os_payment_fg.get_value('gift_card_no');
       const { amount } = this.frm.doc.payments.find(
         ({ mode_of_payment }) => mode_of_payment === 'Gift Card'
@@ -126,6 +163,12 @@ export default function extend_pos(PosClass) {
       }
       super.submit_invoice();
     }
+    show_amounts() {
+      super.show_amounts();
+      this.dialog
+        .get_primary_btn()
+        .toggleClass('disabled', this.frm.doc.grand_total !== this.frm.doc.paid_amount);
+    }
 
     make_sales_person_field() {
       if (!this.sales_person_field) {
@@ -133,9 +176,12 @@ export default function extend_pos(PosClass) {
           parent: $('<div style="margin-top: 10px;" />').insertAfter(
             this.pos_bill.find('.totals-area')
           ),
-          df: { options: this.sales_persons_data, label: __('Sales Person') },
+          df: { options: this.sales_persons_data, label: __('Sales Person'), bold: 1 },
         });
         this.sales_person_field.refresh();
+        this.sales_person_field.$input.on('change', () => {
+          this.frm.doc.os_sales_person = this.sales_person_field.get_value();
+        });
       } else {
         this.sales_person_field.set_data(this.sales_persons_data);
       }
@@ -170,6 +216,18 @@ export default function extend_pos(PosClass) {
           this.group_discount_field.set_data(group_discounts);
         }
       }
+    }
+    make_payment() {
+      if (this.dialog) {
+        this.dialog.$wrapper.remove();
+      }
+      super.make_payment();
+      ['.change_amount', '.write_off_amount'].forEach(q => {
+        this.dialog.$body
+          .find(q)
+          .parent()
+          .addClass('hidden');
+      });
     }
     add_more_payment_options() {
       this.os_payment_fg = new frappe.ui.FieldGroup({
