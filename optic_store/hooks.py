@@ -64,6 +64,8 @@ fixtures = [
                     "Customer-os_date_of_birth",
                     "Customer-os_occupation",
                     "Customer-os_nationality",
+                    "Customer-os_permit_sms",
+                    "Customer-os_permit_email",
                     "Customer-os_detail_contact_col",
                     "Customer-os_office_number",
                     "Customer-os_mobile_number",

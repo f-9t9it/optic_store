@@ -10,3 +10,6 @@ from optic_store.api.customer import get_user_branch
 def before_insert(doc, method):
     if not doc.branch:
         doc.branch = get_user_branch()
+
+    doc.os_permit_sms = 1
+    doc.os_permit_email = 1
