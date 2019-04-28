@@ -1,4 +1,4 @@
-import {
+import scripts, {
   sales_invoice,
   sales_invoice_item,
   sales_invoice_gift_card,
@@ -6,18 +6,10 @@ import {
   delivery_note_item,
   sales_order,
   customer,
-  customer_qe,
   employee,
   item,
-  optical_prescription,
+  customer_qe,
   optical_prescription_qe,
-  optical_store_settings,
-  group_discount,
-  gift_card,
-  stock_transfer,
-  stock_transfer_item,
-  sales_order_bulk_update,
-  bulk_update_order,
 } from './scripts';
 import extend_pos from './pages/pos';
 
@@ -44,15 +36,4 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
 const __version__ = '0.3.4';
 
 frappe.provide('optic_store');
-optic_store = {
-  __version__,
-  optical_prescription,
-  optical_store_settings,
-  group_discount,
-  gift_card,
-  stock_transfer,
-  stock_transfer_item,
-  extend_pos,
-  sales_order_bulk_update,
-  bulk_update_order,
-};
+optic_store = { __version__, scripts, extend_pos };
