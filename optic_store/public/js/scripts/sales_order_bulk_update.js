@@ -1,8 +1,8 @@
 import Vue from 'vue/dist/vue.js';
 
 function render_actions(frm) {
-  const { company, state, orders_query = [], orders_process = [] } = frm.doc;
-  frm.page.btn_primary.toggleClass('disabled', !(orders_process.length > 0));
+  const { company, state, action, orders_query = [], orders_process = [] } = frm.doc;
+  frm.page.btn_primary.toggleClass('disabled', !(orders_process.length > 0) || !action);
   frm.page.btn_secondary.text(__(orders_query.length > 0 ? 'Refresh' : 'Fetch'));
   frm.page.btn_secondary.toggleClass('disabled', !company || !state);
 }
@@ -83,6 +83,7 @@ export default {
   action: function(frm) {
     const { action } = frm.doc;
     frm.toggle_display('lab_tech', ['Proceed to Deliver'].includes(action));
+    render_actions(frm);
   },
   scan_order: function(frm) {
     function set_desc(description) {
