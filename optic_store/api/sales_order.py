@@ -6,9 +6,10 @@ from __future__ import unicode_literals
 import json
 import frappe
 from frappe.utils import cint
+from frappe.model.workflow import get_workflow, apply_workflow
 from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
 from functools import partial
-from toolz import pluck, unique, compose, keyfilter
+from toolz import pluck, unique, compose, keyfilter, cons, identity
 
 from optic_store.api.customer import get_user_branch
 
@@ -61,6 +62,65 @@ def get_invoice(name):
 def get_warehouse():
     branch = get_user_branch()
     return frappe.db.get_value("Branch", branch, "warehouse") if branch else None
+
+
+@frappe.whitelist()
+def get_workflow_states():
+    workflow = get_workflow("Sales Order")
+    states = partial(map, lambda x: x.state)
+    return states(workflow.states)
+
+
+@frappe.whitelist()
+def get_next_workflow_actions(state):
+    workflow = get_workflow("Sales Order")
+    nexts = compose(
+        partial(map, lambda x: x.action), partial(filter, lambda x: x.state == state)
+    )
+    return nexts(workflow.transitions)
+
+
+@frappe.whitelist()
+def get_sales_orders(company, state, branch=None, from_date=None, to_date=None):
+    make_conditions = compose(
+        " AND ".join,
+        partial(cons, "os_branch = %(branch)s") if branch else identity,
+        partial(cons, "transaction_date BETWEEN %(from_date)s AND %(to_date)s")
+        if from_date and to_date
+        else identity,
+    )
+    return frappe.db.sql(
+        """
+            SELECT name AS sales_order, workflow_state, os_lab_tech AS lab_tech
+            FROM `tabSales Order`
+            WHERE {conditions}
+        """.format(
+            conditions=make_conditions(
+                ["company = %(company)s", "workflow_state = %(state)s"]
+            )
+        ),
+        values={
+            "company": company,
+            "state": state,
+            "branch": branch,
+            "from_date": from_date,
+            "to_date": to_date,
+        },
+        as_dict=1,
+    )
+
+
+@frappe.whitelist()
+def update_sales_orders(sales_orders, action, lab_tech=None):
+    transition = compose(
+        lambda doc: apply_workflow(doc, action), partial(frappe.get_doc, "Sales Order")
+    )
+    map(transition, json.loads(sales_orders))
+    if lab_tech and action == "Proceed to Deliver":
+        update = compose(
+            lambda x: frappe.db.set_value("Sales Order", x, "os_lab_tech", lab_tech)
+        )
+        map(update, json.loads(sales_orders))
 
 
 workflow = {
