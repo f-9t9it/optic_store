@@ -15,3 +15,7 @@ export { default as optical_store_settings } from './optical_store_settings';
 export { default as group_discount } from './group_discount';
 export { default as gift_card } from './gift_card';
 export { stock_transfer_item, default as stock_transfer } from './stock_transfer';
+export {
+  bulk_update_order,
+  default as sales_order_bulk_update,
+} from './sales_order_bulk_update';

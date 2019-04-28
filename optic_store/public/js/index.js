@@ -16,6 +16,8 @@ import {
   gift_card,
   stock_transfer,
   stock_transfer_item,
+  sales_order_bulk_update,
+  bulk_update_order,
 } from './scripts';
 import extend_pos from './pages/pos';
 
@@ -51,4 +53,6 @@ optic_store = {
   stock_transfer,
   stock_transfer_item,
   extend_pos,
+  sales_order_bulk_update,
+  bulk_update_order,
 };
