@@ -10,12 +10,15 @@ from toolz import compose, unique, pluck
 
 def validate(doc, method):
     get_sales_orders = compose(
-        list, unique, partial(map, lambda x: x.against_sales_order)
+        list,
+        unique,
+        partial(filter, lambda x: x),
+        partial(map, lambda x: x.against_sales_order),
     )
     sales_orders = get_sales_orders(doc.items)
-    if not _are_billed(sales_orders):
+    if sales_orders and not _are_billed(sales_orders):
         frappe.throw("Reference Sales Order not billed fully")
-    if not _are_paid(sales_orders):
+    if sales_orders and not _are_paid(sales_orders):
         frappe.throw("Sales Invoice not paid fully")
 
 
