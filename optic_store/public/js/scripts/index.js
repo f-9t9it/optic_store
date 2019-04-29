@@ -1,3 +1,10 @@
+import optical_prescription from './optical_prescription';
+import optical_store_settings from './optical_store_settings';
+import group_discount from './group_discount';
+import gift_card from './gift_card';
+import stock_transfer, { stock_transfer_item } from './stock_transfer';
+import sales_order_bulk_update, { bulk_update_order } from './sales_order_bulk_update';
+
 export {
   sales_invoice_item,
   sales_invoice_gift_card,
@@ -9,9 +16,15 @@ export { default as customer } from './customer';
 export { default as customer_qe } from './customer_qe';
 export { default as employee } from './employee';
 export { default as item } from './item';
-export { default as optical_prescription } from './optical_prescription';
 export { default as optical_prescription_qe } from './optical_prescription_qe';
-export { default as optical_store_settings } from './optical_store_settings';
-export { default as group_discount } from './group_discount';
-export { default as gift_card } from './gift_card';
-export { stock_transfer_item, default as stock_transfer } from './stock_transfer';
+
+export default {
+  optical_prescription,
+  optical_store_settings,
+  group_discount,
+  gift_card,
+  stock_transfer,
+  stock_transfer_item,
+  sales_order_bulk_update,
+  bulk_update_order,
+};
