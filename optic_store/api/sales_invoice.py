@@ -3,41 +3,51 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+import json
 import frappe
 from frappe.utils import nowdate
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
 from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
 )
-from toolz import merge
+from functools import partial
+from toolz import compose
 
 
 @frappe.whitelist()
-def deliver_qol(name, mode_of_payment, paid_amount, gift_card_no=None):
-    pe = _make_payment_entry(name, mode_of_payment, paid_amount, gift_card_no)
-    pe.mode_of_payment = mode_of_payment
-    pe.os_gift_card = gift_card_no
-    pe.insert(ignore_permissions=True)
-    pe.submit()
-    result = {"payment_entry": pe.name}
-
-    si = frappe.get_doc("Sales Invoice", name)
-    if si.outstanding_amount == 0:
-        dn = make_delivery_note(name)
-        dn.os_branch = si.os_branch
-        warehouse = (
-            frappe.db.get_value("Branch", si.os_branch, "warehouse")
-            if si.os_branch
-            else None
+def payment_qol(name, payments):
+    def make_payment(payment):
+        pe = _make_payment_entry(
+            name,
+            payment.get("mode_of_payment"),
+            payment.get("amount"),
+            payment.get("gift_card_no"),
         )
-        if warehouse:
-            for item in dn.items:
-                item.warehouse = warehouse
-        dn.insert(ignore_permissions=True)
-        dn.submit()
-        result = merge(result, {"delivery_note": dn.name})
+        pe.insert(ignore_permissions=True)
+        pe.submit()
+        pe.name
 
-    return result
+    make_payments = compose(partial(map, make_payment), json.loads)
+    return make_payments(payments)
+
+
+@frappe.whitelist()
+def deliver_qol(name):
+    si = frappe.get_doc("Sales Invoice", name)
+    dn = make_delivery_note(name)
+    dn.os_branch = si.os_branch
+    warehouse = (
+        frappe.db.get_value("Branch", si.os_branch, "warehouse")
+        if si.os_branch
+        else None
+    )
+    if warehouse:
+        for item in dn.items:
+            item.warehouse = warehouse
+    dn.insert(ignore_permissions=True)
+    dn.submit()
+
+    return dn.name
 
 
 def _make_payment_entry(name, mode_of_payment, paid_amount, gift_card_no):
