@@ -4,8 +4,17 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
 class OpticalStoreSettings(Document):
-    pass
+    def validate(self):
+        if (
+            self.special_order_item_group
+            and self.standard_item_group
+            and self.special_order_item_group == self.standard_item_group
+        ):
+            frappe.throw(
+                _("Special Order Item Group and Standard Item Group cannot be the same")
+            )
