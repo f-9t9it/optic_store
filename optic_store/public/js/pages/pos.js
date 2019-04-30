@@ -58,6 +58,12 @@ export default function extend_pos(PosClass) {
         });
       }
     }
+    create_new() {
+      super.create_new();
+      if (this.sales_person_field) {
+        this.sales_person_field.set_value('');
+      }
+    }
     make_control() {
       super.make_control();
       this.make_sales_person_field();
