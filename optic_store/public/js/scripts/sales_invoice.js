@@ -33,7 +33,7 @@ function set_gift_card_payment(frm) {
   }
 }
 
-function render_deliver_button(frm) {
+function render_qol_button(frm) {
   if (frm.doc.docstatus === 1) {
     const actual_qty = frm.doc.items.reduce((a, { qty }) => a + qty, 0);
     const delivered_qty = frm.doc.items.reduce(
@@ -42,16 +42,16 @@ function render_deliver_button(frm) {
     );
     const { status } = frm.doc;
     if (['Unpaid', 'Overdue'].includes(status)) {
-      frm.add_custom_button(__('Pay, Deliver & Print'), function() {
-        frm.deliver_dialog && frm.deliver_dialog.create_and_print(frm);
+      frm.add_custom_button(__('Pay & Print'), function() {
+        frm.deliver_dialog && frm.deliver_dialog.payment(frm);
       });
     } else if (delivered_qty < actual_qty) {
       frm.add_custom_button(__('Deliver & Print'), function() {
-        frm.deliver_dialog && frm.deliver_dialog.create_and_print(frm);
+        frm.deliver_dialog && frm.deliver_dialog.deliver(frm);
       });
     } else {
       frm.add_custom_button(__('Print Invoice'), function() {
-        frm.deliver_dialog && frm.deliver_dialog.print_invoice(frm);
+        frm.deliver_dialog && frm.deliver_dialog.print(frm);
       });
     }
   }
@@ -99,9 +99,12 @@ export const sales_invoice_gift_card = {
 
 export default {
   setup: async function(frm) {
-    const { invoice_pfs = [] } = await frappe.db.get_doc('Optical Store Settings');
+    const { invoice_pfs = [], invoice_mops = [] } = await frappe.db.get_doc(
+      'Optical Store Settings'
+    );
     const print_formats = invoice_pfs.map(({ print_format }) => print_format);
-    frm.deliver_dialog = new DeliverDialog(print_formats);
+    const mode_of_payments = invoice_mops.map(({ mode_of_payment }) => mode_of_payment);
+    frm.deliver_dialog = new DeliverDialog(print_formats, mode_of_payments);
   },
   onload: async function(frm) {
     setup_employee_queries(frm);
@@ -120,7 +123,7 @@ export default {
       };
     });
     render_prescription(frm);
-    render_deliver_button(frm);
+    render_qol_button(frm);
   },
   os_branch: set_cost_center,
   customer: setup_orx_name,

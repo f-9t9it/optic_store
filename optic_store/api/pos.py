@@ -15,7 +15,7 @@ from toolz import pluck, compose, valfilter, valmap, merge, get
 
 from optic_store.api.group_discount import get_brand_discounts
 from optic_store.api.customer import CUSTOMER_DETAILS_FIELDS
-from optic_store.utils import pick
+from optic_store.utils import pick, key_by
 
 
 @frappe.whitelist()
@@ -105,14 +105,38 @@ def get_pos_data():
 
     data = get_pos_data()
     allowed_items = get("bin_data", data, {}).keys()
-    return merge(
-        data,
-        {
-            "items": filter(
-                lambda x: x.get("name") in allowed_items, get("items", data, [])
-            )
-        },
+    prices = _get_item_prices(allowed_items)
+
+    def set_prices(item):
+        get_price = compose(
+            partial(get, seq=prices, default={}), partial(get, "item_code")
+        )
+        return merge(item, get_price(item))
+
+    trans_items = compose(
+        partial(map, set_prices),
+        partial(filter, lambda x: x.get("name") in allowed_items),
+        partial(get, "items", default=[]),
     )
+    return merge(data, {"items": trans_items(data)})
+
+
+def _get_item_prices(item_codes):
+    if not item_codes:
+        return {}
+    result = frappe.db.sql(
+        """
+            SELECT
+                name AS item_code,
+                os_minimum_selling_rate,
+                os_minimum_selling_2_rate
+            FROM `tabItem`
+            WHERE name in %(item_codes)s
+        """,
+        values={"item_codes": item_codes},
+        as_dict=1,
+    )
+    return key_by("item_code", result)
 
 
 @frappe.whitelist()

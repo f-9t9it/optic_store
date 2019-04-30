@@ -37,10 +37,8 @@ fixtures = [
                     "Employee-os_contract_date",
                     "Employee-os_eo_joining_date",
                     "Employee-os_lmra_joining_date",
-                    "Branch-disabled",
-                    "Branch-process_at_branch",
-                    "Branch-main_col",
                     "Branch-branch_code",
+                    "Branch-disabled",
                     "Branch-os_sales_sec",
                     "Branch-os_sales_order_naming_series",
                     "Branch-os_sales_invoice_naming_series",
@@ -56,6 +54,7 @@ fixtures = [
                     "Branch-os_nhra_expiry",
                     "Branch-os_cr_no",
                     "Branch-os_cr_expiry",
+                    "Customer-os_unverified_loyalty_card_no",
                     "Customer-branch",
                     "Customer-os_details_sec",
                     "Customer-os_detail_bio_col",
@@ -105,8 +104,8 @@ fixtures = [
                     "Brand-brand_category",
                     "Sales Order-os_order_type",
                     "Sales Order-os_branch",
-                    "Sales Order-os_is_branch_order",
-                    "Sales Order-os_is_special_order",
+                    "Sales Order-os_item_type",
+                    "Sales Order-os_qc_failed",
                     "Sales Order-os_sales_person",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
@@ -114,11 +113,13 @@ fixtures = [
                     "Sales Order-orx_name",
                     "Sales Order-orx_html_sec",
                     "Sales Order-orx_html",
+                    "Sales Order-os_orx_notes",
                     "Sales Order-os_others_sec",
                     "Sales Order-os_type_of_spectacle",
                     "Sales Order-orx_frame_size",
                     "Sales Order-orx_height_type",
                     "Sales Order-orx_height",
+                    "Sales Order-os_notes",
                     "Sales Order-os_others_col",
                     "Sales Order-orx_dispensor",
                     "Sales Order-orx_lab",
@@ -132,6 +133,9 @@ fixtures = [
                     "Sales Order-os_recall_months",
                     "Sales Order-os_recall_col",
                     "Sales Order-os_recall_reason",
+                    "Sales Order Item-os_price_list_col",
+                    "Sales Order Item-os_minimum_selling_rate",
+                    "Sales Order Item-os_minimum_selling_2_rate",
                     "Sales Invoice-os_gift_card_sec",
                     "Sales Invoice-os_gift_card_entry",
                     "Sales Invoice-os_gift_cards",
@@ -143,11 +147,13 @@ fixtures = [
                     "Sales Invoice-orx_name",
                     "Sales Invoice-orx_html_sec",
                     "Sales Invoice-orx_html",
+                    "Sales Invoice-os_orx_notes",
                     "Sales Invoice-os_others_sec",
                     "Sales Invoice-os_type_of_spectacle",
                     "Sales Invoice-orx_frame_size",
                     "Sales Invoice-orx_height_type",
                     "Sales Invoice-orx_height",
+                    "Sales Invoice-os_notes",
                     "Sales Invoice-os_others_col",
                     "Sales Invoice-orx_dispensor",
                     "Sales Invoice-orx_lab",
@@ -270,6 +276,7 @@ doc_events = {
         "validate": "optic_store.doc_events.sales_order.validate",
         "before_insert": "optic_store.doc_events.sales_order.before_insert",
         "on_update": "optic_store.doc_events.sales_order.on_update",
+        "on_update_after_submit": "optic_store.doc_events.sales_order.on_update_after_submit",  # noqa
     },
     "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
     "Item": {
@@ -318,7 +325,7 @@ before_tests = "optic_store.api.install.setup_defaults"
 # ------------------------------
 
 override_whitelisted_methods = {
-    "erpnext.accounts.doctype.sales_invoice.pos.get_pos_data": "optic_store.api.pos.get_pos_data",
-    "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice",
-    "erpnext.selling.page.point_of_sale.point_of_sale.search_serial_or_batch_or_barcode_number": "optic_store.api.sales_invoice.search_serial_or_batch_or_barcode_number",
+    "erpnext.accounts.doctype.sales_invoice.pos.get_pos_data": "optic_store.api.pos.get_pos_data",  # noqa
+    "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice",  # noqa
+    "erpnext.selling.page.point_of_sale.point_of_sale.search_serial_or_batch_or_barcode_number": "optic_store.api.sales_invoice.search_serial_or_batch_or_barcode_number",  # noqa
 }

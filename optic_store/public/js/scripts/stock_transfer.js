@@ -20,6 +20,13 @@ function calc_and_set_total_amount(frm, cdt, cdn) {
   frm.set_value('total_qty', sumBy(items, 'qty'));
 }
 
+async function set_source_branch(frm) {
+  const { message: branch } = await frappe.call({
+    method: 'optic_store.api.customer.get_user_branch',
+  });
+  frm.set_value('source_branch', branch);
+}
+
 export const stock_transfer_item = {
   item_code: async function(frm, cdt, cdn) {
     const { item_code } = frappe.model.get_doc(cdt, cdn);
@@ -69,15 +76,43 @@ export const stock_transfer_item = {
   items_remove: calc_and_set_row_amount,
 };
 
+function set_route_to_list(frm) {
+  frm.page.actions.find('a.grey-link:contains("Receive")').on('click', function() {
+    frappe.set_route('List', 'Stock Transfer');
+  });
+}
+
+function toggle_incoming_datetime(frm) {
+  frm.toggle_enable('incoming_datetime', frm.doc.workflow_state === 'In Transit');
+  frm.toggle_reqd('incoming_datetime', frm.doc.workflow_state === 'In Transit');
+}
+
+async function toggle_cancel_action(frm) {
+  const { message: branch } = await frappe.call({
+    method: 'optic_store.api.customer.get_user_branch',
+  });
+  console.log(branch);
+  frm.page.actions
+    .find('a.grey-link:contains("Cancel")')
+    .toggle(
+      frm.doc.workflow_state === 'In Transit' && branch !== frm.doc.target_branch
+    );
+}
+
 export default {
   refresh: function(frm) {
     set_queries(frm);
     if (frm.doc.__islocal) {
       frm.set_value('outgoing_datetime', frappe.datetime.now_datetime());
+      set_source_branch(frm);
     }
-    frm.toggle_enable('incoming_datetime', frm.doc.workflow_state === 'In Transit');
+    toggle_incoming_datetime(frm);
+  },
+  onload_post_render: function(frm) {
+    // workflow related ui changes need to be here
+    toggle_cancel_action(frm);
     if (frm.doc.workflow_state === 'In Transit') {
-      frm.set_value('incoming_datetime', frappe.datetime.now_datetime());
+      set_route_to_list(frm);
     }
   },
   company: set_queries,

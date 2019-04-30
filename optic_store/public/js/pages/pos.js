@@ -1,4 +1,5 @@
 import pick from 'lodash/pick';
+import keyBy from 'lodash/keyBy';
 
 import { customer_qe_fields } from '../scripts/customer_qe';
 
@@ -57,6 +58,12 @@ export default function extend_pos(PosClass) {
         });
       }
     }
+    create_new() {
+      super.create_new();
+      if (this.sales_person_field) {
+        this.sales_person_field.set_value('');
+      }
+    }
     make_control() {
       super.make_control();
       this.make_sales_person_field();
@@ -68,6 +75,7 @@ export default function extend_pos(PosClass) {
         .find('.totals-area')
         .find('.group_discount-area')
         .toggle(!this.is_totals_area_collapsed);
+      this.pos_bill.find('.discount-amount-area').hide();
     }
     update_customer(new_customer) {
       super.update_customer(new_customer);
@@ -108,6 +116,40 @@ export default function extend_pos(PosClass) {
       this.prompt_details.territory = territory;
       this.prompt_details.customer_group = customer_group;
       return JSON.stringify(this.prompt_details);
+    }
+    make_item_list(customer) {
+      super.make_item_list(customer);
+      const items = keyBy(this.item_data, 'name');
+      this.wrapper
+        .find('.item-list')
+        .find('.image-view-body')
+        .children('a')
+        .each((i, a) => {
+          const { itemCode: item_code } = $(a).data();
+          const {
+            os_minimum_selling_rate: ms1 = 0,
+            os_minimum_selling_2_rate: ms2 = 0,
+          } = items[item_code] || {};
+          if (ms1 || ms2) {
+            $(
+              `<span>
+                <div>MS1: ${format_currency(ms1, this.frm.doc.currency)}</div>
+                <div>MS2: ${format_currency(ms2, this.frm.doc.currency)}</div>
+              </span>`
+            )
+              .css({
+                position: 'absolute',
+                left: '0',
+                top: '0',
+                padding: '5px 9px',
+                'background-color': 'rgba(141, 153, 166, 0.6)',
+                color: '#fff',
+                'border-radius': '3px',
+                'font-size': '0.75em',
+              })
+              .appendTo($(a).find('.image-field'));
+          }
+        });
     }
     validate() {
       if (!this.frm.doc.os_sales_person) {

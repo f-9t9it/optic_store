@@ -48,8 +48,8 @@ def _create_item_groups():
     groups = {
         "Prescription": {
             "Frame": "FR",
-            "Prescription Lens": None,
-            "Special Order Prescription Lens": None,
+            "Prescription Lens": "PL",
+            "Special Order Prescription Lens": "SPL",
             "Contact Lens": "CL",
             "Reader": None,
         },

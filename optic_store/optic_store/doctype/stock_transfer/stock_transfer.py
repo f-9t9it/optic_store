@@ -10,6 +10,7 @@ from frappe.model.document import Document
 from functools import partial
 from toolz import merge, compose
 
+from optic_store.api.customer import get_user_branch
 from optic_store.utils import pick, sum_by
 
 
@@ -65,6 +66,10 @@ class StockTransfer(Document):
                 )
             )
             self.set_ref_doc("incoming_stock_entry", ref_doc)
+
+    def before_cancel(self):
+        if self.target_branch == get_user_branch():
+            frappe.throw(_("Users from Target branch cannot Cancel"))
 
     def on_cancel(self):
         if self.incoming_stock_entry:

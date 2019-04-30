@@ -1,42 +1,59 @@
 import { print_invoice } from './InvoiceDialog';
 
 export default class DeliverDialog {
-  constructor(print_formats = []) {
+  constructor(print_formats = [], mode_of_payments = []) {
+    this.mode_of_payments = mode_of_payments.map(mode_of_payment => ({
+      mode_of_payment,
+    }));
     this.print_formats = print_formats;
     this.dialog = new frappe.ui.Dialog({
       title: 'Deliver & Print',
       fields: [
         {
-          fieldname: 'payment_sec',
+          fieldname: 'gift_card_sec',
           fieldtype: 'Section Break',
-          label: __('Payments'),
-        },
-        {
-          fieldname: 'mode_of_payment',
-          fieldtype: 'Link',
-          options: 'Mode of Payment',
-          label: __('Mode of Payment'),
+          label: __('Gift Card'),
         },
         {
           fieldname: 'gift_card_no',
           fieldtype: 'Data',
           label: __('Gift Card No'),
-          hidden: 1,
+        },
+        {
+          fieldtype: 'Column Break',
         },
         {
           fieldname: 'gift_card_balance',
           fieldtype: 'Int',
           label: __('Gift Card Balance'),
           read_only: 1,
-          hidden: 1,
         },
         {
-          fieldtype: 'Column Break',
+          fieldname: 'payment_sec',
+          fieldtype: 'Section Break',
+          label: __('Payments'),
         },
         {
-          fieldname: 'paid_amount',
-          fieldtype: 'Currency',
-          label: __('Amount to Pay'),
+          fieldname: 'payments',
+          fieldtype: 'Table',
+          fields: [
+            {
+              fieldname: 'mode_of_payment',
+              fieldtype: 'Link',
+              options: 'Mode of Payment',
+              label: __('Mode of Payment'),
+              in_list_view: 1,
+            },
+            {
+              fieldname: 'amount',
+              fieldtype: 'Currency',
+              label: __('Amount'),
+              in_list_view: 1,
+            },
+          ],
+          in_place_edit: true,
+          data: this.mode_of_payments,
+          get_data: () => this.mode_of_payments,
         },
         {
           fieldname: 'print_sec',
@@ -47,50 +64,16 @@ export default class DeliverDialog {
           fieldtype: 'Check',
           fieldname: pf,
           label: __(pf),
+          default: 1,
         })),
       ],
     });
-    this.init_state = {
-      mode_of_payment: null,
-      paid_amount: 0,
-      gift_card_balance: 0,
-    };
   }
-  async create_and_print(frm) {
-    this.state = Object.assign({}, this.init_state);
-
-    this.dialog.fields_dict.mode_of_payment.change = async function() {
-      const mode_of_payment = this.dialog.get_value('mode_of_payment');
-      const is_gift_card = mode_of_payment === 'Gift Card';
-      ['gift_card_no', 'gift_card_balance'].forEach(field =>
-        this.dialog.fields_dict[field].toggle(is_gift_card)
-      );
-      this.state = Object.assign({}, this.state, { mode_of_payment });
-    }.bind(this);
-
+  async payment(frm) {
     this.dialog.fields_dict.gift_card_no.change = async function() {
       const gift_card_no = this.dialog.get_value('gift_card_no');
       await this.handle_gift_card(frm, gift_card_no);
-      this.state = Object.assign({}, this.state, { gift_card_no });
-    }.bind(this);
-
-    this.dialog.fields_dict.paid_amount.change = async function() {
-      const paid_amount = this.dialog.get_value('paid_amount') || 0;
-      const min_amount =
-        this.mode_of_payment === 'Gift Card'
-          ? Math.min(this.state.gift_card_balance, frm.doc.outstanding_amount)
-          : frm.doc.outstanding_amount;
-      if (paid_amount > min_amount) {
-        return frappe.throw(
-          __(
-            `Amount to Redeem cannot exceed ${format_currency(
-              min_amount,
-              frm.doc.currency
-            )}`
-          )
-        );
-      }
-      this.state = Object.assign({}, this.state, { paid_amount });
+      this.set_payments(frm);
     }.bind(this);
 
     this.dialog.get_primary_btn().off('click');
@@ -100,22 +83,30 @@ export default class DeliverDialog {
         const { name } = frm.doc;
         const values = this.dialog.get_values();
         const enabled_print_formats = this.print_formats.filter(pf => values[pf]);
-        const {
-          mode_of_payment,
-          paid_amount,
-          gift_card_no,
-          gift_card_balance = 0,
-        } = values;
-        this.dialog.fields_dict.paid_amount.change();
-        if (mode_of_payment === 'Gift Card' && !gift_card_no) {
-          return frappe.throw(__('Gift Card No is required'));
+        const { gift_card_no } = values;
+        const payments = values.payments
+          .filter(({ amount }) => amount)
+          .map(({ mode_of_payment, amount }) =>
+            Object.assign(
+              {
+                mode_of_payment,
+                amount,
+              },
+              mode_of_payment === 'Gift Card' ? { gift_card_no } : {}
+            )
+          );
+        if (
+          payments.reduce((a, { amount = 0 }) => a + amount, 0) >
+          frm.doc.outstanding_amount
+        ) {
+          return frappe.throw(__('Paid amount cannot be greater than outstanding'));
         }
         this.dialog.hide();
-        const { message: { delivery_note, payment_entry } = {} } = await frappe.call({
-          method: 'optic_store.api.sales_invoice.deliver_qol',
+        await frappe.call({
+          method: 'optic_store.api.sales_invoice.payment_qol',
           freeze: true,
-          freeze_message: __('Creating Payment Entry / Delivery Note'),
-          args: { name, mode_of_payment, paid_amount, gift_card_no },
+          freeze_message: __('Creating Payment Entries'),
+          args: { name, payments },
         });
         frm.reload_doc();
         enabled_print_formats.forEach(pf => {
@@ -124,16 +115,38 @@ export default class DeliverDialog {
       }.bind(this)
     );
 
+    this.dialog.set_df_property('gift_card_sec', 'hidden', 0);
     this.dialog.set_df_property('payment_sec', 'hidden', 0);
-    this.dialog.fields_dict.mode_of_payment.bind_change_event();
-    this.dialog.fields_dict.paid_amount.bind_change_event();
     this.dialog.fields_dict.gift_card_no.bind_change_event();
-    await this.dialog.set_values({
-      mode_of_payment: 'Cash',
-      paid_amount: frm.doc.outstanding_amount,
-    });
-    this.dialog.fields_dict.mode_of_payment.change();
 
+    this.set_payments(frm);
+    await this.dialog.set_values({ gift_card_no: null, gift_card_balance: null });
+    this.dialog.show();
+  }
+  async deliver(frm) {
+    this.dialog.get_primary_btn().off('click');
+    this.dialog.set_primary_action(
+      'OK',
+      async function() {
+        const { name } = frm.doc;
+        const values = this.dialog.get_values();
+        const enabled_print_formats = this.print_formats.filter(pf => values[pf]);
+        this.dialog.hide();
+        await frappe.call({
+          method: 'optic_store.api.sales_invoice.deliver_qol',
+          freeze: true,
+          freeze_message: __('Creating Payment Entry / Delivery Note'),
+          args: { name },
+        });
+        frm.reload_doc();
+        enabled_print_formats.forEach(pf => {
+          print_invoice(name, pf, 0);
+        });
+      }.bind(this)
+    );
+
+    this.dialog.set_df_property('gift_card_sec', 'hidden', 1);
+    this.dialog.set_df_property('payment_sec', 'hidden', 1);
     this.dialog.show();
   }
   async handle_gift_card(frm, gift_card_no) {
@@ -151,12 +164,35 @@ export default class DeliverDialog {
         return frappe.throw(__('Gift Card expired'));
       }
       this.dialog.set_values({ gift_card_balance });
-      this.state = Object.assign({}, this.state, { gift_card_balance });
     } else {
       this.dialog.set_values({ gift_card_balance: 0 });
     }
   }
-  async print_invoice(frm) {
+  set_payments(frm) {
+    this.dialog.fields_dict.payments.grid.grid_rows.forEach(gr => {
+      gr.doc.amount = 0;
+      gr.refresh_field('amount');
+    });
+
+    let amount_to_set = frm.doc.outstanding_amount;
+    const gift_card_balance = this.dialog.get_value('gift_card_balance');
+    const gift_card_gr = this.dialog.fields_dict.payments.grid.grid_rows.find(
+      ({ doc }) => doc.mode_of_payment === 'Gift Card'
+    );
+    if (gift_card_balance && gift_card_gr) {
+      gift_card_gr.doc.amount = Math.min(gift_card_balance, amount_to_set);
+      gift_card_gr.refresh_field('amount');
+      amount_to_set -= gift_card_gr.doc.amount;
+    }
+    const first_payment_gr = this.dialog.fields_dict.payments.grid.grid_rows.filter(
+      ({ doc }) => doc.mode_of_payment !== 'Gift Card'
+    )[0];
+    if (first_payment_gr) {
+      first_payment_gr.doc.amount = amount_to_set;
+      first_payment_gr.refresh_field('amount');
+    }
+  }
+  async print(frm) {
     const print_formats = this.print_formats;
     this.dialog.get_primary_btn().off('click');
     this.dialog.set_primary_action('OK', function() {
@@ -168,6 +204,7 @@ export default class DeliverDialog {
         print_invoice(name, pf, 0);
       });
     });
+    this.dialog.set_df_property('gift_card_sec', 'hidden', 1);
     this.dialog.set_df_property('payment_sec', 'hidden', 1);
     this.dialog.show();
   }
