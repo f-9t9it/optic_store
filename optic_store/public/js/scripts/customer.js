@@ -34,10 +34,24 @@ export function set_nationality_options(frm) {
   frm.set_df_property('os_nationality', 'options', ['', ...NATIONALITIES]);
 }
 
+function add_prescription_link(frm) {
+  const orders =
+    frm.dashboard && frm.dashboard.data && frm.dashboard.data.transactions[1];
+  if (orders && !orders.items.includes('Optical Prescription')) {
+    orders.items = ['Optical Prescription', ...orders.items];
+    frm.dashboard.data_rendered = false;
+    frm.dashboard.transactions_area.empty();
+    frm.dashboard.refresh();
+  }
+}
+
 export default {
   onload: function(frm) {
     set_branch(frm);
     set_nationality_options(frm);
   },
-  refresh: render_prescription_data,
+  refresh: function(frm) {
+    add_prescription_link(frm);
+    render_prescription_data(frm);
+  },
 };
