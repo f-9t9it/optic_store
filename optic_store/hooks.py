@@ -37,10 +37,8 @@ fixtures = [
                     "Employee-os_contract_date",
                     "Employee-os_eo_joining_date",
                     "Employee-os_lmra_joining_date",
-                    "Branch-disabled",
-                    "Branch-process_at_branch",
-                    "Branch-main_col",
                     "Branch-branch_code",
+                    "Branch-disabled",
                     "Branch-os_sales_sec",
                     "Branch-os_sales_order_naming_series",
                     "Branch-os_sales_invoice_naming_series",
@@ -327,7 +325,7 @@ before_tests = "optic_store.api.install.setup_defaults"
 # ------------------------------
 
 override_whitelisted_methods = {
-    "erpnext.accounts.doctype.sales_invoice.pos.get_pos_data": "optic_store.api.pos.get_pos_data",
-    "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice",
-    "erpnext.selling.page.point_of_sale.point_of_sale.search_serial_or_batch_or_barcode_number": "optic_store.api.sales_invoice.search_serial_or_batch_or_barcode_number",
+    "erpnext.accounts.doctype.sales_invoice.pos.get_pos_data": "optic_store.api.pos.get_pos_data",  # noqa
+    "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice",  # noqa
+    "erpnext.selling.page.point_of_sale.point_of_sale.search_serial_or_batch_or_barcode_number": "optic_store.api.sales_invoice.search_serial_or_batch_or_barcode_number",  # noqa
 }
