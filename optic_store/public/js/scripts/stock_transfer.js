@@ -76,6 +76,12 @@ export const stock_transfer_item = {
   items_remove: calc_and_set_row_amount,
 };
 
+function set_route_to_list(frm) {
+  frm.page.actions.find('a.grey-link:contains("Receive")').on('click', function() {
+    frappe.set_route('List', 'Stock Transfer');
+  });
+}
+
 export default {
   refresh: function(frm) {
     set_queries(frm);
@@ -86,6 +92,11 @@ export default {
     frm.toggle_enable('incoming_datetime', frm.doc.workflow_state === 'In Transit');
     if (frm.doc.workflow_state === 'In Transit') {
       frm.set_value('incoming_datetime', frappe.datetime.now_datetime());
+    }
+  },
+  onload_post_render: function(frm) {
+    if (frm.doc.workflow_state === 'In Transit') {
+      set_route_to_list(frm);
     }
   },
   company: set_queries,
