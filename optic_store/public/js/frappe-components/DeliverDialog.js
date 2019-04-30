@@ -64,6 +64,7 @@ export default class DeliverDialog {
           fieldtype: 'Check',
           fieldname: pf,
           label: __(pf),
+          default: 1,
         })),
       ],
     });

@@ -6,9 +6,9 @@ export function print_invoice(sales_invoice_name, print_format, no_letterhead) {
         'Sales Invoice'
       )}&name=${encodeURIComponent(
         sales_invoice_name
-      )}&trigger_print=1&format=${encodeURIComponent(
-        print_format
-      )}&no_letterhead=${no_letterhead ? '1' : '0'}&_lang=en`
+      )}&trigger_print=1&format=${encodeURIComponent(print_format)}&no_letterhead=${
+        no_letterhead ? '1' : '0'
+      }&_lang=en`
     )
   );
   if (!w) {
@@ -101,6 +101,7 @@ export default class InvoiceDialog {
           fieldtype: 'Check',
           fieldname: pf,
           label: __(pf),
+          default: 1,
         })),
       ],
     });
@@ -124,15 +125,12 @@ export default class InvoiceDialog {
         'loyalty_amount_redeem',
         'loyalty_points_available',
         'loyalty_amount_available',
-      ].forEach(field =>
-        this.dialog.fields_dict[field].toggle(!!loyalty_card_no)
-      );
+      ].forEach(field => this.dialog.fields_dict[field].toggle(!!loyalty_card_no));
       this.dialog.fields_dict.loyalty_points_redeem.bind_change_event();
     }.bind(this);
 
     this.dialog.fields_dict.loyalty_points_redeem.change = () => {
-      const loyalty_points_redeem =
-        this.dialog.get_value('loyalty_points_redeem') || 0;
+      const loyalty_points_redeem = this.dialog.get_value('loyalty_points_redeem') || 0;
 
       const loyalty_amount_redeem =
         loyalty_points_redeem * flt(this.state.conversion_factor);
@@ -164,9 +162,7 @@ export default class InvoiceDialog {
       async function() {
         const { name } = frm.doc;
         const values = this.dialog.get_values();
-        const enabled_print_formats = this.print_formats.filter(
-          pf => values[pf]
-        );
+        const enabled_print_formats = this.print_formats.filter(pf => values[pf]);
         const payments = values.payments.map(({ mode_of_payment, amount }) => ({
           mode_of_payment,
           amount,
@@ -211,8 +207,7 @@ export default class InvoiceDialog {
       gr.refresh_field('amount');
     });
 
-    let amount_to_set =
-      frm.doc.rounded_total - this.state.loyalty_amount_redeem;
+    let amount_to_set = frm.doc.rounded_total - this.state.loyalty_amount_redeem;
     const gift_card_balance = frm.doc.os_gift_cards.reduce(
       (a, { balance }) => a + balance,
       0
