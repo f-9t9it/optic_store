@@ -30,6 +30,7 @@ export async function render_prescription(frm) {
       el: $wrapper.html('<div />').children()[0],
       render: h => h(PrescriptionForm, { props: { doc } }),
     });
+    frm.set_value('os_orx_notes', doc.notes);
   }
 }
 
