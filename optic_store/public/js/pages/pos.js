@@ -75,6 +75,7 @@ export default function extend_pos(PosClass) {
         .find('.totals-area')
         .find('.group_discount-area')
         .toggle(!this.is_totals_area_collapsed);
+      this.pos_bill.find('.discount-amount-area').hide();
     }
     update_customer(new_customer) {
       super.update_customer(new_customer);
