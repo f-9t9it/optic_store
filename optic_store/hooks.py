@@ -56,6 +56,7 @@ fixtures = [
                     "Branch-os_nhra_expiry",
                     "Branch-os_cr_no",
                     "Branch-os_cr_expiry",
+                    "Customer-os_unverified_loyalty_card_no",
                     "Customer-branch",
                     "Customer-os_details_sec",
                     "Customer-os_detail_bio_col",
