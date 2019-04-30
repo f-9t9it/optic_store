@@ -82,6 +82,23 @@ function set_route_to_list(frm) {
   });
 }
 
+function toggle_incoming_datetime(frm) {
+  frm.toggle_enable('incoming_datetime', frm.doc.workflow_state === 'In Transit');
+  frm.toggle_reqd('incoming_datetime', frm.doc.workflow_state === 'In Transit');
+}
+
+async function toggle_cancel_action(frm) {
+  const { message: branch } = await frappe.call({
+    method: 'optic_store.api.customer.get_user_branch',
+  });
+  console.log(branch);
+  frm.page.actions
+    .find('a.grey-link:contains("Cancel")')
+    .toggle(
+      frm.doc.workflow_state === 'In Transit' && branch !== frm.doc.target_branch
+    );
+}
+
 export default {
   refresh: function(frm) {
     set_queries(frm);
@@ -89,12 +106,11 @@ export default {
       frm.set_value('outgoing_datetime', frappe.datetime.now_datetime());
       set_source_branch(frm);
     }
-    frm.toggle_enable('incoming_datetime', frm.doc.workflow_state === 'In Transit');
-    if (frm.doc.workflow_state === 'In Transit') {
-      frm.set_value('incoming_datetime', frappe.datetime.now_datetime());
-    }
+    toggle_incoming_datetime(frm);
   },
   onload_post_render: function(frm) {
+    // workflow related ui changes need to be here
+    toggle_cancel_action(frm);
     if (frm.doc.workflow_state === 'In Transit') {
       set_route_to_list(frm);
     }
