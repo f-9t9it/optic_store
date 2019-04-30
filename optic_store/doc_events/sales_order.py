@@ -39,17 +39,22 @@ def before_insert(doc, method):
 
 def on_update(doc, method):
     settings = frappe.get_single("Optical Store Settings")
-    process_at_branch = (
-        frappe.db.get_value("Branch", doc.os_branch, "process_at_branch")
-        if doc.os_branch
-        else 0
-    )
-    doc.db_set(
-        {
-            "os_is_special_order": 1
-            if settings.special_order_item_group
-            in map(lambda x: x.item_group, doc.items)
-            else 0,
-            "os_is_branch_order": process_at_branch,
-        }
-    )
+    doc.db_set({"os_item_type": _get_item_type(doc.items, settings)})
+
+
+def on_update_after_submit(doc, method):
+    if doc.workflow_state == "Processing at HQM":
+        doc.db_set({"os_qc_failed": 0})
+    if doc.workflow_state == "In Transit (with Driver)":
+        doc_before_save = doc.get_doc_before_save()
+        if doc_before_save.workflow_state == "Collected QC Test":
+            doc.db_set({"os_qc_failed": 1})
+
+
+def _get_item_type(items, settings):
+    groups = map(lambda x: x.item_group, items)
+    if settings.special_order_item_group in groups:
+        return "Special"
+    if settings.standard_item_group in groups:
+        return "Standard"
+    return "Other"

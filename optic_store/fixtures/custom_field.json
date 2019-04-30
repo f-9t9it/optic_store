@@ -6450,7 +6450,7 @@
   "modified": "2019-04-30 21:35:48.839396", 
   "name": "Sales Order-os_item_type", 
   "no_copy": 0, 
-  "options": "\nStandard\nSpecial\nOthers", 
+  "options": "\nStandard\nSpecial\nOther", 
   "parent": null, 
   "parentfield": null, 
   "parenttype": null, 

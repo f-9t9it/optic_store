@@ -278,6 +278,7 @@ doc_events = {
         "validate": "optic_store.doc_events.sales_order.validate",
         "before_insert": "optic_store.doc_events.sales_order.before_insert",
         "on_update": "optic_store.doc_events.sales_order.on_update",
+        "on_update_after_submit": "optic_store.doc_events.sales_order.on_update_after_submit",  # noqa
     },
     "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
     "Item": {
