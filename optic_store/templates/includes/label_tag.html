@@ -1,0 +1,67 @@
+<style>
+  .os-label_tag {
+    height: 7.8cm;
+    width: 3.4cm;
+    font-family: monospace;
+    display: flex;
+    flex-flow: column-reverse nowrap;
+    font-size: 8pt;
+    color: #000000;
+  }
+  .os-label_tag-headline {
+    order: 1;
+    height: 1.3cm;
+    width: 100%;
+  }
+  .os-label_tag-headline > .barcode {
+    width: 100%;
+  }
+  .os-label_tag-headline-text {
+    font-weight: bold;
+    padding: 0 2pt;
+  }
+  .os-label_tag-description {
+    height: 1.3cm;
+    padding: 2pt;
+    order: 0;
+    transform: rotate(180deg);
+  }
+  .os-label_tag-description-title {
+    font-weight: bold;
+  }
+  .os-label_tag-description-subtitle {
+    font-size: 0.8em;
+  }
+</style>
+
+<main>
+  {%- for item in doc.items -%}{%- for tag in range(0, frappe.utils.cint(item.qty)) -%}
+  <div class="os-label_tag">
+    <div class="os-label_tag-headline">
+      <img
+        class="barcode"
+        jsbarcode-format="CODE128"
+        jsbarcode-value="{{ item.barcode or item.item_code }}"
+        jsbarcode-textmargin="0"
+        jsbarcode-height="30"
+        jsbarcode-margin="4"
+      />
+      <div class="os-label_tag-headline-text">
+        {{ item.get_formatted('rate', doc) }}
+      </div>
+    </div>
+    <div class="os-label_tag-description">
+      <div class="os-label_tag-description-title">{{ item.brand or '' }}</div>
+      <div class="os-label_tag-description-subtitle">{{ item.item_name }}</div>
+    </div>
+  </div>
+  {%- endfor -%}{%- endfor -%}
+</main>
+
+<script
+  type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/barcodes/JsBarcode.code128.min.js"
+></script>
+<script type="text/javascript">
+  JsBarcode('.barcode').init();
+</script>

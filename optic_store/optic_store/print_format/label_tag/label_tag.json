@@ -1,0 +1,23 @@
+{
+ "align_labels_right": 0, 
+ "creation": "2019-04-30 23:31:59.984740", 
+ "custom_format": 1, 
+ "default_print_language": "en", 
+ "disabled": 0, 
+ "doc_type": "Purchase Receipt", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "font": "Default", 
+ "html": "{% include \"templates/includes/label_tag.html\" %}", 
+ "idx": 0, 
+ "line_breaks": 0, 
+ "modified": "2019-05-02 19:06:05.586577", 
+ "modified_by": "Administrator", 
+ "module": "Optic Store", 
+ "name": "Label Tag", 
+ "owner": "Administrator", 
+ "print_format_builder": 0, 
+ "print_format_type": "Server", 
+ "show_section_headings": 0, 
+ "standard": "Yes"
+}
