@@ -1,7 +1,12 @@
 <style>
+  @media screen {
+    .os-label_tag {
+      border: 1px solid {{ style.border_color }};
+    }
+  }
   .os-label_tag {
-    height: 7.8cm;
-    width: 3.4cm;
+    height: 78mm;
+    width: 34mm;
     font-family: monospace;
     display: flex;
     flex-flow: column-reverse nowrap;
@@ -10,7 +15,7 @@
   }
   .os-label_tag-headline {
     order: 1;
-    height: 1.3cm;
+    height: 13mm;
     width: 100%;
   }
   .os-label_tag-headline > .barcode {
@@ -21,7 +26,7 @@
     padding: 0 2pt;
   }
   .os-label_tag-description {
-    height: 1.3cm;
+    height: 12mm;
     padding: 2pt;
     order: 0;
     transform: rotate(180deg);
