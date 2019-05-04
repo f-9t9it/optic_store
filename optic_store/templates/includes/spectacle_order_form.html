@@ -1,0 +1,319 @@
+<style>
+    @media screen {
+    .print-format {
+      width: {{ preview_width or '105mm' }};
+      height: {{ preview_height or '148mm' }};
+      padding: {{ preview_margin or '5mm' }};
+      max-width: {{ preview_width or '105mm' }};
+      min-height: {{ preview_height or '148mm' }};
+  }
+  }
+  .print-format > main {
+    font-family: monospace;
+    font-size: 8pt;
+  }
+  .os-lof-header {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: flex-start;
+    border-bottom: 1px solid {{ style.border_color }};
+  }
+  .os-lof-header > * {
+    width: 50%;
+  }
+  .os-lof-header-content {
+    border-right: 1px solid {{ style.border_color }};
+    padding-right: 2pt;
+    margin-right: 2pt;
+  }
+  .os-lof-header h1 {
+    margin: 4pt 0 6pt 0;
+    font-size: 1.5em;
+  }
+
+  .os-lof dl {
+    margin: 0;
+  }
+  .os-lof dt {
+    font-weight: normal;
+  }
+  .os-lof dd {
+    font-weight: bold;
+  }
+  .os-lof dt:after {
+    content: ': ';
+  }
+  .os-lof dl > * {
+    display: inline;
+  }
+
+  .table {
+    margin: 0;
+  }
+  .os-prescription th,
+  .os-prescription td {
+    padding: 0 2pt !important;
+    background-color: transparent !important;
+  }
+  .os-prescription thead td {
+    text-align: center;
+  }
+  .os-prescription thead th,
+  .os-prescription tbody td {
+    text-align: right;
+  }
+  .os-prescription > thead > tr > th,
+  .os-prescription > tbody > tr > th,
+  .os-prescription > tbody > tr > td {
+    font-weight: normal;
+  }
+  .os-prescription > thead > tr > td {
+    border-bottom-width: 1px;
+  }
+  .os-prescription thead td:first-child,
+  .os-prescription thead td:nth-child(2),
+  .os-prescription thead th:first-child,
+  .os-prescription thead th:nth-child(5),
+  .os-prescription tbody th:first-child,
+  .os-prescription tbody td:nth-child(5) {
+    border-right-width: 2px;
+  }
+  .os-lof-details-others {
+    display: flex;
+    flex-flow: row nowrap;
+  }
+  .os-lof-details-others > * {
+    width: 33.33%;
+  }
+  .os-lof-notes, .os-lof-customer {
+    display: flex;
+    flex-flow: row nowrap;
+  }
+  .os-lof-customer > * {
+    width: 50%;
+  }
+  .os-lof-notes > * {
+    width: 50%;
+    border: 1px solid {{ style.border_color }};
+  }
+</style>
+
+<main class="os-lof">
+  <div class="os-lof-header">
+    <div class="os-lof-header-content">
+      <h1>{{ _('Lab Order Form') }}</h1>
+      <dl>
+        <dt>{{ _('Branch')}}</dt>
+        <dd>{{ doc.os_branch }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Order Date')}}</dt>
+        <dd>{{ doc.get_formatted('transaction_date') }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Lab')}}</dt>
+        <dd>{{ doc.orx_lab }}</dd>
+      </dl>
+    </div>
+    <img
+      class="barcode"
+      jsbarcode-format="CODE128"
+      jsbarcode-value="{{ doc.name }}"
+      jsbarcode-textmargin="2"
+      jsbarcode-textposition="top"
+      jsbarcode-height="40"
+      jsbarcode-width="1"
+      jsbarcode-margin="4"
+    />
+  </div>
+  <div class="os-lof-details">
+    {%- if doc.orx_name -%} {%- set rx = frappe.get_doc('Optical Prescription',
+    doc.orx_name) -%}
+    <table class="table table-condensed table-bordered os-prescription">
+      <thead>
+        <tr>
+          <td></td>
+          <td colspan="4">{{ _('Right') }}</td>
+          <td colspan="4">{{ _('Left') }}</td>
+        </tr>
+        <tr>
+          <th></th>
+          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
+          'va'] -%}
+          <th>{{ param|upper }}</th>
+          {%- endfor -%} {%- endfor -%}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>{{ _('Distance') }}</th>
+          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
+          'va'] -%}
+          <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
+          {%- endfor -%} {%- endfor -%}
+        </tr>
+        <tr>
+          <th>{{ _('Reading') }}</th>
+          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
+          'va'] -%}
+          <td>{{ rx.get('{}_reading_{}'.format(param, side)) or '' }}</td>
+          {%- endfor -%} {%- endfor -%}
+        </tr>
+        <tr>
+          <th>{{ _('Add') }}</th>
+          {%- for side in ['right', 'left'] -%} {%- for param in ['add', '', '', ''] -%}
+          <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
+          {%- endfor -%} {%- endfor -%}
+        </tr>
+      </tbody>
+    </table>
+    <div class="os-lof-details-others">
+      <dl>
+        <dt>{{ _('PD (right) mm')}}</dt>
+        <dd>{{ rx.pd_right }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('PD (left) mm')}}</dt>
+        <dd>{{ rx.pd_left }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('PD (total) mm')}}</dt>
+        <dd>{{ rx.pd_total }}</dd>
+      </dl>
+    </div>
+    <div class="os-lof-details-others">
+      <dl>
+        <dt>{{ _('Prism (right)')}}</dt>
+        <dd>{{ rx.prism_right }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Prism (left)')}}</dt>
+        <dd>{{ rx.prism_left }}</dd>
+      </dl>
+    </div>
+    <div class="os-lof-details-others">
+      <dl>
+        <dt>{{ _('Frame Size')}}</dt>
+        <dd>{{ doc.orx_frame_size }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Height')}}</dt>
+        <dd>{{ doc.orx_height }}</dd>
+      </dl>
+    </div>
+    {%- endif -%}
+  </div>
+  {%- set customer = frappe.get_doc('Customer', doc.customer) -%}
+  <div class="os-lof-customer">
+    <div>
+      <dl>
+        <dt>{{ _('Name / ID') }}</dt>
+        <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
+      </dl>
+      {%- if customer.os_address -%}
+      <dl>
+        <dt>{{ _('Address') }}</dt>
+        <dd>{{ customer.os_address }}</dd>
+      </dl>
+      {%- endif -%}
+    </div>
+    <div>
+      <dl>
+        <dt>{{ _('Age / Gender') }}</dt>
+        <dd>
+          {{ frappe.utils.getdate(doc.transaction_date) -
+          frappe.utils.getdate(doc.os_date_of_birth) }} / {{ customer.gender }}
+        </dd>
+      </dl>
+      {%- if customer.os_office_number -%}
+      <dl>
+        <dt>{{ _('Office No') }}</dt>
+        <dd>{{ customer.os_office_number }}</dd>
+      </dl>
+      {%- endif -%} {%- if customer.os_mobile_number -%}
+      <dl>
+        <dt>{{ _('Mobile No') }}</dt>
+        <dd>{{ customer.os_mobile_number }}</dd>
+      </dl>
+      {%- endif -%} {%- if customer.os_home_number -%}
+      <dl>
+        <dt>{{ _('Home No') }}</dt>
+        <dd>{{ customer.os_home_number }}</dd>
+      </dl>
+      {%- endif -%} {%- if customer.os_other_number -%}
+      <dl>
+        <dt>{{ _('Other No') }}</dt>
+        <dd>{{ customer.os_other_number }}</dd>
+      </dl>
+      {%- endif -%}
+    </div>
+  </div>
+  <table class="table table-condensed">
+    <thead>
+      <tr>
+        <th>{{ _('Type') }}</th>
+        <th>{{ _('Description') }}</th>
+        <th>{{ _('Amount') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for item in doc.items -%}
+      <tr>
+        <td>{{ item.item_group }}</td>
+        <td>{{ item.brand or '' }} {{ item.item_name }}</td>
+        <td>{{ item.get_formatted('amount', doc) }}</td>
+      </tr>
+      {%- endfor -%}
+    </tbody>
+  </table>
+  <div class="os-lof-notes">
+    <div>
+      <dl>
+        <dt>{{ _('Storage Location')}}</dt>
+        <dd></dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Remarks')}}</dt>
+        <dd>{{ doc.os_orx_notes or '' }}</dd>
+      </dl>
+    </div>
+    <div>
+      <dl>
+        <dt>{{ _('Rounding Adjustment')}}</dt>
+        <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Total Amount')}}</dt>
+        <dd>{{ doc.get_formatted('total') }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Cash Received')}}</dt>
+        <dd>{{ doc.get_formatted('advance_paid') }}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="os-lof-footer">
+    <dl>
+      <dt>{{ _('Issued By') }}</dt>
+      <dd>{{ frappe.get_fullname(doc.owner) }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Sales Person') }}</dt>
+      {%- set u = frappe.db.get_value('Employee', doc.os_sales_person, 'user_id') if
+      doc.os_sales_person else None -%}
+      <dd>{{ frappe.get_fullname(u) if u else '' }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Printed On') }}</dt>
+      <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
+    </dl>
+  </div>
+</main>
+
+<script
+  type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/barcodes/JsBarcode.code128.min.js"
+></script>
+<script type="text/javascript">
+  JsBarcode('.barcode').init();
+</script>
