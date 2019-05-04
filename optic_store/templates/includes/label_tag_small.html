@@ -1,0 +1,51 @@
+<style>
+  @media screen {
+    .os-label_tag {
+      border: 1px solid {{ style.border_color }};
+    }
+  }
+  .os-label_tag {
+    height: 25mm;
+    width: 37mm;
+    padding: 4pt;
+    font-family: monospace;
+    font-size: 8pt;
+    color: #000000;
+  }
+  .os-label_tag-title {
+    font-weight: bold;
+  }
+  .os-label_tag-subtitle {
+    font-size: 0.8em;
+  }
+  .os-label_tag-headline {
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+</style>
+
+<main>
+  {%- for item in doc.items -%}{%- for tag in range(0, frappe.utils.cint(item.qty)) -%}
+  <div class="os-label_tag">
+    <img
+      class="barcode"
+      jsbarcode-format="CODE128"
+      jsbarcode-value="{{ item.barcode or item.item_code }}"
+      jsbarcode-textmargin="0"
+      jsbarcode-height="30"
+      jsbarcode-margin="4"
+    />
+    <div class="os-label_tag-title">{{ item.brand or '' }}</div>
+    <div class="os-label_tag-subtitle">{{ item.item_name }}</div>
+    <div class="os-label_tag-headline">{{ item.get_formatted('rate', doc) }}</div>
+  </div>
+  {%- endfor -%}{%- endfor -%}
+</main>
+
+<script
+  type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/barcodes/JsBarcode.code128.min.js"
+></script>
+<script type="text/javascript">
+  JsBarcode('.barcode').init();
+</script>
