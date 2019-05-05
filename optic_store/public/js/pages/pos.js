@@ -17,6 +17,21 @@ function set_description(field) {
   };
 }
 
+function add_search_params_to_customer_mapper(customers_details = {}) {
+  return function(item) {
+    const { value, searchtext } = item;
+    const customer = customers_details[value];
+    if (searchtext && customer) {
+      const searchtext_alt = ['os_crp_no', 'os_mobile_number'].reduce((a, param) => {
+        const x = customer[param] && customer[param].toLowerCase();
+        return x && !a.includes(x) ? `${a} ${x}` : a;
+      }, searchtext);
+      return Object.assign(item, { searchtext: searchtext_alt });
+    }
+    return item;
+  };
+}
+
 export default function extend_pos(PosClass) {
   class PosClassExtended extends PosClass {
     async init_master_data(r) {
@@ -49,6 +64,7 @@ export default function extend_pos(PosClass) {
         this.gift_cards_data = list2dict('name', gift_cards);
         this.make_sales_person_field();
         this.make_group_discount_field();
+        this.prepare_customer_mapper();
       } catch (e) {
         console.warn(e);
         frappe.msgprint({
@@ -76,6 +92,41 @@ export default function extend_pos(PosClass) {
         .find('.group_discount-area')
         .toggle(!this.is_totals_area_collapsed);
       this.pos_bill.find('.discount-amount-area').hide();
+    }
+    prepare_customer_mapper(key) {
+      super.prepare_customer_mapper(key);
+      const customers_mapper_ext = key
+        ? this.customers
+            .filter(({ name }) => {
+              const search = key.toLowerCase().trim();
+              const reg = new RegExp(
+                search.replace(new RegExp('%', 'g'), '\\w*\\s*[a-zA-Z0-9]*')
+              );
+              const detail =
+                this.customers_details_data && this.customers_details_data[name];
+              if (detail) {
+                return (
+                  !this.customers_mapper.map(({ value }) => value).includes(name) &&
+                  (reg.test(detail['os_crp_no']) ||
+                    reg.test(detail['os_mobile_number']))
+                );
+              }
+              return false;
+            })
+            .map(({ name, customer_name, customer_group, territory }) => ({
+              label: name,
+              value: name,
+              customer_name,
+              customer_group,
+              territory,
+              searchtext: [name, customer_name, customer_group, territory]
+                .join(' ')
+                .toLowerCase(),
+            }))
+        : [];
+      this.customers_mapper = [...this.customers_mapper, ...customers_mapper_ext].map(
+        add_search_params_to_customer_mapper(this.customers_details_data)
+      );
     }
     update_customer(new_customer) {
       super.update_customer(new_customer);
