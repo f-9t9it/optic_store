@@ -39,6 +39,8 @@ fixtures = [
                     "Employee-os_lmra_joining_date",
                     "Branch-branch_code",
                     "Branch-disabled",
+                    "Branch-os_main_col",
+                    "Branch-os_user",
                     "Branch-os_sales_sec",
                     "Branch-os_sales_order_naming_series",
                     "Branch-os_sales_invoice_naming_series",
