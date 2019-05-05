@@ -137,6 +137,7 @@ fixtures = [
                     "Sales Order Item-os_price_list_col",
                     "Sales Order Item-os_minimum_selling_rate",
                     "Sales Order Item-os_minimum_selling_2_rate",
+                    "Sales Order Item-batch_no",
                     "Sales Invoice-os_gift_card_sec",
                     "Sales Invoice-os_gift_card_entry",
                     "Sales Invoice-os_gift_cards",

@@ -179,6 +179,14 @@ export default {
     const print_formats = order_pfs.map(({ print_format }) => print_format);
     const mode_of_payments = invoice_mops.map(({ mode_of_payment }) => mode_of_payment);
     frm.invoice_dialog = new InvoiceDialog(print_formats, mode_of_payments);
+
+    const transaction_controller = new erpnext.TransactionController({ frm });
+    if (frm.fields_dict['items'].grid.get_field('batch_no')) {
+      frm.set_query('batch_no', 'items', function(doc, cdt, cdn) {
+        return transaction_controller.set_query_for_batch(doc, cdt, cdn);
+      });
+    }
+    transaction_controller.scan_barcode();
   },
   onload: function(frm) {
     setup_employee_queries(frm);
