@@ -105,7 +105,6 @@ fixtures = [
                     "Sales Order-os_order_type",
                     "Sales Order-os_branch",
                     "Sales Order-os_item_type",
-                    "Sales Order-os_qc_failed",
                     "Sales Order-os_sales_person",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
@@ -276,7 +275,6 @@ doc_events = {
         "validate": "optic_store.doc_events.sales_order.validate",
         "before_insert": "optic_store.doc_events.sales_order.before_insert",
         "on_update": "optic_store.doc_events.sales_order.on_update",
-        "on_update_after_submit": "optic_store.doc_events.sales_order.on_update_after_submit",  # noqa
     },
     "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
     "Item": {

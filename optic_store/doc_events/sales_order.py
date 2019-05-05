@@ -42,15 +42,6 @@ def on_update(doc, method):
     doc.db_set({"os_item_type": _get_item_type(doc.items, settings)})
 
 
-def on_update_after_submit(doc, method):
-    if doc.workflow_state == "Processing at HQM":
-        doc.db_set({"os_qc_failed": 0})
-    if doc.workflow_state == "In Transit (with Driver)":
-        doc_before_save = doc.get_doc_before_save()
-        if doc_before_save.workflow_state == "Collected QC Test":
-            doc.db_set({"os_qc_failed": 1})
-
-
 def _get_item_type(items, settings):
     groups = map(lambda x: x.item_group, items)
     if settings.special_order_item_group in groups:
