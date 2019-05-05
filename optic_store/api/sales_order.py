@@ -240,7 +240,7 @@ workflow = {
             "next_state": "Processing at Branch",
             "allowed": "Sales User",
             "allow_self_approval": 1,
-            "condition": "doc.os_order_type == 'Repair' or (doc.os_order_type == 'Sale' and doc.os_item_type == 'Standard')",  # noqa
+            "condition": "doc.os_order_type == 'Repair' or (doc.os_order_type == 'Sales' and doc.os_item_type == 'Standard')",  # noqa
         },
         {
             "state": "Processing at Branch",
@@ -262,7 +262,7 @@ workflow = {
             "next_state": "Sent to HQM",
             "allowed": "Sales User",
             "allow_self_approval": 1,
-            "condition": "doc.os_order_type == 'Repair' or (doc.os_order_type == 'Sale' and doc.os_item_type == 'Standard')",  # noqa
+            "condition": "doc.os_order_type == 'Repair' or (doc.os_order_type == 'Sales' and doc.os_item_type == 'Standard')",  # noqa
         },
         {
             "state": "Sent to HQM",
