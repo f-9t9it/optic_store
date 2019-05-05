@@ -271,6 +271,14 @@ export default function extend_pos(PosClass) {
           .addClass('hidden');
       });
     }
+    set_payment_primary_action() {
+      // totally override validation to check for zero amount to enable payment thru
+      // loyalty program
+      this.dialog.set_primary_action(__('Submit'), () => {
+        this.dialog.hide();
+        this.submit_invoice();
+      });
+    }
     add_more_payment_options() {
       this.os_payment_fg = new frappe.ui.FieldGroup({
         parent: $('<div style="margin: 0 15px;" />').insertAfter(
