@@ -1,4 +1,4 @@
-import { print_invoice } from './InvoiceDialog';
+import { print_doc } from './InvoiceDialog';
 
 export default class DeliverDialog {
   constructor(print_formats = [], mode_of_payments = []) {
@@ -69,7 +69,7 @@ export default class DeliverDialog {
       ],
     });
   }
-  async payment(frm) {
+  async payment_and_deliver(frm, deliver = false) {
     this.dialog.fields_dict.gift_card_no.change = async function() {
       const gift_card_no = this.dialog.get_value('gift_card_no');
       await this.handle_gift_card(frm, gift_card_no);
@@ -108,9 +108,17 @@ export default class DeliverDialog {
           freeze_message: __('Creating Payment Entries'),
           args: { name, payments },
         });
+        if (deliver) {
+          await frappe.call({
+            method: 'optic_store.api.sales_invoice.deliver_qol',
+            freeze: true,
+            freeze_message: __('Creating Delivery Note'),
+            args: { name },
+          });
+        }
         frm.reload_doc();
         enabled_print_formats.forEach(pf => {
-          print_invoice(name, pf, 0);
+          print_doc('Sales Invoice', name, pf, 0);
         });
       }.bind(this)
     );
@@ -121,32 +129,6 @@ export default class DeliverDialog {
 
     this.set_payments(frm);
     await this.dialog.set_values({ gift_card_no: null, gift_card_balance: null });
-    this.dialog.show();
-  }
-  async deliver(frm) {
-    this.dialog.get_primary_btn().off('click');
-    this.dialog.set_primary_action(
-      'OK',
-      async function() {
-        const { name } = frm.doc;
-        const values = this.dialog.get_values();
-        const enabled_print_formats = this.print_formats.filter(pf => values[pf]);
-        this.dialog.hide();
-        await frappe.call({
-          method: 'optic_store.api.sales_invoice.deliver_qol',
-          freeze: true,
-          freeze_message: __('Creating Payment Entry / Delivery Note'),
-          args: { name },
-        });
-        frm.reload_doc();
-        enabled_print_formats.forEach(pf => {
-          print_invoice(name, pf, 0);
-        });
-      }.bind(this)
-    );
-
-    this.dialog.set_df_property('gift_card_sec', 'hidden', 1);
-    this.dialog.set_df_property('payment_sec', 'hidden', 1);
     this.dialog.show();
   }
   async handle_gift_card(frm, gift_card_no) {
@@ -201,7 +183,7 @@ export default class DeliverDialog {
       const enabled_print_formats = print_formats.filter(pf => values[pf]);
       this.hide();
       enabled_print_formats.forEach(pf => {
-        print_invoice(name, pf, 0);
+        print_doc('Sales Invoice', name, pf, 0);
       });
     });
     this.dialog.set_df_property('gift_card_sec', 'hidden', 1);
