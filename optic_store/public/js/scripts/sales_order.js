@@ -43,7 +43,7 @@ function render_invoice_button(frm) {
       });
     } else {
       frm.add_custom_button(__('Print Invoice'), function() {
-        frm.invoice_dialog && frm.invoice_dialog.print_invoice(frm);
+        frm.invoice_dialog && frm.invoice_dialog.print(frm);
       });
     }
   }
@@ -173,10 +173,10 @@ export function set_spec_types_options(frm) {
 
 export default {
   setup: async function(frm) {
-    const { invoice_pfs = [], invoice_mops = [] } = await frappe.db.get_doc(
+    const { order_pfs = [], invoice_mops = [] } = await frappe.db.get_doc(
       'Optical Store Settings'
     );
-    const print_formats = invoice_pfs.map(({ print_format }) => print_format);
+    const print_formats = order_pfs.map(({ print_format }) => print_format);
     const mode_of_payments = invoice_mops.map(({ mode_of_payment }) => mode_of_payment);
     frm.invoice_dialog = new InvoiceDialog(print_formats, mode_of_payments);
   },

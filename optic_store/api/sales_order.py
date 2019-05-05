@@ -9,7 +9,7 @@ from frappe.utils import cint
 from frappe.model.workflow import get_workflow, apply_workflow
 from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
 from functools import partial
-from toolz import pluck, unique, compose, keyfilter, cons, identity
+from toolz import compose, keyfilter, cons, identity
 
 from optic_store.api.customer import get_user_branch
 
@@ -42,20 +42,6 @@ def invoice_qol(name, payments, loyalty_card_no, loyalty_program, loyalty_points
     doc.insert(ignore_permissions=True)
     doc.submit()
     return doc.name
-
-
-@frappe.whitelist()
-def get_invoice(name):
-    invoices = frappe.db.sql(
-        """
-            SELECT parent AS name FROM `tabSales Invoice Item`
-            WHERE sales_order = %(sales_order)s
-        """,
-        values={"sales_order": name},
-        as_dict=1,
-    )
-    make_unique = compose(unique, partial(pluck, "name"))
-    return make_unique(invoices)
 
 
 @frappe.whitelist()
