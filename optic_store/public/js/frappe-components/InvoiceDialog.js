@@ -1,11 +1,9 @@
-export function print_invoice(sales_invoice_name, print_format, no_letterhead) {
+export function print_doc(doctype, docname, print_format, no_letterhead) {
   // from /frappe/public/js/frappe/form/print.js
   const w = window.open(
     frappe.urllib.get_full_url(
-      `/printview?doctype=${encodeURIComponent(
-        'Sales Invoice'
-      )}&name=${encodeURIComponent(
-        sales_invoice_name
+      `/printview?doctype=${encodeURIComponent(doctype)}&name=${encodeURIComponent(
+        docname
       )}&trigger_print=1&format=${encodeURIComponent(print_format)}&no_letterhead=${
         no_letterhead ? '1' : '0'
       }&_lang=en`
@@ -173,7 +171,7 @@ export default class InvoiceDialog {
           loyalty_program,
           loyalty_card_no,
         } = this.state;
-        const { message: sales_invoice_name } = await frappe.call({
+        await frappe.call({
           method: 'optic_store.api.sales_order.invoice_qol',
           freeze: true,
           freeze_message: __('Creating Sales Invoice'),
@@ -187,7 +185,7 @@ export default class InvoiceDialog {
         });
         frm.reload_doc();
         enabled_print_formats.forEach(pf => {
-          print_invoice(sales_invoice_name, pf, 0);
+          print_doc(frm.doc.doctype, frm.doc.name, pf, 0);
         });
       }.bind(this)
     );
@@ -254,7 +252,7 @@ export default class InvoiceDialog {
       });
     }
   }
-  async print_invoice(frm) {
+  async print(frm) {
     const print_formats = this.print_formats;
     this.dialog.get_primary_btn().off('click');
     this.dialog.set_primary_action('OK', async function() {
@@ -262,14 +260,8 @@ export default class InvoiceDialog {
       const values = this.get_values();
       const enabled_print_formats = print_formats.filter(pf => values[pf]);
       this.hide();
-      const { message: invoices = [] } = await frappe.call({
-        method: 'optic_store.api.sales_order.get_invoice',
-        args: { name },
-      });
-      invoices.forEach(sales_invoice_name => {
-        enabled_print_formats.forEach(pf => {
-          print_invoice(sales_invoice_name, pf, 0);
-        });
+      enabled_print_formats.forEach(pf => {
+        print_doc(frm.doc.doctype, frm.doc.name, pf, 0);
       });
     });
     this.dialog.set_df_property('loyalty_sec', 'hidden', 1);

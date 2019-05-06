@@ -41,13 +41,13 @@ function render_qol_button(frm) {
       0
     );
     const { status } = frm.doc;
-    if (['Unpaid', 'Overdue'].includes(status)) {
+    if (['Unpaid', 'Overdue'].includes(status) || delivered_qty < actual_qty) {
       frm.add_custom_button(__('Pay & Print'), function() {
-        frm.deliver_dialog && frm.deliver_dialog.payment(frm);
+        frm.deliver_dialog && frm.deliver_dialog.payment_and_deliver(frm);
       });
-    } else if (delivered_qty < actual_qty) {
-      frm.add_custom_button(__('Deliver & Print'), function() {
-        frm.deliver_dialog && frm.deliver_dialog.deliver(frm);
+      frm.add_custom_button(__('Pay, Deliver & Print'), function() {
+        const deliver = true;
+        frm.deliver_dialog && frm.deliver_dialog.payment_and_deliver(frm, deliver);
       });
     } else {
       frm.add_custom_button(__('Print Invoice'), function() {

@@ -1,10 +1,14 @@
+function pf_query_filter(doctype) {
+  return [['doc_type', '=', doctype], ['print_format_type', '=', 'Server']];
+}
+
 export default {
   refresh: function(frm) {
+    frm.set_query('print_format', 'order_pfs', {
+      filters: pf_query_filter('Sales Order'),
+    });
     frm.set_query('print_format', 'invoice_pfs', {
-      filters: [
-        ['doc_type', '=', 'Sales Invoice'],
-        ['print_format_type', '=', 'Server'],
-      ],
+      filters: pf_query_filter('Sales Invoice'),
     });
     frm.set_query('item_group', 'dashboard_item_groups', {
       filters: [['is_group', '=', '0']],

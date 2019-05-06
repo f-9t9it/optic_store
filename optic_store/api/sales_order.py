@@ -9,7 +9,7 @@ from frappe.utils import cint
 from frappe.model.workflow import get_workflow, apply_workflow
 from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
 from functools import partial
-from toolz import pluck, unique, compose, keyfilter, cons, identity
+from toolz import compose, keyfilter, cons, identity
 
 from optic_store.api.customer import get_user_branch
 
@@ -42,20 +42,6 @@ def invoice_qol(name, payments, loyalty_card_no, loyalty_program, loyalty_points
     doc.insert(ignore_permissions=True)
     doc.submit()
     return doc.name
-
-
-@frappe.whitelist()
-def get_invoice(name):
-    invoices = frappe.db.sql(
-        """
-            SELECT parent AS name FROM `tabSales Invoice Item`
-            WHERE sales_order = %(sales_order)s
-        """,
-        values={"sales_order": name},
-        as_dict=1,
-    )
-    make_unique = compose(unique, partial(pluck, "name"))
-    return make_unique(invoices)
 
 
 @frappe.whitelist()
@@ -185,12 +171,6 @@ workflow = {
             "allow_edit": "Store User",
         },
         {
-            "state": "Collected QC Test",
-            "style": "Info",
-            "doc_status": "1",
-            "allow_edit": "Sales User",
-        },
-        {
             "state": "Ready to Deliver",
             "style": "Success",
             "doc_status": "1",
@@ -240,7 +220,7 @@ workflow = {
             "next_state": "Processing at Branch",
             "allowed": "Sales User",
             "allow_self_approval": 1,
-            "condition": "doc.os_order_type == 'Repair' or (doc.os_order_type == 'Sale' and doc.os_item_type == 'Standard')",  # noqa
+            "condition": "doc.os_order_type == 'Repair' or (doc.os_order_type == 'Sales' and doc.os_item_type == 'Standard')",  # noqa
         },
         {
             "state": "Processing at Branch",
@@ -262,7 +242,7 @@ workflow = {
             "next_state": "Sent to HQM",
             "allowed": "Sales User",
             "allow_self_approval": 1,
-            "condition": "doc.os_order_type == 'Repair' or (doc.os_order_type == 'Sale' and doc.os_item_type == 'Standard')",  # noqa
+            "condition": "doc.os_order_type == 'Repair' or (doc.os_order_type == 'Sales' and doc.os_item_type == 'Standard')",  # noqa
         },
         {
             "state": "Sent to HQM",
@@ -344,46 +324,23 @@ workflow = {
         },
         {
             "state": "In Transit (with Driver)",
-            "action": "Wait for QC",
-            "next_state": "Collected QC Test",
+            "action": "Complete",
+            "next_state": "Ready to Deliver",
             "allowed": "Store User",
             "allow_self_approval": 1,
-            "condition": "not doc.os_qc_failed",
         },
         {
             "state": "In Transit (with Driver)",
-            "action": "Send to HQM",
+            "action": "Reject",
             "next_state": "Processing at HQM",
             "allowed": "Store User",
             "allow_self_approval": 1,
-            "condition": "doc.os_qc_failed",
         },
         {
             "state": "In Transit (with Driver)",
             "action": "Cancel",
             "next_state": "Cancelled",
             "allowed": "Store User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Collected QC Test",
-            "action": "Approve",
-            "next_state": "Ready to Deliver",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Collected QC Test",
-            "action": "Reject",
-            "next_state": "In Transit (with Driver)",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Collected QC Test",
-            "action": "Cancel",
-            "next_state": "Cancelled",
-            "allowed": "Sales User",
             "allow_self_approval": 1,
         },
     ],

@@ -39,6 +39,8 @@ fixtures = [
                     "Employee-os_lmra_joining_date",
                     "Branch-branch_code",
                     "Branch-disabled",
+                    "Branch-os_main_col",
+                    "Branch-os_user",
                     "Branch-os_sales_sec",
                     "Branch-os_sales_order_naming_series",
                     "Branch-os_sales_invoice_naming_series",
@@ -105,7 +107,6 @@ fixtures = [
                     "Sales Order-os_order_type",
                     "Sales Order-os_branch",
                     "Sales Order-os_item_type",
-                    "Sales Order-os_qc_failed",
                     "Sales Order-os_sales_person",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
@@ -136,6 +137,7 @@ fixtures = [
                     "Sales Order Item-os_price_list_col",
                     "Sales Order Item-os_minimum_selling_rate",
                     "Sales Order Item-os_minimum_selling_2_rate",
+                    "Sales Order Item-batch_no",
                     "Sales Invoice-os_gift_card_sec",
                     "Sales Invoice-os_gift_card_entry",
                     "Sales Invoice-os_gift_cards",
@@ -276,7 +278,6 @@ doc_events = {
         "validate": "optic_store.doc_events.sales_order.validate",
         "before_insert": "optic_store.doc_events.sales_order.before_insert",
         "on_update": "optic_store.doc_events.sales_order.on_update",
-        "on_update_after_submit": "optic_store.doc_events.sales_order.on_update_after_submit",  # noqa
     },
     "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
     "Item": {

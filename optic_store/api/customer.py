@@ -24,8 +24,13 @@ CUSTOMER_DETAILS_FIELDS = [
 
 @frappe.whitelist()
 def get_user_branch():
+    branch = frappe.db.exists("Branch", {"os_user": frappe.session.user})
+    if branch:
+        return branch
     employee = frappe.db.exists("Employee", {"user_id": frappe.session.user})
-    return frappe.db.get_value("Employee", employee, "branch") if employee else None
+    if employee:
+        return frappe.db.get_value("Employee", employee, "branch")
+    return None
 
 
 @frappe.whitelist()
