@@ -64,7 +64,6 @@ export default function extend_pos(PosClass) {
         this.gift_cards_data = list2dict('name', gift_cards);
         this.make_sales_person_field();
         this.make_group_discount_field();
-        this.prepare_customer_mapper();
       } catch (e) {
         console.warn(e);
         frappe.msgprint({
@@ -94,39 +93,59 @@ export default function extend_pos(PosClass) {
       this.pos_bill.find('.discount-amount-area').hide();
     }
     prepare_customer_mapper(key) {
-      super.prepare_customer_mapper(key);
-      const customers_mapper_ext = key
-        ? this.customers
-            .filter(({ name }) => {
-              const search = key.toLowerCase().trim();
-              const reg = new RegExp(
-                search.replace(new RegExp('%', 'g'), '\\w*\\s*[a-zA-Z0-9]*')
-              );
-              const detail =
-                this.customers_details_data && this.customers_details_data[name];
-              if (detail) {
-                return (
-                  !this.customers_mapper.map(({ value }) => value).includes(name) &&
-                  (reg.test(detail['os_crp_no']) ||
-                    reg.test(detail['os_mobile_number']))
+      const super_fn = super.prepare_customer_mapper;
+
+      function extended_fn(key) {
+        console.log('key: ', key);
+        const starttime = Date.now();
+        super_fn.bind(this)(key);
+        console.log(`prepare_customer_mapper: ${(Date.now() - starttime) / 1000}s`);
+        const customers_mapper_ext = key
+          ? this.customers
+              .filter(({ name }) => {
+                const search = key.toLowerCase().trim();
+                const reg = new RegExp(
+                  search.replace(new RegExp('%', 'g'), '\\w*\\s*[a-zA-Z0-9]*')
                 );
-              }
-              return false;
-            })
-            .map(({ name, customer_name, customer_group, territory }) => ({
-              label: name,
-              value: name,
-              customer_name,
-              customer_group,
-              territory,
-              searchtext: [name, customer_name, customer_group, territory]
-                .join(' ')
-                .toLowerCase(),
-            }))
-        : [];
-      this.customers_mapper = [...this.customers_mapper, ...customers_mapper_ext].map(
-        add_search_params_to_customer_mapper(this.customers_details_data)
-      );
+                const detail =
+                  this.customers_details_data && this.customers_details_data[name];
+                if (detail) {
+                  return (
+                    !this.customers_mapper.map(({ value }) => value).includes(name) &&
+                    (reg.test(detail['os_crp_no']) ||
+                      reg.test(detail['os_mobile_number']))
+                  );
+                }
+                return false;
+              })
+              .map(({ name, customer_name, customer_group, territory }) => ({
+                label: name,
+                value: name,
+                customer_name,
+                customer_group,
+                territory,
+                searchtext: [name, customer_name, customer_group, territory]
+                  .join(' ')
+                  .toLowerCase(),
+              }))
+          : [];
+        this.customers_mapper = [...this.customers_mapper, ...customers_mapper_ext].map(
+          add_search_params_to_customer_mapper(this.customers_details_data)
+        );
+        this.party_field.awesomeplete.list = this.customers_mapper;
+        console.log(`prepare_customer_mapper_ext: ${(Date.now() - starttime) / 1000}s`);
+      }
+
+      // required because this.party_field.$input event references this and
+      // might run before super_fn executes and sets this.customers_mapper
+      if (!this.customers_mapper) {
+        this.customers_mapper = [];
+      }
+
+      if (this.os_timer_pcm) {
+        window.cancelAnimationFrame(this.os_timer_pcm);
+      }
+      this.os_timer_pcm = window.requestAnimationFrame(extended_fn.bind(this, key));
     }
     update_customer(new_customer) {
       super.update_customer(new_customer);
