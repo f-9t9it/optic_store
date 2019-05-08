@@ -171,6 +171,16 @@ export function set_spec_types_options(frm) {
   frm.set_df_property('os_type_of_spectacle', 'options', ['', ...SPEC_TYPES]);
 }
 
+async function set_naming_series(frm) {
+  const { os_branch: branch } = frm.doc;
+  if (branch) {
+    const {
+      message: { os_sales_order_naming_series } = {},
+    } = await frappe.db.get_value('Branch', branch, 'os_sales_order_naming_series');
+    frm.set_value('naming_series', os_sales_order_naming_series);
+  }
+}
+
 export default {
   setup: async function(frm) {
     const { order_pfs = [], invoice_mops = [] } = await frappe.db.get_doc(
@@ -201,6 +211,7 @@ export default {
     }
   },
   customer: setup_orx_name,
+  os_branch: set_naming_series,
   orx_type: setup_orx_name,
   orx_name: render_prescription,
   orx_group_discount: apply_group_discount,
