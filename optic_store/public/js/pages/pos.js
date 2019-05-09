@@ -1,5 +1,6 @@
 import pick from 'lodash/pick';
 import keyBy from 'lodash/keyBy';
+import mapValues from 'lodash/mapValues';
 
 import { customer_qe_fields } from '../scripts/customer_qe';
 
@@ -34,6 +35,20 @@ function add_search_params_to_customer_mapper(customers_details = {}) {
 
 export default function extend_pos(PosClass) {
   class PosClassExtended extends PosClass {
+    onload() {
+      super.onload();
+      this.batch_dialog = new frappe.ui.Dialog({
+        title: __('Select Batch No'),
+        fields: [
+          {
+            fieldname: 'batch',
+            fieldtype: 'Select',
+            label: __('Batch No'),
+            reqd: 1,
+          },
+        ],
+      });
+    }
     async init_master_data(r) {
       super.init_master_data(r);
       try {
@@ -46,6 +61,7 @@ export default function extend_pos(PosClass) {
             gift_cards = [],
             territories = [],
             customer_groups = [],
+            batch_details = [],
           } = {},
         } = await frappe.call({
           method: 'optic_store.api.pos.get_extended_pos_data',
@@ -62,6 +78,8 @@ export default function extend_pos(PosClass) {
         this.customers_master_data = { territories, customer_groups };
         this.loyalty_programs_data = list2dict('name', loyalty_programs);
         this.gift_cards_data = list2dict('name', gift_cards);
+        this.batch_details = batch_details;
+        this.batch_no_data = mapValues(batch_details, x => x.map(({ name }) => name));
         this.make_sales_person_field();
         this.make_group_discount_field();
       } catch (e) {
@@ -226,6 +244,46 @@ export default function extend_pos(PosClass) {
         frappe.throw(__('Sales Person is mandatory'));
       }
       super.validate();
+    }
+    mandatory_batch_no() {
+      const { has_batch_no, item_code } = this.items[0];
+      this.batch_dialog.get_field('batch').$input.empty();
+      this.batch_dialog.get_primary_btn().off('click');
+      this.batch_dialog.get_close_btn().off('click');
+      if (has_batch_no && !this.item_batch_no[item_code]) {
+        (this.batch_details[item_code] || []).forEach(({ name, expiry_date, qty }) => {
+          this.batch_dialog
+            .get_field('batch')
+            .$input.append(
+              $('<option />', { value: name }).text(
+                `${name} | ${
+                  expiry_date ? frappe.datetime.str_to_user(expiry_date) : '--'
+                } | ${qty}`
+              )
+            );
+        });
+        this.batch_dialog.get_field('batch').set_input();
+        this.batch_dialog.set_primary_action(__('Submit'), () => {
+          const batch_no = this.batch_dialog.get_value('batch');
+          const item = this.frm.doc.items.find(item => item.item_code === item_code);
+          if (item) {
+            item.batch_no = batch_no;
+          }
+          this.item_batch_no[item_code] = batch_no;
+          this.batch_dialog.hide();
+          this.set_focus();
+        });
+        this.batch_dialog.get_close_btn().on('click', () => {
+          this.item_code = item_code;
+          this.render_selected_item();
+          this.remove_selected_item();
+          this.wrapper.find('.selected-item').empty();
+          this.item_code = null;
+          this.set_focus();
+        });
+        this.batch_dialog.show();
+        this.batch_dialog.$wrapper.find('.modal-backdrop').off('click');
+      }
     }
     make_offline_customer(new_customer) {
       super.make_offline_customer(new_customer);
