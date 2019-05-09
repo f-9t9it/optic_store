@@ -5,13 +5,14 @@
 from __future__ import unicode_literals
 import json
 import frappe
+from frappe import _
 from frappe.utils import today
 from erpnext.stock.get_item_details import get_pos_profile
 from erpnext.accounts.doctype.sales_invoice.pos import get_customers_list
 from erpnext.accounts.doctype.sales_invoice.pos import get_customer_id
 from erpnext.accounts.doctype.loyalty_program.loyalty_program import get_loyalty_details
 from functools import partial
-from toolz import pluck, compose, valfilter, valmap, merge, get
+from toolz import pluck, compose, valfilter, valmap, merge, get, groupby
 
 from optic_store.api.group_discount import get_brand_discounts
 from optic_store.api.customer import CUSTOMER_DETAILS_FIELDS
@@ -21,6 +22,8 @@ from optic_store.utils import pick, key_by
 @frappe.whitelist()
 def get_extended_pos_data(company):
     pos_profile = get_pos_profile(company)
+    if not pos_profile.warehouse:
+        frappe.throw(_("Warehouse missing in POS Profile"))
     query_date = today()
     return {
         "sales_persons": _get_sales_persons(),
@@ -30,6 +33,7 @@ def get_extended_pos_data(company):
         "gift_cards": _get_gift_cards(query_date),
         "territories": _get_territories(),
         "customer_groups": _get_customer_groups(),
+        "batch_details": _get_batch_details(pos_profile.warehouse),
     }
 
 
@@ -137,6 +141,32 @@ def _get_item_prices(item_codes):
         as_dict=1,
     )
     return key_by("item_code", result)
+
+
+def _get_batch_details(warehouse):
+    batches = frappe.db.sql(
+        """
+                SELECT
+                    name,
+                    item,
+                    expiry_date,
+                    (
+                        SELECT SUM(actual_qty)
+                        FROM `tabStock Ledger Entry`
+                        WHERE batch_no=b.name AND
+                            item_code=b.item AND
+                            warehouse=%(warehouse)s
+                    ) as qty
+                FROM `tabBatch` AS b
+                WHERE IFNULL(expiry_date, '4000-10-10') >= CURDATE()
+                ORDER BY expiry_date
+            """,
+        values={"warehouse": warehouse},
+        as_dict=1,
+    )
+    return compose(partial(groupby, "item"), partial(filter, lambda x: x.get("qty")))(
+        batches
+    )
 
 
 @frappe.whitelist()

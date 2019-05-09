@@ -1,5 +1,7 @@
 import pick from 'lodash/pick';
 import keyBy from 'lodash/keyBy';
+import mapValues from 'lodash/mapValues';
+import JsBarcode from 'jsbarcode';
 
 import { customer_qe_fields } from '../scripts/customer_qe';
 
@@ -32,8 +34,29 @@ function add_search_params_to_customer_mapper(customers_details = {}) {
   };
 }
 
+function get_barcode_uri(text) {
+  return JsBarcode(document.createElement('canvas'), text, {
+    height: 40,
+    displayValue: false,
+  })._renderProperties.element.toDataURL();
+}
+
 export default function extend_pos(PosClass) {
   class PosClassExtended extends PosClass {
+    onload() {
+      super.onload();
+      this.batch_dialog = new frappe.ui.Dialog({
+        title: __('Select Batch No'),
+        fields: [
+          {
+            fieldname: 'batch',
+            fieldtype: 'Select',
+            label: __('Batch No'),
+            reqd: 1,
+          },
+        ],
+      });
+    }
     async init_master_data(r) {
       super.init_master_data(r);
       try {
@@ -46,6 +69,7 @@ export default function extend_pos(PosClass) {
             gift_cards = [],
             territories = [],
             customer_groups = [],
+            batch_details = [],
           } = {},
         } = await frappe.call({
           method: 'optic_store.api.pos.get_extended_pos_data',
@@ -62,6 +86,8 @@ export default function extend_pos(PosClass) {
         this.customers_master_data = { territories, customer_groups };
         this.loyalty_programs_data = list2dict('name', loyalty_programs);
         this.gift_cards_data = list2dict('name', gift_cards);
+        this.batch_details = batch_details;
+        this.batch_no_data = mapValues(batch_details, x => x.map(({ name }) => name));
         this.make_sales_person_field();
         this.make_group_discount_field();
       } catch (e) {
@@ -83,6 +109,7 @@ export default function extend_pos(PosClass) {
       super.make_control();
       this.make_sales_person_field();
       this.make_group_discount_field();
+      this.bind_keyboard_shortcuts();
     }
     toggle_totals_area(show) {
       super.toggle_totals_area(show);
@@ -96,10 +123,8 @@ export default function extend_pos(PosClass) {
       const super_fn = super.prepare_customer_mapper;
 
       function extended_fn(key) {
-        console.log('key: ', key);
         const starttime = Date.now();
         super_fn.bind(this)(key);
-        console.log(`prepare_customer_mapper: ${(Date.now() - starttime) / 1000}s`);
         const customers_mapper_ext = key
           ? this.customers
               .filter(({ name }) => {
@@ -133,7 +158,6 @@ export default function extend_pos(PosClass) {
           add_search_params_to_customer_mapper(this.customers_details_data)
         );
         this.party_field.awesomeplete.list = this.customers_mapper;
-        console.log(`prepare_customer_mapper_ext: ${(Date.now() - starttime) / 1000}s`);
       }
 
       // required because this.party_field.$input event references this and
@@ -227,6 +251,46 @@ export default function extend_pos(PosClass) {
       }
       super.validate();
     }
+    mandatory_batch_no() {
+      const { has_batch_no, item_code } = this.items[0];
+      this.batch_dialog.get_field('batch').$input.empty();
+      this.batch_dialog.get_primary_btn().off('click');
+      this.batch_dialog.get_close_btn().off('click');
+      if (has_batch_no && !this.item_batch_no[item_code]) {
+        (this.batch_details[item_code] || []).forEach(({ name, expiry_date, qty }) => {
+          this.batch_dialog
+            .get_field('batch')
+            .$input.append(
+              $('<option />', { value: name }).text(
+                `${name} | ${
+                  expiry_date ? frappe.datetime.str_to_user(expiry_date) : '--'
+                } | ${qty}`
+              )
+            );
+        });
+        this.batch_dialog.get_field('batch').set_input();
+        this.batch_dialog.set_primary_action(__('Submit'), () => {
+          const batch_no = this.batch_dialog.get_value('batch');
+          const item = this.frm.doc.items.find(item => item.item_code === item_code);
+          if (item) {
+            item.batch_no = batch_no;
+          }
+          this.item_batch_no[item_code] = batch_no;
+          this.batch_dialog.hide();
+          this.set_focus();
+        });
+        this.batch_dialog.get_close_btn().on('click', () => {
+          this.item_code = item_code;
+          this.render_selected_item();
+          this.remove_selected_item();
+          this.wrapper.find('.selected-item').empty();
+          this.item_code = null;
+          this.set_focus();
+        });
+        this.batch_dialog.show();
+        this.batch_dialog.$wrapper.find('.modal-backdrop').off('click');
+      }
+    }
     make_offline_customer(new_customer) {
       super.make_offline_customer(new_customer);
       const values = this.customer_doc.get_values();
@@ -274,6 +338,15 @@ export default function extend_pos(PosClass) {
         });
       }
       super.submit_invoice();
+    }
+    create_invoice() {
+      const invoice_data = super.create_invoice();
+      // this is possible because invoice_data already references this.frm.doc
+      // this will be used by the print format to render barcodes
+      this.frm.doc.pos_name_barcode_uri = get_barcode_uri(
+        this.frm.doc.offline_pos_name
+      );
+      return invoice_data;
     }
     show_amounts() {
       super.show_amounts();
@@ -329,6 +402,32 @@ export default function extend_pos(PosClass) {
         }
       }
     }
+    bind_keyboard_shortcuts() {
+      $(document).on('keydown', e => {
+        if (frappe.get_route_str() === 'pos') {
+          if (this.numeric_keypad && e.keyCode === 120) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (this.dialog && this.dialog.is_visible) {
+              this.dialog.hide();
+            } else {
+              $(this.numeric_keypad)
+                .find('.pos-pay')
+                .trigger('click');
+            }
+          } else if (this.frm.doc.docstatus == 1 && e.ctrlKey && e.keyCode === 80) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.page.btn_secondary.trigger('click');
+          } else if (e.ctrlKey && e.keyCode === 66) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.page.btn_primary.trigger('click');
+          }
+        }
+      });
+    }
+
     make_payment() {
       if (this.dialog) {
         this.dialog.$wrapper.remove();
