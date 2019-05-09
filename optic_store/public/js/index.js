@@ -7,6 +7,7 @@ import scripts, {
   sales_order,
   customer,
   employee,
+  branch,
   item,
   customer_qe,
   optical_prescription_qe,
@@ -21,6 +22,7 @@ frappe.ui.form.on('Delivery Note Item', delivery_note_item);
 frappe.ui.form.on('Sales Order', sales_order);
 frappe.ui.form.on('Customer', customer);
 frappe.ui.form.on('Employee', employee);
+frappe.ui.form.on('Branch', branch);
 frappe.ui.form.on('Item', item);
 
 if (frappe.ui.form.CustomerQuickEntryForm) {
@@ -33,7 +35,7 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
   optical_prescription_qe
 );
 
-const __version__ = '0.4.3';
+const __version__ = '0.4.4';
 
 frappe.provide('optic_store');
 optic_store = { __version__, scripts, extend_pos };

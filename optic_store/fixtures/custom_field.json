@@ -1320,7 +1320,7 @@
   "width": null
  }, 
  {
-  "allow_on_submit": 0, 
+  "allow_on_submit": 1, 
   "bold": 0, 
   "collapsible": 0, 
   "collapsible_depends_on": null, 
@@ -1672,7 +1672,7 @@
   "width": null
  }, 
  {
-  "allow_on_submit": 0, 
+  "allow_on_submit": 1, 
   "bold": 0, 
   "collapsible": 0, 
   "collapsible_depends_on": null, 
