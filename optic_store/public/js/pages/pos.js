@@ -114,10 +114,8 @@ export default function extend_pos(PosClass) {
       const super_fn = super.prepare_customer_mapper;
 
       function extended_fn(key) {
-        console.log('key: ', key);
         const starttime = Date.now();
         super_fn.bind(this)(key);
-        console.log(`prepare_customer_mapper: ${(Date.now() - starttime) / 1000}s`);
         const customers_mapper_ext = key
           ? this.customers
               .filter(({ name }) => {
@@ -151,7 +149,6 @@ export default function extend_pos(PosClass) {
           add_search_params_to_customer_mapper(this.customers_details_data)
         );
         this.party_field.awesomeplete.list = this.customers_mapper;
-        console.log(`prepare_customer_mapper_ext: ${(Date.now() - starttime) / 1000}s`);
       }
 
       // required because this.party_field.$input event references this and
