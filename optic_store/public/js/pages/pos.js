@@ -1,6 +1,7 @@
 import pick from 'lodash/pick';
 import keyBy from 'lodash/keyBy';
 import mapValues from 'lodash/mapValues';
+import JsBarcode from 'jsbarcode';
 
 import { customer_qe_fields } from '../scripts/customer_qe';
 
@@ -31,6 +32,13 @@ function add_search_params_to_customer_mapper(customers_details = {}) {
     }
     return item;
   };
+}
+
+function get_barcode_uri(text) {
+  return JsBarcode(document.createElement('canvas'), text, {
+    height: 40,
+    displayValue: false,
+  })._renderProperties.element.toDataURL();
 }
 
 export default function extend_pos(PosClass) {
@@ -330,6 +338,15 @@ export default function extend_pos(PosClass) {
         });
       }
       super.submit_invoice();
+    }
+    create_invoice() {
+      const invoice_data = super.create_invoice();
+      // this is possible because invoice_data already references this.frm.doc
+      // this will be used by the print format to render barcodes
+      this.frm.doc.pos_name_barcode_uri = get_barcode_uri(
+        this.frm.doc.offline_pos_name
+      );
+      return invoice_data;
     }
     show_amounts() {
       super.show_amounts();
