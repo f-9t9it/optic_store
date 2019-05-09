@@ -101,6 +101,7 @@ export default function extend_pos(PosClass) {
       super.make_control();
       this.make_sales_person_field();
       this.make_group_discount_field();
+      this.bind_keyboard_shortcuts();
     }
     toggle_totals_area(show) {
       super.toggle_totals_area(show);
@@ -384,6 +385,22 @@ export default function extend_pos(PosClass) {
         }
       }
     }
+    bind_keyboard_shortcuts() {
+      $(document).on('keydown', e => {
+        if (this.numeric_keypad && e.keyCode === 120) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (this.dialog && this.dialog.is_visible) {
+            this.dialog.hide();
+          } else {
+            $(this.numeric_keypad)
+              .find('.pos-pay')
+              .trigger('click');
+          }
+        }
+      });
+    }
+
     make_payment() {
       if (this.dialog) {
         this.dialog.$wrapper.remove();
