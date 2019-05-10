@@ -111,6 +111,10 @@
         <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
       </dl>
       <dl>
+        <dt>{{ _('IC No') }}</dt>
+        <dd>{{ customer.os_loyalty_card_no or ''}}</dd>
+      </dl>
+      <dl>
         <dt>{{ _('Address') }}</dt>
         <dd>{{ customer.os_address or '' }}</dd>
       </dl>
@@ -161,7 +165,9 @@
             items.frame.item_group, 'item_group_abbr') or '' }} {{ items.frame.brand or
             '' }} {{ items.frame.item_name }} {%- endif -%}
           </td>
-          <td>{{ frame_item.get_formatted('amount', doc) if frame_item else '-' }}</td>
+          <td>
+            {{ items.frame.get_formatted('amount', doc) if items.frame else '-' }}
+          </td>
         </tr>
         <tr>
           <td>{{ _('Lens (R)') }}</td>
@@ -192,8 +198,8 @@
         <tr>
           <td>{{ item.item_group }}</td>
           <td>
-            {{ item.brand or '' }} {{ item.item_name }} {{ item.item_name }} {{
-            item.item_name }} {{ item.item_name }} kasjdfkj aksfkjh
+            {{ frappe.db.get_value('Item Group', items.lens_left.item_group,
+            'item_group_abbr') or '' }} {{ item.brand or '' }} {{ item.item_name }}
           </td>
           <td>{{ item.get_formatted('amount', doc) }}</td>
         </tr>
@@ -214,15 +220,15 @@
     </div>
     <div class="os-sof-totals">
       <dl>
-        <dt>{{ _('Rounding Adjustment')}}</dt>
+        <dt>{{ _('Rounding Adjustment') }}</dt>
         <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
       </dl>
       <dl>
-        <dt>{{ _('Total Amount')}}</dt>
+        <dt>{{ _('Total Amount') }}</dt>
         <dd>{{ doc.get_formatted('total') }}</dd>
       </dl>
       <dl>
-        <dt>{{ _('Cash Received')}}</dt>
+        <dt>{{ _('Cash Received') }}</dt>
         <dd>{{ doc.get_formatted('advance_paid') }}</dd>
       </dl>
     </div>
