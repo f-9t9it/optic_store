@@ -1,107 +1,10 @@
-<style>
-    @media screen {
-    .print-format {
-      width: {{ preview_width or '105mm' }};
-      height: {{ preview_height or '148mm' }};
-      padding: {{ preview_margin or '5mm' }};
-      max-width: {{ preview_width or '105mm' }};
-      min-height: {{ preview_height or '148mm' }};
-  }
-  }
-  .print-format > main {
-    font-family: monospace;
-    font-size: 8pt;
-  }
-  .os-lof-header {
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: flex-start;
-    border-bottom: 1px solid {{ style.border_color }};
-  }
-  .os-lof-header > * {
-    width: 50%;
-  }
-  .os-lof-header-content {
-    border-right: 1px solid {{ style.border_color }};
-    padding-right: 2pt;
-    margin-right: 2pt;
-  }
-  .os-lof-header h1 {
-    margin: 4pt 0 6pt 0;
-    font-size: 1.5em;
-  }
-
-  .os-lof dl {
-    margin: 0;
-  }
-  .os-lof dt {
-    font-weight: normal;
-  }
-  .os-lof dd {
-    font-weight: bold;
-  }
-  .os-lof dt:after {
-    content: ': ';
-  }
-  .os-lof dl > * {
-    display: inline;
-  }
-
-  .os-prescription {
-    margin: 0;
-  }
-  .os-prescription th,
-  .os-prescription td {
-    padding: 0 2pt !important;
-    background-color: transparent !important;
-  }
-  .os-prescription thead td {
-    text-align: center;
-  }
-  .os-prescription thead th,
-  .os-prescription tbody td {
-    text-align: right;
-  }
-  .os-prescription > thead > tr > th,
-  .os-prescription > tbody > tr > th,
-  .os-prescription > tbody > tr > td {
-    font-weight: normal;
-  }
-  .os-prescription > thead > tr > td {
-    border-bottom-width: 1px;
-  }
-  .os-prescription thead td:first-child,
-  .os-prescription thead td:nth-child(2),
-  .os-prescription thead th:first-child,
-  .os-prescription thead th:nth-child(5),
-  .os-prescription tbody th:first-child,
-  .os-prescription tbody td:nth-child(5) {
-    border-right-width: 2px;
-  }
-  .os-lof-details-others {
-    display: flex;
-    flex-flow: row nowrap;
-  }
-  .os-lof-details-others > * {
-    width: 33.33%;
-  }
-  .os-lof-notes {
-    display: flex;
-    flex-flow: row nowrap;
-  }
-  .os-lof-notes > * {
-    width: 50%;
-    border: 1px solid {{ style.border_color }};
-  }
-</style>
-
 <main class="os-lof">
   <div class="os-lof-header">
     <div class="os-lof-header-content">
       <h1>{{ _('Lab Order Form') }}</h1>
       <dl>
         <dt>{{ _('Branch')}}</dt>
-        <dd>{{ doc.os_branch }}</dd>
+        <dd>{{ doc.os_branch or '' }}</dd>
       </dl>
       <dl>
         <dt>{{ _('Order Date')}}</dt>
@@ -109,10 +12,10 @@
       </dl>
       <dl>
         <dt>{{ _('Lab')}}</dt>
-        <dd>{{ doc.orx_lab }}</dd>
+        <dd>{{ doc.orx_lab or '' }}</dd>
       </dl>
     </div>
-    <img
+    <svg
       class="barcode"
       jsbarcode-format="CODE128"
       jsbarcode-value="{{ doc.name }}"
@@ -129,15 +32,15 @@
     <table class="table table-condensed table-bordered os-prescription">
       <thead>
         <tr>
-          <td></td>
-          <td colspan="4">{{ _('Right') }}</td>
-          <td colspan="4">{{ _('Left') }}</td>
+          <th></th>
+          <th colspan="4">R</th>
+          <th colspan="4">L</th>
         </tr>
         <tr>
-          <th></th>
+          <td></td>
           {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
           'va'] -%}
-          <th>{{ param|upper }}</th>
+          <td>{{ param|upper }}</td>
           {%- endfor -%} {%- endfor -%}
         </tr>
       </thead>
@@ -164,55 +67,103 @@
         </tr>
       </tbody>
     </table>
-    <div>
-      {%- for item in doc.items -%}
+    <div class="os-lof-details-items">
+      {%- set frame_item = doc.items[0].item_group in frame_ig and doc.items[0] -%} {%-
+      set lens_right_item = (doc.items|len > 1 and doc.items[1].item_group in lens_ig
+      and doc.items[1]) if frame_item else (doc.items[0].item_group in lens_ig and
+      doc.items[0]) -%} {%- set lens_left_item = (doc.items|len > 2 and
+      doc.items[2].item_group in lens_ig and doc.items[2]) if frame_item else
+      (doc.items[1].item_group in lens_ig and doc.items[1]) -%}
+      <dl>
+        <dt>{{ _('Frame / Model') }}</dt>
+        <dd>
+          {%- if frame_item -%} {{ frappe.db.get_value('Item Group',
+          frame_item.item_group, 'item_group_abbr') or '' }} {{ frame_item.brand or ''
+          }} {{ frame_item.item_name }} {%- endif -%}
+        </dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Lens (R)') }}</dt>
+        <dd>
+          {%- if lens_right_item -%} {{ frappe.db.get_value('Item Group',
+          lens_right_item.item_group, 'item_group_abbr') or '' }} {{
+          lens_right_item.brand or '' }} {{ lens_right_item.item_name }} {%- endif -%}
+        </dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Lens (L)') }}</dt>
+        <dd>
+          {%- if lens_left_item -%} {{ frappe.db.get_value('Item Group',
+          lens_left_item.item_group, 'item_group_abbr') or '' }} {{ lens_left_item.brand
+          or '' }} {{ lens_left_item.item_name }} {%- endif -%}
+        </dd>
+      </dl>
+      {%- for item in doc.items if item not in [frame_item, lens_right_item,
+      lens_left_item] -%}
       <dl>
         <dt>{{ item.item_group }}</dt>
-        <dd>{{ item.brand }} {{ item.item_name }}</dd>
+        <dd>
+          {{ frappe.db.get_value('Item Group', item.item_group, 'item_group_abbr') or ''
+          }} {{ item.brand or '' }} {{ item.item_name }}
+        </dd>
       </dl>
       {%- endfor -%}
     </div>
     <div class="os-lof-details-others">
       <dl>
         <dt>{{ _('PD (right) mm')}}</dt>
-        <dd>{{ rx.pd_right }}</dd>
+        <dd>{{ rx.pd_right or '' }}</dd>
       </dl>
       <dl>
         <dt>{{ _('PD (left) mm')}}</dt>
-        <dd>{{ rx.pd_left }}</dd>
+        <dd>{{ rx.pd_left or '' }}</dd>
       </dl>
       <dl>
         <dt>{{ _('PD (total) mm')}}</dt>
-        <dd>{{ rx.pd_total }}</dd>
+        <dd>{{ rx.pd_total or '' }}</dd>
       </dl>
     </div>
     <div class="os-lof-details-others">
       <dl>
         <dt>{{ _('Prism (right)')}}</dt>
-        <dd>{{ rx.prism_right }}</dd>
+        <dd>{{ rx.prism_right or '' }}</dd>
       </dl>
       <dl>
         <dt>{{ _('Prism (left)')}}</dt>
-        <dd>{{ rx.prism_left }}</dd>
+        <dd>{{ rx.prism_left or '' }}</dd>
       </dl>
     </div>
     <div class="os-lof-details-others">
       <dl>
         <dt>{{ _('Frame Size')}}</dt>
-        <dd>{{ doc.orx_frame_size }}</dd>
+        <dd>{{ doc.orx_frame_size or '' }}</dd>
       </dl>
       <dl>
         <dt>{{ _('Height')}}</dt>
-        <dd>{{ doc.orx_height }}</dd>
+        <dd>{{ doc.orx_height or '' }}</dd>
       </dl>
     </div>
     {%- endif -%}
+  </div>
+  <div class="os-lof-main">
+    <div class="os-lof-main-subline">
+      <dl>
+        <dt>{{ _('Delivery Date') }}</dt>
+        <dd>{{ doc.get_formatted('delivery_date') }}</dd>
+      </dl>
+    </div>
+    <div class="os-lof-main-headline">
+      <dl>
+        <dt>{{ _('Name / ID') }}</dt>
+        <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
+      </dl>
+    </div>
   </div>
   <div class="os-lof-notes">
     <div>
       <dl>
         <dt>{{ _('Storage Location')}}</dt>
-        <dd></dd>
+        <dd>{{ doc.set_warehouse or ''}}</dd>
       </dl>
       <dl>
         <dt>{{ _('Remarks')}}</dt>
@@ -221,20 +172,10 @@
     </div>
     <div>
       <dl>
-        <dt>{{ _('Delivery Date')}}</dt>
-        <dd>{{ doc.get_formatted('delivery_date') }}</dd>
-      </dl>
-      <dl>
         <dt>{{ _('Lab Remarks')}}</dt>
         <dd>{{ doc.os_notes or '' }}</dd>
       </dl>
     </div>
-  </div>
-  <div>
-    <dl>
-      <dt>{{ _('Name / ID') }}</dt>
-      <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
-    </dl>
   </div>
   <div class="os-lof-footer">
     <dl>
@@ -251,6 +192,9 @@
       <dt>{{ _('Printed On') }}</dt>
       <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
     </dl>
+    <div class="os-lof-footer-message">
+      This is a computer generated receipt. No signature is required.
+    </div>
   </div>
 </main>
 
