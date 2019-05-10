@@ -68,38 +68,32 @@
       </tbody>
     </table>
     <div class="os-lof-details-items">
-      {%- set frame_item = doc.items[0].item_group in frame_ig and doc.items[0] -%} {%-
-      set lens_right_item = (doc.items|len > 1 and doc.items[1].item_group in lens_ig
-      and doc.items[1]) if frame_item else (doc.items[0].item_group in lens_ig and
-      doc.items[0]) -%} {%- set lens_left_item = (doc.items|len > 2 and
-      doc.items[2].item_group in lens_ig and doc.items[2]) if frame_item else
-      (doc.items[1].item_group in lens_ig and doc.items[1]) -%}
+      {%- set items = get_optical_items(doc.items, frame_ig, lens_ig) -%}
       <dl>
         <dt>{{ _('Frame / Model') }}</dt>
         <dd>
-          {%- if frame_item -%} {{ frappe.db.get_value('Item Group',
-          frame_item.item_group, 'item_group_abbr') or '' }} {{ frame_item.brand or ''
-          }} {{ frame_item.item_name }} {%- endif -%}
+          {%- if items.frame -%} {{ frappe.db.get_value('Item Group',
+          items.frame.item_group, 'item_group_abbr') or '' }} {{ items.frame.brand or ''
+          }} {{ items.frame.item_name }} {%- endif -%}
         </dd>
       </dl>
       <dl>
         <dt>{{ _('Lens (R)') }}</dt>
         <dd>
-          {%- if lens_right_item -%} {{ frappe.db.get_value('Item Group',
-          lens_right_item.item_group, 'item_group_abbr') or '' }} {{
-          lens_right_item.brand or '' }} {{ lens_right_item.item_name }} {%- endif -%}
+          {%- if items.lens_right -%} {{ frappe.db.get_value('Item Group',
+          items.lens_right.item_group, 'item_group_abbr') or '' }} {{
+          items.lens_right.brand or '' }} {{ items.lens_right.item_name }} {%- endif -%}
         </dd>
       </dl>
       <dl>
         <dt>{{ _('Lens (L)') }}</dt>
         <dd>
-          {%- if lens_left_item -%} {{ frappe.db.get_value('Item Group',
-          lens_left_item.item_group, 'item_group_abbr') or '' }} {{ lens_left_item.brand
-          or '' }} {{ lens_left_item.item_name }} {%- endif -%}
+          {%- if items.lens_left -%} {{ frappe.db.get_value('Item Group',
+          items.lens_left.item_group, 'item_group_abbr') or '' }} {{
+          items.lens_left.brand or '' }} {{ items.lens_left.item_name }} {%- endif -%}
         </dd>
       </dl>
-      {%- for item in doc.items if item not in [frame_item, lens_right_item,
-      lens_left_item] -%}
+      {%- for item in items.others -%}
       <dl>
         <dt>{{ item.item_group }}</dt>
         <dd>

@@ -4,6 +4,8 @@
 
 from __future__ import unicode_literals
 from datetime import date
+from functools import partial
+from toolz import compose, first, excepts
 
 from frappe.utils import get_first_day, get_last_day, getdate, add_months, add_days
 
@@ -54,3 +56,26 @@ def generate_intervals(interval, start_date, end_date):
             cur_year += 1
         return periods
     return []
+
+
+def get_optical_items(items, frames=[], lenses=[]):
+    get_frame = compose(
+        excepts(StopIteration, first, lambda x: None),
+        partial(filter, lambda x: x.item_group in frames),
+    )
+
+    def get_lens(idx):
+        return compose(
+            excepts(IndexError, lambda x: x[idx], lambda x: None),
+            partial(filter, lambda x: x.item_group in lenses),
+        )
+
+    frame = get_frame(items)
+    lens_right = get_lens(0)(items)
+    lens_left = get_lens(1)(items)
+    return {
+        "frame": frame,
+        "lens_right": lens_right,
+        "lens_left": lens_left,
+        "others": filter(lambda x: x not in [frame, lens_right, lens_left], items),
+    }
