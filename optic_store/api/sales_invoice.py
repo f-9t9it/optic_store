@@ -103,9 +103,6 @@ def _get_account(mode_of_payment, company):
     return frappe.get_doc("Account", account) if account else None
 
 
-# This method is hooked in override_whitelisted_methods because the return value by
-# upstream method cannot evaluate to false client side. It should be removed once the
-# upstream code has been patched
 @frappe.whitelist()
 def search_serial_or_batch_or_barcode_number(search_value):
     return (
