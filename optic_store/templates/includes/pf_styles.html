@@ -35,7 +35,8 @@
     padding-right: 2pt;
     margin-right: 2pt;
   }
-  .os-lof-header h1 {
+  .os-lof-header h1,
+  .os-sr-header h1 {
     margin: 0.2em 0 0.3em 0;
     font-size: 1.3em;
     font-weight: bold;
@@ -59,6 +60,7 @@
     display: inline;
   }
   .os-lof-header dt,
+  .os-sr-header dt,
   .os-lof-details-items dt,
   .os-lof-details-others dt,
   .os-lof-delivery_date dt,
@@ -71,7 +73,8 @@
     margin-right: 0.3em;
     min-width: 8.5em;
   }
-  .os-lof-header dt {
+  .os-lof-header dt,
+  .os-sr-header dt {
     min-width: 6.5em;
   }
   .os-sof-main-subline dt {
@@ -209,7 +212,35 @@
   .os-sof-totals dt {
     font-size: 1em;
   }
-  .os-sof-totals-divide dd {
+
+  .os-sr-header {
+    border-top: 1px solid {{ style.border_color }};
+  }
+  .os-sr-header h1 {
+    text-align: center;
+  }
+  .os-sr-header-content {
+    display: flex;
+    flex-flow: row wrap;
+    padding-bottom: 0.2em;
+    border-bottom: 1px solid {{ style.border_color }};
+    margin-bottom: 0.2em;
+  }
+  .os-sr-header-content > * {
+    width: 50%;
+  }
+  .os-sr-header-content dd.text-right {
+    flex: 1 1 auto;
+  }
+
+  .os-sr-totals {
+    flex: 1 1 auto;
+  }
+  .os-sr-totals dd {
+    flex: 1 1 auto;
+    text-align: right;
+  }
+  .os-sr-totals-divide {
     padding-bottom: 0.1em;
     border-bottom: 1px solid {{ style.border_color }};
     margin-bottom: 0.2em;

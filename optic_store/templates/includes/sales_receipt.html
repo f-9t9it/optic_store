@@ -1,0 +1,176 @@
+<main class="os-lof">
+  <div class="os-sr-header">
+    <h1>{{ _('Sales Receipt') }}</h1>
+    <div class="os-sr-header-content">
+      <dl>
+        <dt>{{ _('Sales No')}}</dt>
+        <dd>{{ doc.name }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Order Date')}}</dt>
+        {%- set order_date = get_ref_so_date(doc.name) -%}
+        <dd class="text-right">
+          {{ frappe.utils.formatdate(order_date) if order_date else '' }}
+        </dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Branch')}}</dt>
+        <dd>{{ doc.os_branch or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Collection Date')}}</dt>
+        <dd class="text-right">{{ doc.get_formatted('posting_date') }}</dd>
+      </dl>
+    </div>
+    {%- set customer = frappe.get_doc('Customer', doc.customer) -%}
+    <div>
+      <dl>
+        <dt>{{ _('Name / ID') }}</dt>
+        <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('IC No') }}</dt>
+        <dd>{{ customer.os_loyalty_card_no or ''}}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Address') }}</dt>
+        <dd>{{ customer.os_address or '' }}</dd>
+      </dl>
+    </div>
+    <div class="os-sr-header-content">
+      <dl>
+        <dt>{{ _('Office No') }}</dt>
+        <dd>{{ customer.os_office_number or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Mobile No') }}</dt>
+        <dd>{{ customer.os_mobile_number or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Home No') }}</dt>
+        <dd>{{ customer.os_home_number or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Other No') }}</dt>
+        <dd>{{ customer.os_other_number or '' }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="os-sof-items">
+    {%- set items = get_optical_items(doc.items, frame_ig, lens_ig) -%}
+    <table class="table table-condensed os-items">
+      <thead>
+        <tr>
+          <th>{{ _('Type') }}</th>
+          <th>{{ _('Description') }}</th>
+          <th>{{ _('Amount') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ _('Frame') }}</td>
+          <td>
+            {%- if items.frame -%} {{ frappe.db.get_value('Item Group',
+            items.frame.item_group, 'item_group_abbr') or '' }} {{ items.frame.brand or
+            '' }} {{ items.frame.item_name }} {%- endif -%}
+          </td>
+          <td>
+            {{ items.frame.get_formatted('amount', doc) if items.frame else '-' }}
+          </td>
+        </tr>
+        <tr>
+          <td>{{ _('Lens (R)') }}</td>
+          <td>
+            {%- if items.lens_right -%} {{ frappe.db.get_value('Item Group',
+            items.lens_right.item_group, 'item_group_abbr') or '' }} {{
+            items.lens_right.brand or '' }} {{ items.lens_right.item_name }} {%- endif
+            -%}
+          </td>
+          <td>
+            {{ items.lens_right.get_formatted('amount', doc) if items.lens_right else
+            '-' }}
+          </td>
+        </tr>
+        <tr>
+          <td>{{ _('Lens (L)') }}</td>
+          <td>
+            {%- if items.lens_left -%} {{ frappe.db.get_value('Item Group',
+            items.lens_left.item_group, 'item_group_abbr') or '' }} {{
+            items.lens_left.brand or '' }} {{ items.lens_left.item_name }} {%- endif -%}
+          </td>
+          <td>
+            {{ items.lens_left.get_formatted('amount', doc) if items.lens_left else '-'
+            }}
+          </td>
+        </tr>
+        {%- for item in items.others -%}
+        <tr>
+          <td>{{ item.item_group }}</td>
+          <td>
+            {{ frappe.db.get_value('Item Group', items.lens_left.item_group,
+            'item_group_abbr') or '' }} {{ item.brand or '' }} {{ item.item_name }}
+          </td>
+          <td>{{ item.get_formatted('amount', doc) }}</td>
+        </tr>
+        {%- endfor -%}
+      </tbody>
+    </table>
+  </div>
+  <div class="os-sr-terms">
+    {%- if doc.terms -%}
+    <div>
+      <dl>
+        <dt>{{ _('Notes')}}</dt>
+        <dd>{{ doc.terms }}</dd>
+      </dl>
+    </div>
+    {%- endif -%}
+  </div>
+  <div class="os-sr-totals">
+    <dl>
+      <dt>{{ _('Rounding Adjustment') }}</dt>
+      <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
+    </dl>
+    <dl class="os-sr-totals-divide">
+      <dt>{{ _('Total Amount') }}</dt>
+      <dd>{{ doc.get_formatted('total') }}</dd>
+    </dl>
+    {%- for payment in get_advance_payments(doc) -%}
+    <dl>
+      <dt>
+        {{ _('Amount received from ') + payment.payment_entry if payment.payment_entry
+        else _('Amount received on this invoice') }}
+      </dt>
+      <dd>{{ frappe.utils.fmt_money(payment.paid_amount, currency=doc.currency) }}</dd>
+    </dl>
+    {%- endfor -%}
+  </div>
+  <div class="os-lof-footer">
+    <dl>
+      <dt>{{ _('Issued By') }}</dt>
+      <dd>{{ frappe.get_fullname(doc.owner) }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Sales Person') }}</dt>
+      {%- set u = frappe.db.get_value('Employee', doc.os_sales_person, 'user_id') if
+      doc.os_sales_person else None -%}
+      <dd>{{ frappe.get_fullname(u) if u else '' }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Printed On') }}</dt>
+      <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
+    </dl>
+    <div class="os-lof-footer-message">
+      This is a computer generated receipt. No signature is required.
+    </div>
+  </div>
+</main>
+
+<script
+  type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/barcodes/JsBarcode.code128.min.js"
+></script>
+<script type="text/javascript">
+  JsBarcode('.barcode').init();
+</script>
