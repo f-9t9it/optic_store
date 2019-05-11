@@ -46,11 +46,11 @@ async function render_qol_button(frm) {
       args: { sales_invoice: frm.doc.name },
     });
     if (so_statuses.some(state => state !== 'Ready to Deliver')) {
-      frm.add_custom_button(__('Pay & Print'), function() {
+      frm.add_custom_button(__('Payment Top Up'), function() {
         frm.deliver_dialog && frm.deliver_dialog.payment_and_deliver(frm);
       });
     } else if (['Unpaid', 'Overdue'].includes(status) || delivered_qty < actual_qty) {
-      frm.add_custom_button(__('Pay, Deliver & Print'), function() {
+      frm.add_custom_button(__('Collect Order'), function() {
         const deliver = true;
         frm.deliver_dialog && frm.deliver_dialog.payment_and_deliver(frm, deliver);
       });
