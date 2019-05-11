@@ -13,6 +13,7 @@ import scripts, {
   optical_prescription_qe,
 } from './scripts';
 import extend_pos from './pages/pos';
+import extend_batch_selector from './pages/serial_no_and_batch_selector';
 
 frappe.ui.form.on('Sales Invoice', sales_invoice);
 frappe.ui.form.on('Sales Invoice Item', sales_invoice_item);
@@ -38,4 +39,4 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
 const __version__ = '0.4.4';
 
 frappe.provide('optic_store');
-optic_store = { __version__, scripts, extend_pos };
+optic_store = { __version__, scripts, extend_pos, extend_batch_selector };

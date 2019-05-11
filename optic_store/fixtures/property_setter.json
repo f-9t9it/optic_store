@@ -358,5 +358,25 @@
   "property": "read_only", 
   "property_type": "Check", 
   "value": "1"
+ }, 
+ {
+  "_assign": null, 
+  "_comments": null, 
+  "_liked_by": null, 
+  "_user_tags": null, 
+  "default_value": null, 
+  "doc_type": "Batch", 
+  "docstatus": 0, 
+  "doctype": "Property Setter", 
+  "doctype_or_field": "DocType", 
+  "field_name": null, 
+  "modified": "2019-05-11 23:52:53.617783", 
+  "name": "Batch-search_fields", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "property": "search_fields", 
+  "property_type": "Data", 
+  "value": "expiry_date"
  }
 ]
