@@ -1,111 +1,29 @@
 <main class="os-lof">
-  <div class="os-lof-header">
-    <div class="os-lof-header-content">
-      <h1>{{ _('Spectacle Order Form') }}</h1>
+  <div class="os-sr-header">
+    <h1>{{ _('Sales Receipt') }}</h1>
+    <div class="os-sr-header-content">
+      <dl>
+        <dt>{{ _('Sales No')}}</dt>
+        <dd>{{ doc.name }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Order Date')}}</dt>
+        {%- set order_date = get_ref_so_date(doc.name) -%}
+        <dd class="text-right">
+          {{ frappe.utils.formatdate(order_date) if order_date else '' }}
+        </dd>
+      </dl>
       <dl>
         <dt>{{ _('Branch')}}</dt>
         <dd>{{ doc.os_branch or '' }}</dd>
       </dl>
       <dl>
-        <dt>{{ _('Order Date')}}</dt>
-        <dd>{{ doc.get_formatted('transaction_date') }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Lab')}}</dt>
-        <dd>{{ doc.orx_lab or '' }}</dd>
+        <dt>{{ _('Collection Date')}}</dt>
+        <dd class="text-right">{{ doc.get_formatted('posting_date') }}</dd>
       </dl>
     </div>
-    <svg
-      class="barcode"
-      jsbarcode-format="CODE128"
-      jsbarcode-value="{{ doc.name }}"
-      jsbarcode-textmargin="2"
-      jsbarcode-textposition="top"
-      jsbarcode-height="40"
-      jsbarcode-width="1"
-      jsbarcode-margin="4"
-    />
-  </div>
-  <div class="os-lof-details">
-    {%- if doc.orx_name -%} {%- set rx = frappe.get_doc('Optical Prescription',
-    doc.orx_name) -%}
-    <table class="table table-condensed table-bordered os-prescription">
-      <thead>
-        <tr>
-          <th></th>
-          <th colspan="4">{{ _('Right') }}</th>
-          <th colspan="4">{{ _('Left') }}</th>
-        </tr>
-        <tr>
-          <td></td>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
-          'va'] -%}
-          <td>{{ param|upper }}</td>
-          {%- endfor -%} {%- endfor -%}
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>{{ _('Distance') }}</th>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
-          'va'] -%}
-          <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
-          {%- endfor -%} {%- endfor -%}
-        </tr>
-        <tr>
-          <th>{{ _('Reading') }}</th>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
-          'va'] -%}
-          <td>{{ rx.get('{}_reading_{}'.format(param, side)) or '' }}</td>
-          {%- endfor -%} {%- endfor -%}
-        </tr>
-        <tr>
-          <th>{{ _('Add') }}</th>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['add', '', '', ''] -%}
-          <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
-          {%- endfor -%} {%- endfor -%}
-        </tr>
-      </tbody>
-    </table>
-    <div class="os-lof-details-others">
-      <dl>
-        <dt>{{ _('PD (right) mm')}}</dt>
-        <dd>{{ rx.pd_right or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('PD (left) mm')}}</dt>
-        <dd>{{ rx.pd_left or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('PD (total) mm')}}</dt>
-        <dd>{{ rx.pd_total or '' }}</dd>
-      </dl>
-    </div>
-    <div class="os-lof-details-others">
-      <dl>
-        <dt>{{ _('Prism (right)')}}</dt>
-        <dd>{{ rx.prism_right or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Prism (left)')}}</dt>
-        <dd>{{ rx.prism_left or '' }}</dd>
-      </dl>
-    </div>
-    <div class="os-lof-details-others">
-      <dl>
-        <dt>{{ _('Frame Size')}}</dt>
-        <dd>{{ doc.orx_frame_size or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Height')}}</dt>
-        <dd>{{ doc.orx_height or '' }}</dd>
-      </dl>
-    </div>
-    {%- endif -%}
-  </div>
-  <div class="os-sof-main">
     {%- set customer = frappe.get_doc('Customer', doc.customer) -%}
-    <div class="os-sof-main-headline">
+    <div>
       <dl>
         <dt>{{ _('Name / ID') }}</dt>
         <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
@@ -118,17 +36,8 @@
         <dt>{{ _('Address') }}</dt>
         <dd>{{ customer.os_address or '' }}</dd>
       </dl>
-      <dl>
-        <dt>{{ _('Age / Gender') }}</dt>
-        <dd>
-          {{ '{} yrs'.format(
-          frappe.utils.cint((frappe.utils.getdate(doc.transaction_date) -
-          frappe.utils.getdate(customer.os_date_of_birth)).days / 365)) if
-          customer.os_date_of_birth else '-' }} / {{ customer.gender or '-' }}
-        </dd>
-      </dl>
     </div>
-    <div class="os-sof-main-subline">
+    <div class="os-sr-header-content">
       <dl>
         <dt>{{ _('Office No') }}</dt>
         <dd>{{ customer.os_office_number or '' }}</dd>
@@ -147,6 +56,7 @@
       </dl>
     </div>
   </div>
+
   <div class="os-sof-items">
     {%- set items = get_optical_items(doc.items, frame_ig, lens_ig) -%}
     <table class="table table-condensed os-items">
@@ -207,31 +117,34 @@
       </tbody>
     </table>
   </div>
-  <div class="os-lof-notes">
+  <div class="os-sr-terms">
+    {%- if doc.terms -%}
     <div>
       <dl>
-        <dt>{{ _('Storage Location')}}</dt>
-        <dd></dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Remarks')}}</dt>
-        <dd>{{ doc.os_orx_notes or '' }}</dd>
+        <dt>{{ _('Notes')}}</dt>
+        <dd>{{ doc.terms }}</dd>
       </dl>
     </div>
-    <div class="os-sof-totals">
-      <dl>
-        <dt>{{ _('Rounding Adjustment') }}</dt>
-        <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Total Amount') }}</dt>
-        <dd>{{ doc.get_formatted('total') }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Cash Received') }}</dt>
-        <dd>{{ doc.get_formatted('advance_paid') }}</dd>
-      </dl>
-    </div>
+    {%- endif -%}
+  </div>
+  <div class="os-sr-totals">
+    <dl>
+      <dt>{{ _('Rounding Adjustment') }}</dt>
+      <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
+    </dl>
+    <dl class="os-sr-totals-divide">
+      <dt>{{ _('Total Amount') }}</dt>
+      <dd>{{ doc.get_formatted('total') }}</dd>
+    </dl>
+    {%- for payment in get_advance_payments(doc) -%}
+    <dl>
+      <dt>
+        {{ _('Amount received from ') + payment.payment_entry if payment.payment_entry
+        else _('Amount received on this invoice') }}
+      </dt>
+      <dd>{{ frappe.utils.fmt_money(payment.paid_amount, currency=doc.currency) }}</dd>
+    </dl>
+    {%- endfor -%}
   </div>
   <div class="os-lof-footer">
     <dl>

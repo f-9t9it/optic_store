@@ -11,7 +11,7 @@ from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
 )
 from functools import partial
-from toolz import compose
+from toolz import compose, excepts, first, unique
 
 
 @frappe.whitelist()
@@ -103,9 +103,6 @@ def _get_account(mode_of_payment, company):
     return frappe.get_doc("Account", account) if account else None
 
 
-# This method is hooked in override_whitelisted_methods because the return value by
-# upstream method cannot evaluate to false client side. It should be removed once the
-# upstream code has been patched
 @frappe.whitelist()
 def search_serial_or_batch_or_barcode_number(search_value):
     return (
@@ -113,3 +110,61 @@ def search_serial_or_batch_or_barcode_number(search_value):
         or search_item(search_value)
         or None
     )
+
+
+def get_payments(doc):
+    sales_order = _get_sales_order(doc.name)
+    so_payments = (
+        _get_payments_against("Sales Order", sales_order.name) if sales_order else []
+    )
+    si_payments = _get_payments_against("Sales Invoice", doc.name)
+    self_payments = map(
+        lambda x: {
+            "payment_entry": None,
+            "reference_doctype": doc.doctype,
+            "reference_name": doc.name,
+            "paid_amount": x.amount,
+        },
+        doc.payments,
+    )
+    return so_payments + si_payments + self_payments
+
+
+# this does not handle cases where one Sales Invoice could reference more than one
+# Sales Order
+def _get_sales_order(sales_invoice):
+    doc = frappe.get_doc("Sales Invoice", sales_invoice)
+    if not doc:
+        return None
+    so = compose(
+        excepts(StopIteration, first, lambda x: None),
+        unique,
+        partial(map, lambda x: x.sales_order),
+    )(doc.items)
+    return frappe.get_doc("Sales Order", so) if so else None
+
+
+def _get_payments_against(doctype, name):
+    return frappe.db.sql(
+        """
+            SELECT
+                pe.name AS payment_entry,
+                per.reference_doctype AS reference_doctype,
+                per.reference_name AS reference_name2,
+                SUM(per.allocated_amount) AS paid_amount
+            FROM `tabPayment Entry Reference` AS per
+            LEFT JOIN `tabPayment Entry` AS pe ON
+                per.parent = pe.name
+            WHERE
+                per.reference_doctype = %(doctype)s AND
+                per.reference_name = %(name)s
+            GROUP BY pe.name
+        """,
+        values={"doctype": doctype, "name": name},
+        as_dict=1,
+    )
+
+
+def get_ref_so_date(sales_invoice):
+    so = _get_sales_order(sales_invoice)
+    return so.transaction_date if so else None
