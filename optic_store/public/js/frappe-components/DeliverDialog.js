@@ -102,29 +102,40 @@ export default class DeliverDialog {
           return frappe.throw(__('Paid amount cannot be greater than outstanding'));
         }
         this.dialog.hide();
-        await frappe.call({
-          method: 'optic_store.api.sales_invoice.payment_qol',
-          freeze: true,
-          freeze_message: __('Creating Payment Entries'),
-          args: { name, payments },
-        });
-        if (deliver) {
+        try {
           await frappe.call({
-            method: 'optic_store.api.sales_invoice.deliver_qol',
+            method: 'optic_store.api.sales_invoice.payment_qol',
             freeze: true,
-            freeze_message: __('Creating Delivery Note'),
-            args: { name },
+            freeze_message: __('Creating Payment Entries'),
+            args: { name, payments },
           });
+          if (deliver) {
+            await frappe.call({
+              method: 'optic_store.api.sales_invoice.deliver_qol',
+              freeze: true,
+              freeze_message: __('Creating Delivery Note'),
+              args: { name },
+            });
+          }
+        } finally {
+          frm.reload_doc();
         }
-        frm.reload_doc();
         enabled_print_formats.forEach(pf => {
           print_doc('Sales Invoice', name, pf, 0);
         });
       }.bind(this)
     );
 
-    this.dialog.set_df_property('gift_card_sec', 'hidden', 0);
-    this.dialog.set_df_property('payment_sec', 'hidden', 0);
+    this.dialog.set_df_property(
+      'gift_card_sec',
+      'hidden',
+      frm.doc.outstanding_amount > 0 ? 0 : 1
+    );
+    this.dialog.set_df_property(
+      'payment_sec',
+      'hidden',
+      frm.doc.outstanding_amount > 0 ? 0 : 1
+    );
     this.dialog.fields_dict.gift_card_no.bind_change_event();
 
     this.set_payments(frm);
