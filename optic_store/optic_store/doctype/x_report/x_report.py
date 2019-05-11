@@ -8,7 +8,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import now, flt
 from functools import partial
-from toolz import compose, excepts, first, get
+from toolz import compose, excepts, first, get, unique, pluck
 
 from optic_store.utils import pick, sum_by
 
@@ -62,12 +62,32 @@ class XReport(Document):
         )
         make_payment = partial(pick, ["mode_of_payment", "amount"])
         make_tax = partial(pick, ["rate", "tax_amount"])
-        get_cash = compose(
-            partial(get, "amount"),
-            excepts(StopIteration, first, lambda x: {"amount": 0}),
-            partial(filter, lambda x: x.get("mode_of_payment") == "Cash"),
-        )
-        remove_cash = partial(filter, lambda x: x.get("mode_of_payment") != "Cash")
+        mops = compose(unique, partial(pluck, "mode_of_payment"))
+
+        def get_mop_amount(mode_of_payment, payments=[]):
+            return compose(
+                partial(get, "amount"),
+                excepts(StopIteration, first, lambda x: {"amount": 0}),
+                partial(filter, lambda x: x.get("mode_of_payment") == mode_of_payment),
+            )(payments)
+
+        get_cash = partial(get_mop_amount, "Cash")
+        get_sales_amount = partial(get_mop_amount, payments=sales_payments)
+        get_returns_amount = partial(get_mop_amount, payments=returns_payments)
+        get_collection_amount = partial(get_mop_amount, payments=collection_payments)
+
+        def make_payment(mode_of_payment):
+            sales_amount = get_sales_amount(mode_of_payment)
+            returns_amount = get_returns_amount(mode_of_payment)
+            collection_amount = get_collection_amount(mode_of_payment)
+            return {
+                "mode_of_payment": mode_of_payment,
+                "sales_amount": sales_amount,
+                "returns_amount": returns_amount,
+                "collection_amount": collection_amount,
+                "total_amount": sales_amount + returns_amount + collection_amount,
+            }
+
         sum_by_total = sum_by("total")
         sum_by_net = sum_by("net_total")
         sum_by_discount = compose(neg, sum_by("discount_amount"))
@@ -90,12 +110,9 @@ class XReport(Document):
         self.returns = []
         for invoice in returns:
             self.append("returns", make_invoice(invoice))
-        self.si_payments = []
-        for payment in remove_cash(sales_payments + returns_payments):
-            self.append("si_payments", make_payment(payment))
-        self.pe_payments = []
-        for payment in remove_cash(collection_payments):
-            self.append("pe_payments", make_payment(payment))
+        self.payments = []
+        for payment in mops(sales_payments + returns_payments + collection_payments):
+            self.append("payments", make_payment(payment))
         self.taxes = []
         for tax in taxes:
             self.append("taxes", make_tax(tax))
