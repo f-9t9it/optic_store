@@ -5,13 +5,14 @@
 from __future__ import unicode_literals
 import json
 import frappe
+from frappe import _
 from frappe.utils import nowdate
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
 from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
 )
-from functools import partial
-from toolz import compose, excepts, first, unique
+from functools import partial, reduce
+from toolz import compose, unique
 
 
 @frappe.whitelist()
@@ -34,6 +35,19 @@ def payment_qol(name, payments):
 @frappe.whitelist()
 def deliver_qol(name):
     si = frappe.get_doc("Sales Invoice", name)
+    sos_deliverable = compose(
+        lambda states: reduce(
+            lambda a, x: a and x == "Ready to Deliver", states, False
+        ),
+        partial(map, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")),
+        unique,
+        partial(filter, lambda x: x),
+        partial(map, lambda x: x.sales_order),
+    )
+    if not sos_deliverable(si.items):
+        return frappe.throw(
+            _("Cannot make delivery until Sales Order status is 'Ready to Deliver'")
+        )
     dn = make_delivery_note(name)
     dn.os_branch = si.os_branch
     warehouse = (
@@ -113,11 +127,11 @@ def search_serial_or_batch_or_barcode_number(search_value):
 
 
 def get_payments(doc):
-    sales_order = _get_sales_order(doc.name)
-    so_payments = (
-        _get_payments_against("Sales Order", sales_order.name) if sales_order else []
+    sales_orders = _get_sales_orders(doc.name)
+    so_payments = _get_payments_against(
+        "Sales Order", map(lambda x: x.name, sales_orders)
     )
-    si_payments = _get_payments_against("Sales Invoice", doc.name)
+    si_payments = _get_payments_against("Sales Invoice", [doc.name])
     self_payments = map(
         lambda x: {
             "payment_entry": None,
@@ -130,21 +144,19 @@ def get_payments(doc):
     return so_payments + si_payments + self_payments
 
 
-# this does not handle cases where one Sales Invoice could reference more than one
-# Sales Order
-def _get_sales_order(sales_invoice):
+def _get_sales_orders(sales_invoice):
     doc = frappe.get_doc("Sales Invoice", sales_invoice)
     if not doc:
         return None
-    so = compose(
-        excepts(StopIteration, first, lambda x: None),
-        unique,
-        partial(map, lambda x: x.sales_order),
+    sos = compose(
+        unique, partial(filter, lambda x: x), partial(map, lambda x: x.sales_order)
     )(doc.items)
-    return frappe.get_doc("Sales Order", so) if so else None
+    return map(lambda x: frappe.get_doc("Sales Order", x), sos)
 
 
-def _get_payments_against(doctype, name):
+def _get_payments_against(doctype, names):
+    if not names:
+        return []
     return frappe.db.sql(
         """
             SELECT
@@ -157,14 +169,22 @@ def _get_payments_against(doctype, name):
                 per.parent = pe.name
             WHERE
                 per.reference_doctype = %(doctype)s AND
-                per.reference_name = %(name)s
+                per.reference_name IN %(names)s
             GROUP BY pe.name
         """,
-        values={"doctype": doctype, "name": name},
+        values={"doctype": doctype, "names": names},
         as_dict=1,
     )
 
 
 def get_ref_so_date(sales_invoice):
-    so = _get_sales_order(sales_invoice)
-    return so.transaction_date if so else None
+    sos = _get_sales_orders(sales_invoice)
+    return (
+        compose(min, partial(map, lambda x: x.transaction_date))(sos) if sos else None
+    )
+
+
+@frappe.whitelist()
+def get_ref_so_statuses(sales_invoice):
+    sos = _get_sales_orders(sales_invoice)
+    return compose(partial(map, lambda x: x.workflow_state))(sos) if sos else None

@@ -169,6 +169,7 @@ fixtures = [
                     "Sales Invoice-os_recall_reason",
                     "Sales Invoice Item-os_minimum_selling_rate",
                     "Sales Invoice Item-os_minimum_selling_2_rate",
+                    "Sales Invoice Payment-os_in_alt_tab",
                     "Delivery Note-os_branch",
                     "Payment Entry-os_gift_card",
                 ],
@@ -186,6 +187,7 @@ fixtures = [
                     "Customer-search_fields",
                     "Item-quick_entry",
                     "Item-naming_series-options",
+                    "Batch-search_fields",
                     "Sales Order-naming_series-read_only",
                     "Sales Order-order_type-hidden",
                     "Sales Order-set_warehouse-read_only",
@@ -221,7 +223,7 @@ app_include_js = "/assets/js/optic_store.min.js"
 page_js = {"pos": "public/js/pos.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {"Stock Entry": "public/js/stock_entry.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
