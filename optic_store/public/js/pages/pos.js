@@ -90,6 +90,7 @@ export default function extend_pos(PosClass) {
         this.batch_no_data = mapValues(batch_details, x => x.map(({ name }) => name));
         this.make_sales_person_field();
         this.make_group_discount_field();
+        this.set_opening_entry();
       } catch (e) {
         console.warn(e);
         frappe.msgprint({
@@ -319,6 +320,37 @@ export default function extend_pos(PosClass) {
       }
       super.update_payment_amount();
     }
+    refresh() {
+      super.refresh();
+      if (!this.xreport) {
+        this.set_opening_entry();
+      }
+    }
+    set_primary_action() {
+      super.set_primary_action();
+      this.page.add_menu_item(
+        'X Report',
+        async function() {
+          if (this.connection_status) {
+            if (!this.xreport) {
+              await this.set_opening_entry();
+            }
+            frappe.dom.freeze('Syncing');
+            this.sync_sales_invoice();
+            await frappe.after_server_call();
+            frappe.set_route('Form', 'X Report', this.xreport, {
+              end_time: frappe.datetime.now_datetime(),
+            });
+            frappe.dom.unfreeze();
+            this.xreport = null;
+          } else {
+            frappe.msgprint({
+              message: __('Please perform this when online.'),
+            });
+          }
+        }.bind(this)
+      );
+    }
     submit_invoice() {
       if (this.frm.doc.grand_total !== this.frm.doc.paid_amount) {
         return frappe.throw(
@@ -426,6 +458,62 @@ export default function extend_pos(PosClass) {
           }
         }
       });
+    }
+    async set_opening_entry() {
+      const { company } = this.doc;
+      const { name: pos_profile } = this.pos_profile_data;
+      const { message: xreport } = await frappe.call({
+        method: 'optic_store.api.x_report.get_unclosed',
+        args: { user: frappe.session.user, pos_profile, company },
+      });
+      if (xreport) {
+        this.xreport = xreport;
+      } else {
+        const dialog = new frappe.ui.Dialog({
+          title: __('Enter Opening Cash'),
+          fields: [
+            {
+              fieldtype: 'Datetime',
+              fieldname: 'start_time',
+              label: __('Start Datetime'),
+              default: frappe.datetime.now_datetime(),
+            },
+            { fieldtype: 'Column Break' },
+            {
+              fieldtype: 'Currency',
+              fieldname: 'opening_cash',
+              label: __('Amount'),
+            },
+          ],
+        });
+        dialog.show();
+        dialog.get_close_btn().hide();
+        dialog.set_primary_action(
+          'Enter',
+          async function() {
+            try {
+              const { start_time, opening_cash } = dialog.get_values();
+              const { message: xreport } = await frappe.call({
+                method: 'optic_store.api.x_report.create_opening',
+                args: { start_time, opening_cash, company, pos_profile },
+              });
+              if (!xreport) {
+                throw new Error();
+              }
+              this.xreport = xreport;
+            } catch (e) {
+              frappe.msgprint({
+                message: __('Unable to create X Report opening entry.'),
+                title: __('Warning'),
+                indicator: 'orange',
+              });
+            } finally {
+              dialog.hide();
+              dialog.$wrapper.remove();
+            }
+          }.bind(this)
+        );
+      }
     }
 
     make_payment() {
