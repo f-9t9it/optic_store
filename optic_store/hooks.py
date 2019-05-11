@@ -169,6 +169,7 @@ fixtures = [
                     "Sales Invoice-os_recall_reason",
                     "Sales Invoice Item-os_minimum_selling_rate",
                     "Sales Invoice Item-os_minimum_selling_2_rate",
+                    "Sales Invoice Payment-os_in_alt_tab",
                     "Delivery Note-os_branch",
                     "Payment Entry-os_gift_card",
                 ],

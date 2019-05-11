@@ -440,6 +440,62 @@ export default function extend_pos(PosClass) {
           .addClass('hidden');
       });
     }
+    show_payment_details() {
+      const multimode_payments = $(this.$body).find('.multimode-payments').html(`
+        <ul class="nav nav-tabs" role="tablist">
+          <li role="presentation" class="active">
+            <a role="tab" data-toggle="tab" data-target="#multimode_loc">${__(
+              'Base'
+            )}</a>
+          </li>
+          <li role="presentation">
+            <a role="tab" data-toggle="tab" data-target="#multimode_alt">${__(
+              'Alternate'
+            )}</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div role="tabpanel" class="tab-pane active" id="multimode_loc" />
+          <div role="tabpanel" class="tab-pane" id="multimode_alt" />
+        </div>
+      `);
+      const multimode_loc = multimode_payments.find('#multimode_loc');
+      const multimode_alt = multimode_payments.find('#multimode_alt');
+      const is_alt_currency = mop =>
+        (
+          this.doc.payments.find(({ mode_of_payment }) => mode_of_payment === mop) || {
+            os_in_alt_tab: 0,
+          }
+        ).os_in_alt_tab;
+      const { currency } = this.frm.doc;
+      if (this.frm.doc.payments.length) {
+        this.frm.doc.payments.forEach(
+          ({ mode_of_payment, amount, idx, type, os_in_alt_tab }) => {
+            $(
+              frappe.render_template('payment_details', {
+                mode_of_payment,
+                amount,
+                idx,
+                currency,
+                type,
+              })
+            ).appendTo(
+              is_alt_currency(mode_of_payment) ? multimode_alt : multimode_loc
+            );
+            if (type === 'Cash' && amount === this.frm.doc.paid_amount) {
+              this.idx = idx;
+              this.selected_mode = $(this.$body).find(`input[idx='${this.idx}']`);
+              this.highlight_selected_row();
+              this.bind_amount_change_event();
+            }
+          }
+        );
+      } else {
+        $('<p>No payment mode selected in pos profile</p>').appendTo(
+          multimode_payments
+        );
+      }
+    }
     set_payment_primary_action() {
       // totally override validation to check for zero amount to enable payment thru
       // loyalty program
