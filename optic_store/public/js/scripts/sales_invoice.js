@@ -33,7 +33,7 @@ function set_gift_card_payment(frm) {
   }
 }
 
-function render_qol_button(frm) {
+async function render_qol_button(frm) {
   if (frm.doc.docstatus === 1) {
     const actual_qty = frm.doc.items.reduce((a, { qty }) => a + qty, 0);
     const delivered_qty = frm.doc.items.reduce(
@@ -41,10 +41,15 @@ function render_qol_button(frm) {
       0
     );
     const { status } = frm.doc;
-    if (['Unpaid', 'Overdue'].includes(status) || delivered_qty < actual_qty) {
+    const { message: so_statuses = [] } = await frappe.call({
+      method: 'optic_store.api.sales_invoice.get_ref_so_statuses',
+      args: { sales_invoice: frm.doc.name },
+    });
+    if (so_statuses.some(state => state !== 'Ready to Deliver')) {
       frm.add_custom_button(__('Pay & Print'), function() {
         frm.deliver_dialog && frm.deliver_dialog.payment_and_deliver(frm);
       });
+    } else if (['Unpaid', 'Overdue'].includes(status) || delivered_qty < actual_qty) {
       frm.add_custom_button(__('Pay, Deliver & Print'), function() {
         const deliver = true;
         frm.deliver_dialog && frm.deliver_dialog.payment_and_deliver(frm, deliver);

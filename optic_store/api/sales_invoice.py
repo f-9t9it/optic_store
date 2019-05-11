@@ -5,12 +5,13 @@
 from __future__ import unicode_literals
 import json
 import frappe
+from frappe import _
 from frappe.utils import nowdate
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
 from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
 )
-from functools import partial
+from functools import partial, reduce
 from toolz import compose, unique
 
 
@@ -34,6 +35,19 @@ def payment_qol(name, payments):
 @frappe.whitelist()
 def deliver_qol(name):
     si = frappe.get_doc("Sales Invoice", name)
+    sos_deliverable = compose(
+        lambda states: reduce(
+            lambda a, x: a and x == "Ready to Deliver", states, False
+        ),
+        partial(map, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")),
+        unique,
+        partial(filter, lambda x: x),
+        partial(map, lambda x: x.sales_order),
+    )
+    if not sos_deliverable(si.items):
+        return frappe.throw(
+            _("Cannot make delivery until Sales Order status is 'Ready to Deliver'")
+        )
     dn = make_delivery_note(name)
     dn.os_branch = si.os_branch
     warehouse = (
@@ -168,3 +182,9 @@ def get_ref_so_date(sales_invoice):
     return (
         compose(min, partial(map, lambda x: x.transaction_date))(sos) if sos else None
     )
+
+
+@frappe.whitelist()
+def get_ref_so_statuses(sales_invoice):
+    sos = _get_sales_orders(sales_invoice)
+    return compose(partial(map, lambda x: x.workflow_state))(sos) if sos else None
