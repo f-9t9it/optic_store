@@ -4,7 +4,7 @@ import group_discount from './group_discount';
 import gift_card from './gift_card';
 import stock_transfer, { stock_transfer_item } from './stock_transfer';
 import sales_order_bulk_update, { bulk_update_order } from './sales_order_bulk_update';
-import x_report from './x_report';
+import xz_report from './xz_report';
 
 export {
   sales_invoice_item,
@@ -30,5 +30,5 @@ export default {
   stock_transfer_item,
   sales_order_bulk_update,
   bulk_update_order,
-  x_report,
+  xz_report,
 };

@@ -24,7 +24,7 @@ def get_data():
         {
             "label": _("Tools"),
             "items": [
-                {"type": "doctype", "name": "X Report", "label": _("X Report")},
+                {"type": "doctype", "name": "XZ Report", "label": _("XZ Report")},
                 {"type": "page", "name": "pos", "label": _("POS")},
                 {
                     "type": "doctype",
