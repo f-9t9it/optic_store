@@ -21,14 +21,18 @@ def invoice_qol(name, payments, loyalty_card_no, loyalty_program, loyalty_points
             item.cost_center = cost_center
 
     doc = make_sales_invoice(name)
-    if doc.os_branch:
-        cost_center = frappe.db.get_value("Branch", doc.os_branch, "os_cost_center")
-        map(set_cost_center, doc.items)
-    if loyalty_program and loyalty_points:
+    cost_center = (
+        frappe.db.get_value("Branch", doc.os_branch, "os_cost_center")
+        if doc.os_branch
+        else None
+    )
+    map(set_cost_center, doc.items)
+    if loyalty_program and cint(loyalty_points):
         doc.redeem_loyalty_points = 1
         doc.os_loyalty_card_no = loyalty_card_no
         doc.loyalty_program = loyalty_program
         doc.loyalty_points = cint(loyalty_points)
+        doc.loyalty_redemption_cost_center = cost_center
     if payments:
         doc.is_pos = 1
         add_payments = compose(
