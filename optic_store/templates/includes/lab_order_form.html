@@ -180,15 +180,15 @@
     </div>
   </div>
   <div class="os-lof-footer">
+    {%- set sales_person_name = frappe.db.get_value('Employee', doc.os_sales_person,
+    'employee_name') if doc.os_sales_person else '' -%}
     <dl>
       <dt>{{ _('Issued By') }}</dt>
-      <dd>{{ frappe.get_fullname(doc.owner) }}</dd>
+      <dd>{{ sales_person_name }}</dd>
     </dl>
     <dl>
       <dt>{{ _('Sales Person') }}</dt>
-      {%- set u = frappe.db.get_value('Employee', doc.os_sales_person, 'user_id') if
-      doc.os_sales_person else None -%}
-      <dd>{{ frappe.get_fullname(u) if u else '' }}</dd>
+      <dd>{{ sales_person_name }}</dd>
     </dl>
     <dl>
       <dt>{{ _('Printed On') }}</dt>
