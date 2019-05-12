@@ -66,7 +66,7 @@ def _update_settings():
         doc.save(ignore_permissions=True)
 
     settings = {
-        "Selling Settings": {"cust_master_name": "Naming Series"},
+        "Selling Settings": {"cust_master_name": "Naming Series", "territory": None},
         "Stock Settings": {"item_naming_by": "Naming Series", "show_barcode_field": 1},
         "POS Settings": {"use_pos_in_offline_mode": 1},
     }

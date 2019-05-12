@@ -36,9 +36,7 @@ def payment_qol(name, payments):
 def deliver_qol(name):
     si = frappe.get_doc("Sales Invoice", name)
     sos_deliverable = compose(
-        lambda states: reduce(
-            lambda a, x: a and x == "Ready to Deliver", states, False
-        ),
+        lambda states: reduce(lambda a, x: a and x == "Ready to Deliver", states, True),
         partial(map, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")),
         unique,
         partial(filter, lambda x: x),
