@@ -1,7 +1,7 @@
 <main class="os-lof">
   <div class="os-lof-preheader">
-    {%- set branch_phone = frappe.db.get_value('Branch', doc.os_branch, 'branch_phone')
-    -%}
+    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch,
+    ['branch_phone', 'os_cr_no']) -%}
     <div>{{ doc.os_branch or '' }}</div>
     {%- if branch_phone -%}
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
@@ -9,6 +9,7 @@
   </div>
   <div class="os-sr-header">
     <h1>{{ _('Sales Receipt') }}</h1>
+    <div class="os-sr-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
     <div class="os-sr-header-content">
       <dl>
         <dt>{{ _('Sales No')}}</dt>
