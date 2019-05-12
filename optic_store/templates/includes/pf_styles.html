@@ -74,6 +74,7 @@
   .os-lof-delivery_date dt,
   .os-lof-main dt,
   .os-sof-main dt,
+  .os-xz-main dt,
   .os-lof-footer dt {
     display: flex;
     flex-flow: row nowrap;
@@ -87,6 +88,9 @@
   }
   .os-sof-main-subline dt {
     min-width: 5.5em;
+  }
+  .os-xz-main dt {
+    min-width: 12.5em;
   }
 
   .os-prescription,
@@ -256,5 +260,26 @@
     padding-bottom: 0.1em;
     border-bottom: 1px solid {{ style.border_color }};
     margin-bottom: 0.2em;
+  }
+
+  .os-xz-main {
+    margin: 1em 0;
+    flex: 1 1 auto;
+  }
+  .os-xz-main dl {
+    justify-content: flex-end;
+  }
+  .os-xz-main dt, .os-xz-main dd {
+    font-size: 1em;
+  }
+  .os-xz-main dd {
+    text-align: right;
+    min-width: 10em;
+  }
+  .os-xz-main-subtitle {
+    margin-top: 0.2em;
+    padding-bottom: 0.1em;
+    border-bottom: 1px solid {{ style.border_color }};
+    margin-bottom: 0.1em;
   }
 </style>

@@ -1,0 +1,23 @@
+{
+ "align_labels_right": 0, 
+ "creation": "2019-05-12 19:37:22.802851", 
+ "custom_format": 1, 
+ "default_print_language": "en", 
+ "disabled": 0, 
+ "doc_type": "XZ Report", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "font": "Default", 
+ "html": "{% set page_width = '105mm' %}\n{% set page_height = '148mm' %}\n{% set header_height = '10mm' %}\n{% set margin_page = '5mm' %}\n{% set base_font_size = '7pt' %}\n\n{% include \"templates/includes/pf_styles.html\" %}\n{% include \"templates/includes/xz_report.html\" %}", 
+ "idx": 0, 
+ "line_breaks": 0, 
+ "modified": "2019-05-12 19:37:58.119094", 
+ "modified_by": "Administrator", 
+ "module": "Optic Store", 
+ "name": "XZ Report", 
+ "owner": "Administrator", 
+ "print_format_builder": 0, 
+ "print_format_type": "Server", 
+ "show_section_headings": 0, 
+ "standard": "Yes"
+}

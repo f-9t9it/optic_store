@@ -1,0 +1,92 @@
+<main class="os-lof">
+  <div class="os-lof-preheader">
+    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.branch,
+    ['branch_phone', 'os_cr_no']) or (None, None) -%}
+    <div>{{ doc.branch or '' }}</div>
+    {%- if branch_phone -%}
+    <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
+    {%- endif -%}
+  </div>
+  <div class="os-sr-header">
+    <h1>{{ _('Z Report') if doc.docstatus == 1 else _('X Report') }}</h1>
+    <dl>
+      <dt>{{ _('Branch') }}</dt>
+      <dd>{{ doc.branch }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Start Time') }}</dt>
+      <dd>{{ doc.start_time.strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
+    </dl>
+    {%- if doc.end_time -%}
+    <dl>
+      <dt>{{ _('End Time') }}</dt>
+      <dd>{{ doc.end_time.strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
+    </dl>
+    {%- endif -%}
+  </div>
+  <div class="os-xz-main">
+    {%- set currency = frappe.db.get_value('Company', doc.company, 'default_currency')
+    -%}
+    <div class="os-xz-main-subtitle">{{ _('Cash Summary') }}</div>
+    <dl>
+      <dt>{{ _('Opening Cash') }}</dt>
+      <dd>{{ doc.get_formatted('opening_cash') }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Received Cash') }}</dt>
+      <dd>
+        {{ frappe.utils.fmt_money(doc.expected_cash - doc.opening_cash,
+        currency=currency) }}
+      </dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Total Cash in Drawer') }}</dt>
+      <dd>{{ doc.get_formatted('expected_cash') }}</dd>
+    </dl>
+    <div class="os-xz-main-subtitle">{{ _('Other Payments') }}</div>
+    {%- set other_payments = doc.payments|rejectattr('mode_of_payment', 'eq',
+    'Cash')|list -%} {%- if other_payments -%} {%- for payment in other_payments -%}
+    <dl>
+      <dt>{{ payment.mode_of_payment }}</dt>
+      <dd>{{ payment.get_formatted('total_amount', doc) }}</dd>
+    </dl>
+    {%- endfor -%}
+    <dl>
+      <dt>{{ _('Total') }}</dt>
+      <dd>
+        {{ frappe.utils.fmt_money(other_payments|sum(attribute='total_amount'),
+        currency=currency) }}
+      </dd>
+    </dl>
+    {%- else -%}
+    <div>None</div>
+    {%- endif-%}
+    <div class="os-xz-main-subtitle">{{ _('Sales Summary') }}</div>
+    <dl>
+      <dt>{{ _('Sales') }}</dt>
+      <dd>{{ doc.get_formatted('sales__total') }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Discounts') }}</dt>
+      <dd>{{ doc.get_formatted('total__discount_amount') }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Returns') }}</dt>
+      <dd>{{ doc.get_formatted('returns__net_total') }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Taxes') }}</dt>
+      <dd>{{ doc.get_formatted('total__total_taxes_and_charges') }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Total Sales Tendered') }}</dt>
+      <dd>{{ doc.get_formatted('total__grand_total') }}</dd>
+    </dl>
+  </div>
+  <div class="os-lof-footer">
+    <dl>
+      <dt>{{ _('Printed On') }}</dt>
+      <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
+    </dl>
+  </div>
+</main>
