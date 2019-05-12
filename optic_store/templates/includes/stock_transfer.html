@@ -1,0 +1,91 @@
+<main class="os-lof">
+  <div class="os-lof-preheader">
+    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch',
+    doc.source_branch, ['branch_phone', 'os_cr_no']) or (None, None) -%}
+    <div>{{ doc.source_branch or '' }}</div>
+    {%- if branch_phone -%}
+    <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
+    {%- endif -%}
+  </div>
+  <div class="os-lof-header">
+    <div class="os-lof-header-content">
+      <h1>{{ _('Transfer Slip') }}</h1>
+      <dl>
+        <dt>{{ _('From')}}</dt>
+        <dd>{{ doc.source_branch_code or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('To')}}</dt>
+        <dd>{{ doc.target_branch_code or '' }}</dd>
+      </dl>
+    </div>
+    <svg
+      class="barcode"
+      jsbarcode-format="CODE128"
+      jsbarcode-value="{{ doc.name }}"
+      jsbarcode-textmargin="2"
+      jsbarcode-textposition="top"
+      jsbarcode-fontoptions="bold"
+      jsbarcode-height="40"
+      jsbarcode-width="1"
+      jsbarcode-margin="4"
+    />
+  </div>
+  <div class="os-sof-items os-st-items">
+    <div>{{ _('Transfer Details' )}}</div>
+    <table class="table table-condensed os-items os-st-items-table">
+      <thead>
+        <tr>
+          <th>{{ _('Sr') }}</th>
+          <th>{{ _('Brand') }}</th>
+          <th>{{ _('Code') }}</th>
+          <th>{{ _('Group') }}</th>
+          <th>{{ _('Description') }}</th>
+          <th>{{ _('Qty') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in doc.items %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ item.brand or '' }}</td>
+          <td>{{ item.item_code }}</td>
+          <td>{{ item.item_group }}</td>
+          <td>{{ item.item_name }}</td>
+          <td>{{ item.get_formatted('qty', doc) }}</td>
+        </tr>
+        {%- endfor -%}
+      </tbody>
+    </table>
+  </div>
+  <div class="os-st-summary">
+    <dl>
+      <dt>{{ _('Total Qty') }}</dt>
+      <dd>{{ doc.get_formatted('total_qty') }}</dd>
+    </dl>
+  </div>
+  <div class="os-sr-terms">
+    {%- if doc.remarks -%}
+    <div>
+      <dl>
+        <dt>{{ _('Remarks')}}</dt>
+        <dd>{{ doc.remarks }}</dd>
+      </dl>
+    </div>
+    {%- endif -%}
+  </div>
+  <div class="os-lof-footer">
+    <dl>
+      <dt>{{ _('Printed On') }}</dt>
+      <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
+    </dl>
+  </div>
+</main>
+
+<script
+  type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/barcodes/JsBarcode.code128.min.js"
+></script>
+<script type="text/javascript">
+  JsBarcode('.barcode').init();
+</script>

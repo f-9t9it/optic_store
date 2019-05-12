@@ -75,6 +75,7 @@
   .os-lof-main dt,
   .os-sof-main dt,
   .os-xz-main dt,
+  .os-st-summary dt,
   .os-lof-footer dt {
     display: flex;
     flex-flow: row nowrap;
@@ -286,7 +287,43 @@
   .os-cs-header {
     margin-top: 0.3em;
   }
-  .os-cs-items {
+  .os-cs-items, .os-st-items {
     flex: 1 1 auto;
+  }
+
+  .os-st-items > .os-items th:first-of-type,
+  .os-st-items > .os-items td:first-of-type {
+    width: 6%;
+    text-align: right;
+  }
+  .os-st-items > .os-items th:nth-of-type(2),
+  .os-st-items > .os-items td:nth-of-type(2) {
+    width: 17%;
+  }
+  .os-st-items > .os-items th:nth-of-type(3),
+  .os-st-items > .os-items td:nth-of-type(3) {
+    width: auto;
+  }
+  .os-st-items > .os-items th:nth-of-type(4),
+  .os-st-items > .os-items td:nth-of-type(4) {
+    width: 17%;
+  }
+  .os-st-items > .os-items th:nth-of-type(5),
+  .os-st-items > .os-items td:nth-of-type(5) {
+    width: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .os-st-items > .os-items th:last-of-type,
+  .os-st-items > .os-items td:last-of-type {
+    width: 10%;
+    text-align: right;
+  }
+
+  .os-st-summary {
+    margin-top: 0.3em;
+    border-top: 1px solid {{ style.border_color }};
+    padding-top: 0.3em;
   }
 </style>
