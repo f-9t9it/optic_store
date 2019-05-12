@@ -20,6 +20,14 @@
     flex-flow: column nowrap;
     min-height: calc({{ page_height or '148mm' }} - {{ header_height or '0' }} - {{ margin_page or '5mm' }} * 2);
   }
+  .os-lof-preheader {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+  }
+  .os-lof-preheader > * {
+    margin: 0 1em;
+  }
   .os-lof-header {
     display: flex;
     flex-flow: row nowrap;
