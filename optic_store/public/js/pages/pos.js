@@ -70,6 +70,7 @@ export default function extend_pos(PosClass) {
             territories = [],
             customer_groups = [],
             batch_details = [],
+            branch,
           } = {},
         } = await frappe.call({
           method: 'optic_store.api.pos.get_extended_pos_data',
@@ -88,6 +89,7 @@ export default function extend_pos(PosClass) {
         this.gift_cards_data = list2dict('name', gift_cards);
         this.batch_details = batch_details;
         this.batch_no_data = mapValues(batch_details, x => x.map(({ name }) => name));
+        this.doc.os_branch = branch;
         this.make_sales_person_field();
         this.make_group_discount_field();
         this.set_opening_entry();
