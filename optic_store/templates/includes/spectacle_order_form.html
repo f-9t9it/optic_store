@@ -168,11 +168,7 @@
       <tbody>
         <tr>
           <td>{{ _('Frame') }}</td>
-          <td>
-            {%- if items.frame -%} {{ frappe.db.get_value('Item Group',
-            items.frame.item_group, 'item_group_abbr') or '' }} {{ items.frame.brand or
-            '' }} {{ items.frame.item_name }} {%- endif -%}
-          </td>
+          <td>{%- if items.frame -%} {{ items.frame.item_name }} {%- endif -%}</td>
           <td>
             {{ items.frame.get_formatted('amount', doc) if items.frame else '-' }}
           </td>
@@ -180,10 +176,7 @@
         <tr>
           <td>{{ _('Lens (R)') }}</td>
           <td>
-            {%- if items.lens_right -%} {{ frappe.db.get_value('Item Group',
-            items.lens_right.item_group, 'item_group_abbr') or '' }} {{
-            items.lens_right.brand or '' }} {{ items.lens_right.item_name }} {%- endif
-            -%}
+            {%- if items.lens_right -%} {{ items.lens_right.item_name }} {%- endif -%}
           </td>
           <td>
             {{ items.lens_right.get_formatted('amount', doc) if items.lens_right else
@@ -193,9 +186,7 @@
         <tr>
           <td>{{ _('Lens (L)') }}</td>
           <td>
-            {%- if items.lens_left -%} {{ frappe.db.get_value('Item Group',
-            items.lens_left.item_group, 'item_group_abbr') or '' }} {{
-            items.lens_left.brand or '' }} {{ items.lens_left.item_name }} {%- endif -%}
+            {%- if items.lens_left -%} {{ items.lens_left.item_name }} {%- endif -%}
           </td>
           <td>
             {{ items.lens_left.get_formatted('amount', doc) if items.lens_left else '-'
@@ -205,10 +196,7 @@
         {%- for item in items.others -%}
         <tr>
           <td>{{ item.item_group }}</td>
-          <td>
-            {{ frappe.db.get_value('Item Group', items.lens_left.item_group,
-            'item_group_abbr') or '' }} {{ item.brand or '' }} {{ item.item_name }}
-          </td>
+          <td>{{ item.item_name }}</td>
           <td>{{ item.get_formatted('amount', doc) }}</td>
         </tr>
         {%- endfor -%}
