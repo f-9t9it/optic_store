@@ -418,5 +418,25 @@
   "property": "columns", 
   "property_type": "Int", 
   "value": "1"
+ }, 
+ {
+  "_assign": null, 
+  "_comments": null, 
+  "_liked_by": null, 
+  "_user_tags": null, 
+  "default_value": null, 
+  "doc_type": "Sales Order Item", 
+  "docstatus": 0, 
+  "doctype": "Property Setter", 
+  "doctype_or_field": "DocField", 
+  "field_name": "delivery_date", 
+  "modified": "2019-05-13 00:07:42.315781", 
+  "name": "Sales Order Item-delivery_date-in_list_view", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "property": "in_list_view", 
+  "property_type": "Check", 
+  "value": "0"
  }
 ]
