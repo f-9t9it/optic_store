@@ -1,8 +1,8 @@
 <main class="os-lof">
   <div class="os-lof-preheader">
-    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch,
-    ['branch_phone', 'os_cr_no']) -%}
-    <div>{{ doc.os_branch or '' }}</div>
+    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.branch,
+    ['branch_phone', 'os_cr_no']) or (None, None) -%}
+    <div>{{ doc.branch or '' }}</div>
     {%- if branch_phone -%}
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
     {%- endif -%}
