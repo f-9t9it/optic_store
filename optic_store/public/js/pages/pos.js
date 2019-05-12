@@ -471,11 +471,11 @@ export default function extend_pos(PosClass) {
       });
     }
     async set_opening_entry() {
-      const { company } = this.doc;
+      const { company, os_branch: branch } = this.doc;
       const { name: pos_profile } = this.pos_profile_data;
       const { message: xreport } = await frappe.call({
         method: 'optic_store.api.xz_report.get_unclosed',
-        args: { user: frappe.session.user, pos_profile, company },
+        args: { user: frappe.session.user, pos_profile, company, branch },
       });
       if (xreport) {
         this.xreport = xreport;

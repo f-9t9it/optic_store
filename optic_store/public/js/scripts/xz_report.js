@@ -1,5 +1,5 @@
 async function set_missing_fields(frm) {
-  const { user, pos_profile, start_time, end_time } = frm.doc;
+  const { user, pos_profile, branch, start_time, end_time } = frm.doc;
   if (!user) {
     frm.set_value('user', frappe.session.user);
   }
@@ -9,6 +9,12 @@ async function set_missing_fields(frm) {
       args: { company: frappe.defaults.get_user_default('company') },
     });
     frm.set_value('pos_profile', pos_profile.name);
+  }
+  if (!branch) {
+    const { message: branch } = await frappe.call({
+      method: 'optic_store.api.customer.get_user_branch',
+    });
+    frm.set_value('branch', branch);
   }
   if (frm.doc.__islocal && !start_time) {
     frm.set_value('start_time', frappe.datetime.now_datetime());
