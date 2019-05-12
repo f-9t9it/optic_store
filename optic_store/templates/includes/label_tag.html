@@ -5,18 +5,25 @@
     }
   }
   .os-label_tag {
-    height: 78mm;
-    width: 34mm;
+    height: 34mm;
+    width: 78mm;
     font-family: monospace;
-    display: flex;
-    flex-flow: column-reverse nowrap;
     font-size: 8pt;
     color: #000000;
+    position: relative;
+  }
+  .os-label_tag-headline, .os-label_tag-description {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 34mm;
+    padding: 2pt;
   }
   .os-label_tag-headline {
-    order: 1;
+    right: 12mm;
     height: 13mm;
-    width: 100%;
+    transform-origin: right top;
+    transform: rotate(-90deg) translateY(-12mm);
   }
   .os-label_tag-headline > .barcode {
     width: 100%;
@@ -26,10 +33,10 @@
     padding: 0 2pt;
   }
   .os-label_tag-description {
+    right: 0;
     height: 12mm;
-    padding: 2pt;
-    order: 0;
-    transform: rotate(180deg);
+    transform-origin: left top;
+    transform: rotate(90deg) translateY(-34mm);
   }
   .os-label_tag-description-title {
     font-weight: bold;
@@ -43,14 +50,14 @@
   {%- for item in doc.items -%}{%- for tag in range(0, frappe.utils.cint(item.qty)) -%}
   <div class="os-label_tag">
     <div class="os-label_tag-headline">
-      <img
+      <canvas
         class="barcode"
         jsbarcode-format="CODE128"
         jsbarcode-value="{{ item.barcode or item.item_code }}"
         jsbarcode-textmargin="0"
         jsbarcode-height="30"
         jsbarcode-margin="4"
-      />
+      ></canvas>
       <div class="os-label_tag-headline-text">
         {{ item.get_formatted('rate', doc) }}
       </div>
