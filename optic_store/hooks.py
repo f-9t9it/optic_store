@@ -201,6 +201,8 @@ fixtures = [
                     "Sales Order-subscription_section-hidden",
                     "Sales Invoice-naming_series-read_only",
                     "Sales Invoice Item-cost_center-default",
+                    "Sales Invoice Item-item_code-columns",
+                    "Sales Invoice Item-qty-columns",
                     "Delivery Note Item-cost_center-default",
                 ],
             ]
