@@ -23,16 +23,17 @@
         <dd>{{ doc.orx_lab or '' }}</dd>
       </dl>
     </div>
-    <svg
+    <canvas
       class="barcode"
       jsbarcode-format="CODE128"
       jsbarcode-value="{{ doc.name }}"
       jsbarcode-textmargin="2"
       jsbarcode-textposition="top"
+      jsbarcode-fontoptions="bold"
       jsbarcode-height="40"
       jsbarcode-width="1"
       jsbarcode-margin="4"
-    />
+    ></canvas>
   </div>
   <div class="os-lof-details">
     {%- if doc.orx_name -%} {%- set rx = frappe.get_doc('Optical Prescription',
