@@ -282,6 +282,7 @@ doctype_js = {"Stock Entry": "public/js/stock_entry.js"}
 doc_events = {
     "Delivery Note": {"validate": "optic_store.doc_events.delivery_note.validate"},
     "Sales Order": {
+        "before_naming": "optic_store.doc_events.sales_order.before_naming",
         "validate": "optic_store.doc_events.sales_order.validate",
         "before_insert": "optic_store.doc_events.sales_order.before_insert",
         "on_update": "optic_store.doc_events.sales_order.on_update",
