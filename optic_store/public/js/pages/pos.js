@@ -332,7 +332,7 @@ export default function extend_pos(PosClass) {
     set_primary_action() {
       super.set_primary_action();
       this.page.add_menu_item(
-        'X Report',
+        'XZ Report',
         async function() {
           if (this.connection_status) {
             if (!this.xreport) {
