@@ -15,7 +15,7 @@ from functools import partial
 from toolz import pluck, compose, valfilter, valmap, merge, get, groupby
 
 from optic_store.api.group_discount import get_brand_discounts
-from optic_store.api.customer import CUSTOMER_DETAILS_FIELDS
+from optic_store.api.customer import CUSTOMER_DETAILS_FIELDS, get_user_branch
 from optic_store.utils import pick, key_by
 
 
@@ -34,6 +34,7 @@ def get_extended_pos_data(company):
         "territories": _get_territories(),
         "customer_groups": _get_customer_groups(),
         "batch_details": _get_batch_details(pos_profile.warehouse),
+        "branch": get_user_branch(),
     }
 
 

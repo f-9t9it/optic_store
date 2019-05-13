@@ -70,6 +70,7 @@ export default function extend_pos(PosClass) {
             territories = [],
             customer_groups = [],
             batch_details = [],
+            branch,
           } = {},
         } = await frappe.call({
           method: 'optic_store.api.pos.get_extended_pos_data',
@@ -88,6 +89,7 @@ export default function extend_pos(PosClass) {
         this.gift_cards_data = list2dict('name', gift_cards);
         this.batch_details = batch_details;
         this.batch_no_data = mapValues(batch_details, x => x.map(({ name }) => name));
+        this.doc.os_branch = branch;
         this.make_sales_person_field();
         this.make_group_discount_field();
         this.set_opening_entry();
@@ -338,7 +340,7 @@ export default function extend_pos(PosClass) {
             frappe.dom.freeze('Syncing');
             this.sync_sales_invoice();
             await frappe.after_server_call();
-            frappe.set_route('Form', 'X Report', this.xreport, {
+            frappe.set_route('Form', 'XZ Report', this.xreport, {
               end_time: frappe.datetime.now_datetime(),
             });
             frappe.dom.unfreeze();
@@ -469,11 +471,11 @@ export default function extend_pos(PosClass) {
       });
     }
     async set_opening_entry() {
-      const { company } = this.doc;
+      const { company, os_branch: branch } = this.doc;
       const { name: pos_profile } = this.pos_profile_data;
       const { message: xreport } = await frappe.call({
-        method: 'optic_store.api.x_report.get_unclosed',
-        args: { user: frappe.session.user, pos_profile, company },
+        method: 'optic_store.api.xz_report.get_unclosed',
+        args: { user: frappe.session.user, pos_profile, company, branch },
       });
       if (xreport) {
         this.xreport = xreport;
@@ -503,7 +505,7 @@ export default function extend_pos(PosClass) {
             try {
               const { start_time, opening_cash } = dialog.get_values();
               const { message: xreport } = await frappe.call({
-                method: 'optic_store.api.x_report.create_opening',
+                method: 'optic_store.api.xz_report.create_opening',
                 args: { start_time, opening_cash, company, pos_profile },
               });
               if (!xreport) {
@@ -512,7 +514,7 @@ export default function extend_pos(PosClass) {
               this.xreport = xreport;
             } catch (e) {
               frappe.msgprint({
-                message: __('Unable to create X Report opening entry.'),
+                message: __('Unable to create XZ Report opening entry.'),
                 title: __('Warning'),
                 indicator: 'orange',
               });

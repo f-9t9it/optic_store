@@ -1,4 +1,12 @@
 <main class="os-lof">
+  <div class="os-lof-preheader">
+    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.branch,
+    ['branch_phone', 'os_cr_no']) or (None, None) -%}
+    <div>{{ doc.branch or '' }}</div>
+    {%- if branch_phone -%}
+    <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
+    {%- endif -%}
+  </div>
   <div class="os-lof-header">
     <div class="os-lof-header-content">
       <h1>{{ _('Lab Order Form') }}</h1>
@@ -21,6 +29,7 @@
       jsbarcode-value="{{ doc.name }}"
       jsbarcode-textmargin="2"
       jsbarcode-textposition="top"
+      jsbarcode-fontoptions="bold"
       jsbarcode-height="40"
       jsbarcode-width="1"
       jsbarcode-margin="4"
@@ -71,35 +80,24 @@
       {%- set items = get_optical_items(doc.items, frame_ig, lens_ig) -%}
       <dl>
         <dt>{{ _('Frame / Model') }}</dt>
-        <dd>
-          {%- if items.frame -%} {{ frappe.db.get_value('Item Group',
-          items.frame.item_group, 'item_group_abbr') or '' }} {{ items.frame.brand or ''
-          }} {{ items.frame.item_name }} {%- endif -%}
-        </dd>
+        <dd>{%- if items.frame -%} {{ items.frame.item_name }} {%- endif -%}</dd>
       </dl>
       <dl>
         <dt>{{ _('Lens (R)') }}</dt>
         <dd>
-          {%- if items.lens_right -%} {{ frappe.db.get_value('Item Group',
-          items.lens_right.item_group, 'item_group_abbr') or '' }} {{
-          items.lens_right.brand or '' }} {{ items.lens_right.item_name }} {%- endif -%}
+          {%- if items.lens_right -%} {{ items.lens_right.item_name }} {%- endif -%}
         </dd>
       </dl>
       <dl>
         <dt>{{ _('Lens (L)') }}</dt>
         <dd>
-          {%- if items.lens_left -%} {{ frappe.db.get_value('Item Group',
-          items.lens_left.item_group, 'item_group_abbr') or '' }} {{
-          items.lens_left.brand or '' }} {{ items.lens_left.item_name }} {%- endif -%}
+          {%- if items.lens_left -%} {{ items.lens_left.item_name }} {%- endif -%}
         </dd>
       </dl>
       {%- for item in items.others -%}
       <dl>
         <dt>{{ item.item_group }}</dt>
-        <dd>
-          {{ frappe.db.get_value('Item Group', item.item_group, 'item_group_abbr') or ''
-          }} {{ item.brand or '' }} {{ item.item_name }}
-        </dd>
+        <dd>{{ item.item_name }}</dd>
       </dl>
       {%- endfor -%}
     </div>
@@ -172,15 +170,15 @@
     </div>
   </div>
   <div class="os-lof-footer">
+    {%- set sales_person_name = frappe.db.get_value('Employee', doc.os_sales_person,
+    'employee_name') if doc.os_sales_person else '' -%}
     <dl>
       <dt>{{ _('Issued By') }}</dt>
-      <dd>{{ frappe.get_fullname(doc.owner) }}</dd>
+      <dd>{{ sales_person_name }}</dd>
     </dl>
     <dl>
       <dt>{{ _('Sales Person') }}</dt>
-      {%- set u = frappe.db.get_value('Employee', doc.os_sales_person, 'user_id') if
-      doc.os_sales_person else None -%}
-      <dd>{{ frappe.get_fullname(u) if u else '' }}</dd>
+      <dd>{{ sales_person_name }}</dd>
     </dl>
     <dl>
       <dt>{{ _('Printed On') }}</dt>

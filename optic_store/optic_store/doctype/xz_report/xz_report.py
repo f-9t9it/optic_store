@@ -10,14 +10,15 @@ from frappe.utils import now, flt
 from functools import partial
 from toolz import compose, excepts, first, get, unique, pluck
 
+from optic_store.api.customer import get_user_branch
 from optic_store.utils import pick, sum_by
 
 
-class XReport(Document):
+class XZReport(Document):
     def validate(self):
         existing = frappe.db.sql(
             """
-                    SELECT 1 FROM `tabX Report`
+                    SELECT 1 FROM `tabXZ Report`
                     WHERE
                         docstatus = 1 AND
                         name != %(name)s AND
@@ -37,7 +38,11 @@ class XReport(Document):
             },
         )
         if existing:
-            frappe.throw("Another X Report already exists during this time frame.")
+            frappe.throw("Another XZ Report already exists during this time frame.")
+
+    def before_insert(self):
+        if not self.branch:
+            self.branch = get_user_branch()
 
     def before_save(self):
         self.expected_cash = (

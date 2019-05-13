@@ -20,6 +20,14 @@
     flex-flow: column nowrap;
     min-height: calc({{ page_height or '148mm' }} - {{ header_height or '0' }} - {{ margin_page or '5mm' }} * 2);
   }
+  .os-lof-preheader {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+  }
+  .os-lof-preheader > * {
+    margin: 0 1em;
+  }
   .os-lof-header {
     display: flex;
     flex-flow: row nowrap;
@@ -66,6 +74,8 @@
   .os-lof-delivery_date dt,
   .os-lof-main dt,
   .os-sof-main dt,
+  .os-xz-main dt,
+  .os-st-summary dt,
   .os-lof-footer dt {
     display: flex;
     flex-flow: row nowrap;
@@ -79,6 +89,9 @@
   }
   .os-sof-main-subline dt {
     min-width: 5.5em;
+  }
+  .os-xz-main dt {
+    min-width: 12.5em;
   }
 
   .os-prescription,
@@ -219,6 +232,10 @@
   .os-sr-header h1 {
     text-align: center;
   }
+  .os-sr-header-subtitle {
+    font-size: 0.8em;
+    margin-bottom: 0.3em;
+  }
   .os-sr-header-content {
     display: flex;
     flex-flow: row wrap;
@@ -244,5 +261,69 @@
     padding-bottom: 0.1em;
     border-bottom: 1px solid {{ style.border_color }};
     margin-bottom: 0.2em;
+  }
+
+  .os-xz-main {
+    margin: 1em 0;
+    flex: 1 1 auto;
+  }
+  .os-xz-main dl {
+    justify-content: flex-end;
+  }
+  .os-xz-main dt, .os-xz-main dd {
+    font-size: 1em;
+  }
+  .os-xz-main dd {
+    text-align: right;
+    min-width: 10em;
+  }
+  .os-xz-main-subtitle {
+    margin-top: 0.2em;
+    padding-bottom: 0.1em;
+    border-bottom: 1px solid {{ style.border_color }};
+    margin-bottom: 0.1em;
+  }
+
+  .os-cs-header {
+    margin-top: 0.3em;
+  }
+  .os-cs-items, .os-st-items {
+    flex: 1 1 auto;
+  }
+
+  .os-st-items > .os-items th:first-of-type,
+  .os-st-items > .os-items td:first-of-type {
+    width: 6%;
+    text-align: right;
+  }
+  .os-st-items > .os-items th:nth-of-type(2),
+  .os-st-items > .os-items td:nth-of-type(2) {
+    width: 17%;
+  }
+  .os-st-items > .os-items th:nth-of-type(3),
+  .os-st-items > .os-items td:nth-of-type(3) {
+    width: auto;
+  }
+  .os-st-items > .os-items th:nth-of-type(4),
+  .os-st-items > .os-items td:nth-of-type(4) {
+    width: 17%;
+  }
+  .os-st-items > .os-items th:nth-of-type(5),
+  .os-st-items > .os-items td:nth-of-type(5) {
+    width: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .os-st-items > .os-items th:last-of-type,
+  .os-st-items > .os-items td:last-of-type {
+    width: 10%;
+    text-align: right;
+  }
+
+  .os-st-summary {
+    margin-top: 0.3em;
+    border-top: 1px solid {{ style.border_color }};
+    padding-top: 0.3em;
   }
 </style>
