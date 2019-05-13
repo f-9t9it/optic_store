@@ -122,7 +122,8 @@ export default function extend_pos(PosClass) {
         .toggle(!this.is_totals_area_collapsed);
       this.pos_bill.find('.discount-amount-area').hide();
     }
-    prepare_customer_mapper(key) {
+    _prepare_customer_mapper(key) {
+      // remove _ from the method name to renable this
       const super_fn = super.prepare_customer_mapper;
 
       function extended_fn(key) {
