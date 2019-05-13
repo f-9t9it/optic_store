@@ -15,12 +15,17 @@
     </dl>
     <dl>
       <dt>{{ _('Start Time') }}</dt>
-      <dd>{{ doc.start_time.strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
+      <dd>
+        {{ frappe.utils.getdate(doc.start_time).strftime('%A, %B %d, %Y, %I:%M:%S %p')
+        }}
+      </dd>
     </dl>
     {%- if doc.end_time -%}
     <dl>
       <dt>{{ _('End Time') }}</dt>
-      <dd>{{ doc.end_time.strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
+      <dd>
+        {{ frappe.utils.getdate(doc.end_time).strftime('%A, %B %d, %Y, %I:%M:%S %p') }}
+      </dd>
     </dl>
     {%- endif -%}
   </div>
