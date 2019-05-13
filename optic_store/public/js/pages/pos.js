@@ -122,8 +122,7 @@ export default function extend_pos(PosClass) {
         .toggle(!this.is_totals_area_collapsed);
       this.pos_bill.find('.discount-amount-area').hide();
     }
-    _prepare_customer_mapper(key) {
-      // remove _ from the method name to renable this
+    prepare_customer_mapper(key) {
       const super_fn = super.prepare_customer_mapper;
 
       function extended_fn(key) {
@@ -141,8 +140,9 @@ export default function extend_pos(PosClass) {
                 if (detail) {
                   return (
                     !this.customers_mapper.map(({ value }) => value).includes(name) &&
-                    (reg.test(detail['os_crp_no']) ||
-                      reg.test(detail['os_mobile_number']))
+                    // (reg.test(detail['os_crp_no']) ||
+                    //   reg.test(detail['os_mobile_number']))
+                    reg.test(detail['os_mobile_number'])
                   );
                 }
                 return false;

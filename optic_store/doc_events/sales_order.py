@@ -9,6 +9,16 @@ from frappe import _
 from optic_store.api.customer import get_user_branch
 
 
+def before_naming(doc, method):
+    naming_series = (
+        frappe.db.get_value("Branch", doc.os_branch, "os_sales_order_naming_series")
+        if doc.os_branch
+        else None
+    )
+    if naming_series:
+        doc.naming_series = naming_series
+
+
 def validate(doc, method):
     if len(doc.items) > 5:
         frappe.throw(_("Number of items cannot be greater than 5"))
