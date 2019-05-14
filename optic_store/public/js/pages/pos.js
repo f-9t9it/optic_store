@@ -20,17 +20,37 @@ function set_description(field) {
 }
 
 function add_search_params_to_customer_mapper(customers_details = {}) {
+  const search_fields = ['os_crp_no', 'os_mobile_number', 'old_customer_id'];
   return function(item) {
-    const { value, searchtext } = item;
+    const { value, searchtext: searchtext_ori = '' } = item;
     const customer = customers_details[value];
-    if (searchtext && customer) {
-      const searchtext_alt = ['os_crp_no', 'os_mobile_number'].reduce((a, param) => {
+    if (customer) {
+      const searchtext = search_fields.reduce((a, param) => {
         const x = customer[param] && customer[param].toLowerCase();
         return x && !a.includes(x) ? `${a} ${x}` : a;
-      }, searchtext);
-      return Object.assign(item, { searchtext: searchtext_alt });
+      }, searchtext_ori);
+      return Object.assign(item, { searchtext });
     }
     return item;
+  };
+}
+
+function make_customer_search_subtitle(customers_details = {}) {
+  const search_fields = [
+    'customer_name',
+    'os_crp_no',
+    'os_mobile_number',
+    'old_customer_id',
+  ];
+  return function({ value }) {
+    const customer = customers_details[value];
+    if (customer) {
+      return search_fields
+        .map(param => customer[param])
+        .filter(value => value)
+        .join(' | ');
+    }
+    return '';
   };
 }
 
@@ -122,6 +142,23 @@ export default function extend_pos(PosClass) {
         .toggle(!this.is_totals_area_collapsed);
       this.pos_bill.find('.discount-amount-area').hide();
     }
+    make_customer() {
+      super.make_customer();
+      this.party_field.awesomeplete.item = ({ label, value }, input) => {
+        const get_subtitle = make_customer_search_subtitle(this.customers_details_data);
+        const html = `
+          <a>
+            <p>${__(label || value)}</p>
+            <p class="text-muted ellipsis">${get_subtitle({ value })}</p>
+          </a>
+        `;
+
+        return $('<li />')
+          .data('item.autocomplete', { value })
+          .html(html)
+          .get(0);
+      };
+    }
     prepare_customer_mapper(key) {
       const super_fn = super.prepare_customer_mapper;
 
@@ -145,7 +182,8 @@ export default function extend_pos(PosClass) {
                 if (detail) {
                   const will_add =
                     !this.customers_mapper.map(({ value }) => value).includes(name) &&
-                    (reg.test(detail['os_crp_no']) ||
+                    (reg.test(detail['old_customer_id']) ||
+                      reg.test(detail['os_crp_no']) ||
                       reg.test(detail['os_mobile_number']));
                   if (will_add) {
                     count++;
@@ -415,9 +453,8 @@ export default function extend_pos(PosClass) {
         this.sales_person_field.$input.on('change', () => {
           this.frm.doc.os_sales_person = this.sales_person_field.get_value();
         });
-      } else {
-        this.sales_person_field.set_data(this.sales_persons_data);
       }
+      this.sales_person_field.set_data(this.sales_persons_data);
     }
     make_group_discount_field() {
       if (this.pos_profile_data.allow_user_to_edit_discount) {

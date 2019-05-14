@@ -53,7 +53,13 @@ def _get_customers_details(pos_profile, query_date):
     customers = compose(list, partial(pluck, "name"), get_customers_list)(pos_profile)
     details = frappe.db.sql(
         """
-            SELECT name, os_loyalty_card_no, loyalty_program, {customer_details_fields}
+            SELECT
+                name,
+                old_customer_id,
+                customer_name,
+                os_loyalty_card_no,
+                loyalty_program,
+                {customer_details_fields}
             FROM `tabCustomer` WHERE name IN %(customers)s
         """.format(
             customer_details_fields=", ".join(CUSTOMER_DETAILS_FIELDS)
