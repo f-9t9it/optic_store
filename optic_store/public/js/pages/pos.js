@@ -434,6 +434,12 @@ export default function extend_pos(PosClass) {
       );
       return invoice_data;
     }
+    set_interval_for_si_sync() {
+      setInterval(() => {
+        this.freeze_screen = false;
+        this.sync_sales_invoice();
+      }, 3600000);
+    }
     show_amounts() {
       super.show_amounts();
       this.dialog
