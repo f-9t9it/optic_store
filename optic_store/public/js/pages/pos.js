@@ -122,28 +122,35 @@ export default function extend_pos(PosClass) {
         .toggle(!this.is_totals_area_collapsed);
       this.pos_bill.find('.discount-amount-area').hide();
     }
-    _prepare_customer_mapper(key) {
-      // remove _ to re-enable this
+    prepare_customer_mapper(key) {
       const super_fn = super.prepare_customer_mapper;
 
       function extended_fn(key) {
-        const starttime = Date.now();
+        let startsuper = Date.now();
         super_fn.bind(this)(key);
+        let startext = Date.now();
+        const search = (key || '').toLowerCase().trim();
+        const reg = new RegExp(
+          search.replace(new RegExp('%', 'g'), '\\w*\\s*[a-zA-Z0-9]*')
+        );
+        let count = 0;
         const customers_mapper_ext = key
           ? this.customers
               .filter(({ name }) => {
-                const search = key.toLowerCase().trim();
-                const reg = new RegExp(
-                  search.replace(new RegExp('%', 'g'), '\\w*\\s*[a-zA-Z0-9]*')
-                );
+                if (count >= 30) {
+                  return false;
+                }
                 const detail =
                   this.customers_details_data && this.customers_details_data[name];
                 if (detail) {
-                  return (
+                  const will_add =
                     !this.customers_mapper.map(({ value }) => value).includes(name) &&
                     (reg.test(detail['os_crp_no']) ||
-                      reg.test(detail['os_mobile_number']))
-                  );
+                      reg.test(detail['os_mobile_number']));
+                  if (will_add) {
+                    count++;
+                  }
+                  return will_add;
                 }
                 return false;
               })
@@ -158,10 +165,16 @@ export default function extend_pos(PosClass) {
                   .toLowerCase(),
               }))
           : [];
-        this.customers_mapper = [...this.customers_mapper, ...customers_mapper_ext].map(
+        this.customers_mapper = [...customers_mapper_ext, ...this.customers_mapper].map(
           add_search_params_to_customer_mapper(this.customers_details_data)
         );
         this.party_field.awesomeplete.list = this.customers_mapper;
+        if (window.OS_DEBUG) {
+          console.log(
+            `[ ${String(key).padEnd(12)} ] : ${(Date.now() - startsuper) /
+              1000}s / ${(Date.now() - startext) / 1000}s`
+          );
+        }
       }
 
       // required because this.party_field.$input event references this and
@@ -462,7 +475,6 @@ export default function extend_pos(PosClass) {
             e.preventDefault();
             e.stopPropagation();
             if (this.msgprint) {
-              console.log('new_doc');
               this.msgprint.msg_area.find('.new_doc').click();
             } else {
               this.page.btn_primary.trigger('click');
