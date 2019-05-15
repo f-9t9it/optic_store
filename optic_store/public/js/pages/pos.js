@@ -303,6 +303,12 @@ export default function extend_pos(PosClass) {
     validate() {
       if (!this.frm.doc.os_sales_person) {
         frappe.throw(__('Sales Person is mandatory'));
+      } else if (
+        !this.sales_persons_data
+          .map(({ value }) => value)
+          .includes(this.frm.doc.os_sales_person)
+      ) {
+        frappe.throw(__(`Sales Person: ${this.frm.doc.os_sales_person} is not valid`));
       }
       super.validate();
     }
