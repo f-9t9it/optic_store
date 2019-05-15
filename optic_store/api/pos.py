@@ -34,6 +34,7 @@ def get_extended_pos_data(company):
         "territories": _get_territories(),
         "customer_groups": _get_customer_groups(),
         "batch_details": _get_batch_details(pos_profile.warehouse),
+        "branch_details": _get_branch_details(),
     }
 
 
@@ -107,6 +108,14 @@ def _get_territories():
 
 def _get_customer_groups():
     return compose(list, partial(pluck, "name"))(frappe.get_all("Customer Group"))
+
+
+def _get_branch_details():
+    branch = get_user_branch()
+    if not branch:
+        return None
+    doc = frappe.get_doc("Branch", branch)
+    return pick(["name", "branch_phone", "os_cr_no"], doc.as_dict()) if doc else None
 
 
 @frappe.whitelist()

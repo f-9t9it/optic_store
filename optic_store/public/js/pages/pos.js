@@ -90,6 +90,7 @@ export default function extend_pos(PosClass) {
             territories = [],
             customer_groups = [],
             batch_details = [],
+            branch_details = {},
           } = {},
         } = await frappe.call({
           method: 'optic_store.api.pos.get_extended_pos_data',
@@ -108,6 +109,7 @@ export default function extend_pos(PosClass) {
         this.gift_cards_data = list2dict('name', gift_cards);
         this.batch_details = batch_details;
         this.batch_no_data = mapValues(batch_details, x => x.map(({ name }) => name));
+        this.branch_details = branch_details;
         this.make_sales_person_field();
         this.make_group_discount_field();
         this.set_opening_entry();
@@ -436,6 +438,16 @@ export default function extend_pos(PosClass) {
       this.frm.doc.pos_name_barcode_uri = get_barcode_uri(
         this.frm.doc.offline_pos_name
       );
+      this.frm.doc.branch_doc = this.branch_details;
+      this.frm.doc.customer_doc =
+        this.customers_details_data[this.frm.doc.customer] || {};
+      if (!this.frm.doc.customer_pos_id) {
+        this.frm.doc.customer_pos_id = null;
+      }
+      const sales_person = this.sales_persons_data.find(
+        ({ value }) => (value = this.frm.doc.os_sales_person) || {}
+      );
+      this.frm.doc.sales_person_name = sales_person.label;
       return invoice_data;
     }
     set_interval_for_si_sync() {
