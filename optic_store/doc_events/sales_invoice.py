@@ -74,19 +74,20 @@ def on_submit(doc, method):
 
 def _set_gift_card_validities(doc):
     for row in doc.items:
-        item = frappe.get_doc("Item", row.item_code)
-        if item.is_gift_card and row.serial_no:
+        is_gift_card = frappe.db.get_value("Item", row.item_code, "is_gift_card")
+        if is_gift_card and row.serial_no:
             for serial_no in row.serial_no.split("\n"):
                 gift_card_no = frappe.db.exists(
                     "Gift Card", {"gift_card_no": serial_no}
                 )
                 if gift_card_no:
+                    gift_card_validity = frappe.db.get_value("Item", row.item_code, "gift_card_validity")
                     frappe.db.set_value(
                         "Gift Card",
                         gift_card_no,
                         "expiry_date",
                         frappe.utils.add_days(
-                            doc.posting_date, item.gift_card_validity
+                            doc.posting_date, gift_card_validity
                         ),
                     )
 
