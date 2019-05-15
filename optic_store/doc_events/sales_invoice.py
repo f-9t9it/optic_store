@@ -24,7 +24,8 @@ def validate(doc, method):
         lambda x: frappe.get_doc("Gift Card", x.gift_card), doc.os_gift_cards
     )
     map(partial(_validate_gift_card_expiry, doc.posting_date), gift_cards)
-    _validate_gift_card_balance(doc.payments, gift_cards)
+    if gift_cards:
+        _validate_gift_card_balance(doc.payments, gift_cards)
     if cint(doc.redeem_loyalty_points):
         _validate_loyalty_card_no(doc.customer, doc.os_loyalty_card_no)
 
