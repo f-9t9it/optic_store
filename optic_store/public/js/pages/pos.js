@@ -20,7 +20,7 @@ function set_description(field) {
 }
 
 function add_search_params_to_customer_mapper(customers_details = {}) {
-  const search_fields = ['os_crp_no', 'os_mobile_number', 'old_customer_id'];
+  const search_fields = ['os_cpr_no', 'os_mobile_number', 'old_customer_id'];
   return function(item) {
     const { value, searchtext: searchtext_ori = '' } = item;
     const customer = customers_details[value];
@@ -38,7 +38,7 @@ function add_search_params_to_customer_mapper(customers_details = {}) {
 function make_customer_search_subtitle(customers_details = {}) {
   const search_fields = [
     'customer_name',
-    'os_crp_no',
+    'os_cpr_no',
     'os_mobile_number',
     'old_customer_id',
   ];
@@ -183,7 +183,7 @@ export default function extend_pos(PosClass) {
                   const will_add =
                     !this.customers_mapper.map(({ value }) => value).includes(name) &&
                     (reg.test(detail['old_customer_id']) ||
-                      reg.test(detail['os_crp_no']) ||
+                      reg.test(detail['os_cpr_no']) ||
                       reg.test(detail['os_mobile_number']));
                   if (will_add) {
                     count++;

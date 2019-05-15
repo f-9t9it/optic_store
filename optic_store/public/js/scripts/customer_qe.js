@@ -10,8 +10,8 @@ export const customer_qe_fields = [
   },
   {
     fieldtype: 'Data',
-    fieldname: 'os_crp_no',
-    label: __('CRP No'),
+    fieldname: 'os_cpr_no',
+    label: __('CPR No'),
   },
   {
     fieldtype: 'Date',

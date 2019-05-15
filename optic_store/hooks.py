@@ -62,7 +62,7 @@ fixtures = [
                     "Customer-os_details_sec",
                     "Customer-os_detail_bio_col",
                     "Customer-os_short_name",
-                    "Customer-os_crp_no",
+                    "Customer-os_cpr_no",
                     "Customer-os_date_of_birth",
                     "Customer-os_occupation",
                     "Customer-os_nationality",
