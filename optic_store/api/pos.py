@@ -12,7 +12,7 @@ from erpnext.accounts.doctype.sales_invoice.pos import get_customers_list
 from erpnext.accounts.doctype.sales_invoice.pos import get_customer_id
 from erpnext.accounts.doctype.loyalty_program.loyalty_program import get_loyalty_details
 from functools import partial
-from toolz import pluck, compose, valfilter, valmap, merge, get, groupby
+from toolz import pluck, compose, valfilter, valmap, merge, get, groupby, flip
 
 from optic_store.api.group_discount import get_brand_discounts
 from optic_store.api.customer import CUSTOMER_DETAILS_FIELDS, get_user_branch
@@ -34,7 +34,6 @@ def get_extended_pos_data(company):
         "territories": _get_territories(),
         "customer_groups": _get_customer_groups(),
         "batch_details": _get_batch_details(pos_profile.warehouse),
-        "branch": get_user_branch(),
     }
 
 
@@ -129,7 +128,13 @@ def get_pos_data():
         partial(filter, lambda x: x.get("name") in allowed_items),
         partial(get, "items", default=[]),
     )
-    return merge(data, {"items": trans_items(data)})
+    add_branch = compose(
+        flip(merge, {"os_branch": get_user_branch()}),
+        lambda x: x.as_dict(),
+        partial(get, "doc", default={}),
+    )
+
+    return merge(data, {"items": trans_items(data), "doc": add_branch(data)})
 
 
 def _get_item_prices(item_codes):
