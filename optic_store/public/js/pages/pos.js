@@ -20,7 +20,7 @@ function set_description(field) {
 }
 
 function add_search_params_to_customer_mapper(customers_details = {}) {
-  const search_fields = ['os_crp_no', 'os_mobile_number', 'old_customer_id'];
+  const search_fields = ['os_cpr_no', 'os_mobile_number', 'old_customer_id'];
   return function(item) {
     const { value, searchtext: searchtext_ori = '' } = item;
     const customer = customers_details[value];
@@ -38,7 +38,7 @@ function add_search_params_to_customer_mapper(customers_details = {}) {
 function make_customer_search_subtitle(customers_details = {}) {
   const search_fields = [
     'customer_name',
-    'os_crp_no',
+    'os_cpr_no',
     'os_mobile_number',
     'old_customer_id',
   ];
@@ -90,7 +90,7 @@ export default function extend_pos(PosClass) {
             territories = [],
             customer_groups = [],
             batch_details = [],
-            branch,
+            branch_details = {},
           } = {},
         } = await frappe.call({
           method: 'optic_store.api.pos.get_extended_pos_data',
@@ -109,7 +109,7 @@ export default function extend_pos(PosClass) {
         this.gift_cards_data = list2dict('name', gift_cards);
         this.batch_details = batch_details;
         this.batch_no_data = mapValues(batch_details, x => x.map(({ name }) => name));
-        this.doc.os_branch = branch;
+        this.branch_details = branch_details;
         this.make_sales_person_field();
         this.make_group_discount_field();
         this.set_opening_entry();
@@ -183,7 +183,7 @@ export default function extend_pos(PosClass) {
                   const will_add =
                     !this.customers_mapper.map(({ value }) => value).includes(name) &&
                     (reg.test(detail['old_customer_id']) ||
-                      reg.test(detail['os_crp_no']) ||
+                      reg.test(detail['os_cpr_no']) ||
                       reg.test(detail['os_mobile_number']));
                   if (will_add) {
                     count++;
@@ -303,6 +303,12 @@ export default function extend_pos(PosClass) {
     validate() {
       if (!this.frm.doc.os_sales_person) {
         frappe.throw(__('Sales Person is mandatory'));
+      } else if (
+        !this.sales_persons_data
+          .map(({ value }) => value)
+          .includes(this.frm.doc.os_sales_person)
+      ) {
+        frappe.throw(__(`Sales Person: ${this.frm.doc.os_sales_person} is not valid`));
       }
       super.validate();
     }
@@ -432,6 +438,16 @@ export default function extend_pos(PosClass) {
       this.frm.doc.pos_name_barcode_uri = get_barcode_uri(
         this.frm.doc.offline_pos_name
       );
+      this.frm.doc.branch_doc = this.branch_details;
+      this.frm.doc.customer_doc =
+        this.customers_details_data[this.frm.doc.customer] || {};
+      if (!this.frm.doc.customer_pos_id) {
+        this.frm.doc.customer_pos_id = null;
+      }
+      const sales_person = this.sales_persons_data.find(
+        ({ value }) => (value = this.frm.doc.os_sales_person) || {}
+      );
+      this.frm.doc.sales_person_name = sales_person.label;
       return invoice_data;
     }
     set_interval_for_si_sync() {

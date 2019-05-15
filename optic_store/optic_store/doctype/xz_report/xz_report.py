@@ -122,6 +122,8 @@ class XZReport(Document):
         for tax in taxes:
             self.append("taxes", make_tax(tax))
 
+        self.total_collection = sum_by("total_amount")(self.payments)
+
 
 def _get_invoices(args):
     sales = frappe.db.sql(

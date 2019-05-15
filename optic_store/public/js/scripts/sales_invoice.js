@@ -93,6 +93,16 @@ export async function handle_items_cost_center(frm, cdt, cdn) {
   }
 }
 
+async function set_naming_series(frm) {
+  const { os_branch: branch } = frm.doc;
+  if (branch) {
+    const {
+      message: { os_sales_invoice_naming_series } = {},
+    } = await frappe.db.get_value('Branch', branch, 'os_sales_invoice_naming_series');
+    frm.set_value('naming_series', os_sales_invoice_naming_series);
+  }
+}
+
 export const sales_invoice_item = {
   items_add: handle_items_cost_center,
 };
@@ -130,7 +140,10 @@ export default {
     render_prescription(frm);
     render_qol_button(frm);
   },
-  os_branch: set_cost_center,
+  os_branch: function(frm) {
+    set_naming_series(frm);
+    set_cost_center(frm);
+  },
   customer: setup_orx_name,
   orx_type: setup_orx_name,
   orx_name: render_prescription,

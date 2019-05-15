@@ -12,6 +12,16 @@ from toolz import compose
 from optic_store.api.customer import get_user_branch
 
 
+def before_naming(doc, method):
+    naming_series = (
+        frappe.db.get_value("Branch", doc.os_branch, "os_sales_invoice_naming_series")
+        if doc.os_branch
+        else None
+    )
+    if naming_series:
+        doc.naming_series = naming_series
+
+
 _get_gift_card_amounts = compose(
     sum,
     partial(map, lambda x: x.amount),

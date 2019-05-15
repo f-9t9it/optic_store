@@ -1,0 +1,279 @@
+<!-- template: changing here will have no effect on the pf -->
+
+<style>
+  @page {
+    size: A6;
+    margin: 5mm;
+  }
+  .print-format {
+    --page-width: 105mm;
+    --page-height: 148mm;
+    --page-margin: 5mm;
+    --header-height: 10mm;
+    --base-font-size: 7pt;
+    --border-params: 1px solid #d1d8dd;
+  }
+  @media screen {
+    .print-format {
+      width: var(--page-width);
+      height: var(--page-height);
+      padding: var(--page-margin);
+      max-width: var(--page-width);
+      min-height: var(--page-height);
+    }
+  }
+
+  .os-psr {
+    margin-top: var(--header-height);
+    font-family: Helvetica, sans-serif;
+    font-size: var(--base-font-size);
+    display: flex;
+    flex-flow: column nowrap;
+    min-height: calc(
+      var(--page-height) - var(--header-height) - var(--page-margin) * 2
+    );
+  }
+  .os-psr-preheader > * {
+    margin: 0 1em;
+  }
+  .os-psr-preheader {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+  }
+  .os-psr-header {
+    border-top: --var(border-params);
+  }
+  .os-psr-header h1 {
+    text-align: center;
+  }
+  .os-psr-header-subtitle {
+    font-size: 0.8em;
+    margin-bottom: 0.3em;
+  }
+  .os-psr-header h1 {
+    margin: 0.2em 0 0.3em 0;
+    font-size: 1.3em;
+    font-weight: bold;
+  }
+  .os-psr-header-content {
+    display: flex;
+    flex-flow: row wrap;
+    padding-bottom: 0.2em;
+    border-bottom: var(--border-params);
+    margin-bottom: 0.2em;
+  }
+  .os-psr-header-content > * {
+    width: 50%;
+  }
+  .os-psr-header-content dd.text-right {
+    flex: 1 1 auto;
+  }
+
+  .os-psr dl {
+    margin: 0;
+    display: flex;
+  }
+  .os-psr dt {
+    font-weight: normal;
+    font-size: 0.85em;
+  }
+  .os-psr dd {
+    font-weight: bold;
+  }
+  .os-psr dt:after {
+    content: ": ";
+  }
+  .os-psr dl > * {
+    display: inline;
+  }
+
+  .os-psr-header dt,
+  .os-psr-footer dt {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    margin-right: 0.3em;
+    min-width: 8.5em;
+  }
+  .os-psr-header dt {
+    min-width: 6.5em;
+  }
+
+  .os-psr-items > table {
+    margin: 1em 0;
+    border-top: none;
+    max-width: 100%;
+    table-layout: fixed;
+  }
+  .os-psr-items > table th,
+  .os-psr-items > table td  {
+    padding: 0 2pt !important;
+    background-color: transparent !important;
+  }
+  .os-psr-items > table th:first-of-type,
+  .os-psr-items > table td:first-of-type {
+    width: 10%;
+  }
+  .os-psr-items > table th:last-of-type,
+  .os-psr-items > table td:last-of-type {
+    width: 25%;
+    text-align: right;
+  }
+
+  .os-psr-summary {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    flex: 1 1 auto;
+  }
+  .os-psr-summary > * {
+    width: 50%;
+  }
+  .os-psr-terms {
+    margin-bottom: 1em;
+  }
+  .os-psr-totals {
+    margin-left: 1em;
+  }
+  .os-psr-totals dd {
+    flex: 1 1 auto;
+    text-align: right;
+  }
+  .os-psr-totals-payment {
+    font-size: 0.85em;
+    padding-left: 1em;
+  }
+
+  .os-psr-footer dd {
+    font-size: 0.85em;
+  }
+  .os-psr-footer-message {
+    text-align: center;
+    font-size: 0.8em;
+  }
+</style>
+
+<main class="os-psr">
+  <div class="os-psr-preheader">
+    <div>{{ os_branch }}</div>
+    {% if (branch_doc.branch_phone) { %}
+    <div>Tel No: {{ branch_doc.branch_phone }}</div>
+    {% } %}
+  </div>
+  <section class="os-psr-header">
+    <h1>Sales Receipt</h1>
+    <div class="os-psr-header-subtitle">CR No {{ branch_doc.os_cr_no }}</div>
+    <div class="os-psr-header-content">
+      <dl>
+        <dt>POS Sales No</dt>
+        <dd>{{ offline_pos_name }}</dd>
+      </dl>
+      <dl>
+        <dt>Invoice Date</dt>
+        <dd>{{ posting_date }}</dd>
+      </dl>
+    </div>
+    <div>
+      <dl>
+        <dt>Name / ID</dt>
+        <dd>
+          {{ customer_pos_id ? customer : customer_name }} / {{ customer_pos_id ? '' :
+          customer }}
+        </dd>
+      </dl>
+      <dl>
+        <dt>IC No</dt>
+        <dd>{{ customer_doc.os_loyalty_card_no }}</dd>
+      </dl>
+      <dl>
+        <dt>Address</dt>
+        <dd>{{ customer_doc.os_address }}</dd>
+      </dl>
+    </div>
+    <div class="os-psr-header-content">
+      <dl>
+        <dt>Office No</dt>
+        <dd>{{ customer_doc.os_office_number }}</dd>
+      </dl>
+      <dl>
+        <dt>Mobile No</dt>
+        <dd>{{ customer_doc.os_mobile_number }}</dd>
+      </dl>
+      <dl>
+        <dt>Home No</dt>
+        <dd>{{ customer_doc.os_home_number }}</dd>
+      </dl>
+      <dl>
+        <dt>Other No</dt>
+        <dd>{{ customer_doc.os_other_number }}</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="os-psr-items">
+    <table class="table table-condensed">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Description</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% items.forEach((item, idx) => { %}
+        <tr>
+          <td>{{ idx + 1 }}</td>
+          <td>{{ item.item_name }} x {{ item.qty }}</td>
+          <td>{{ fmt_money(item.amount) }}</td>
+        </tr>
+        {% }) %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="os-psr-summary">
+    {% if (terms) { %}
+    <div class="os-psr-terms">Notes: {{ terms }}</div>
+    {% } %}
+    <div class="os-psr-totals">
+      <dl>
+        <dt>Rounding Adjustment</dt>
+        <dd>{{ fmt_money(rounding_adjustment) }}</dd>
+      </dl>
+      <dl>
+        <dt>Total Bill Amount</dt>
+        <dd>{{ fmt_money(total) }}</dd>
+      </dl>
+      <dl>
+        <dt>Total Amount Due</dt>
+        <dd>{{ fmt_money(outstanding_amount + paid_amount) }}</dd>
+      </dl>
+      <dl>
+        <dt>Total Received</dt>
+        <dd>{{ fmt_money(paid_amount) }}</dd>
+      </dl>
+      {% payments.filter(({ amount }) => amount > 0).forEach(({ mode_of_payment, amount }) => { %}
+      <div class="os-psr-totals-payment">{{ mode_of_payment }}: {{ fmt_money(amount) }} </div>
+      {% }) %}
+    </div>
+  </section>
+
+  <section class="os-psr-footer">
+    <dl>
+      <dt>Issued By</dt>
+      <dd>{{ sales_person_name }}</dd>
+    </dl>
+    <dl>
+      <dt>Sales Person</dt>
+      <dd>{{ sales_person_name }}</dd>
+    </dl>
+    <dl>
+      <dt>Printed On</dt>
+      <dd>{{ moment().format("dddd, MMM DD, Y, hh:mm:ss A") }}</dd>
+    </dl>
+    <div class="os-psr-footer-message">
+      This is a computer generated receipt. No signature is required.
+    </div>
+  </section>
+</main>

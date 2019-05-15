@@ -16,15 +16,16 @@
     <dl>
       <dt>{{ _('Start Time') }}</dt>
       <dd>
-        {{ frappe.utils.getdate(doc.start_time).strftime('%A, %B %d, %Y, %I:%M:%S %p')
-        }}
+        {{ frappe.utils.get_datetime(doc.start_time).strftime('%A, %B %d, %Y, %I:%M:%S
+        %p') }}
       </dd>
     </dl>
     {%- if doc.end_time -%}
     <dl>
       <dt>{{ _('End Time') }}</dt>
       <dd>
-        {{ frappe.utils.getdate(doc.end_time).strftime('%A, %B %d, %Y, %I:%M:%S %p') }}
+        {{ frappe.utils.get_datetime(doc.end_time).strftime('%A, %B %d, %Y, %I:%M:%S
+        %p') }}
       </dd>
     </dl>
     {%- endif -%}
@@ -84,8 +85,12 @@
       <dd>{{ doc.get_formatted('total__total_taxes_and_charges') }}</dd>
     </dl>
     <dl>
-      <dt>{{ _('Total Sales Tendered') }}</dt>
+      <dt>{{ _('Total Achieved Sales') }}</dt>
       <dd>{{ doc.get_formatted('total__grand_total') }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Total Collecction Amount') }}</dt>
+      <dd>{{ doc.get_formatted('total_collection') }}</dd>
     </dl>
   </div>
   <div class="os-lof-footer">
