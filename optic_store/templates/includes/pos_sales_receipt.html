@@ -113,7 +113,7 @@
   }
   .os-psr-items > table th:first-of-type,
   .os-psr-items > table td:first-of-type {
-    width: 20%;
+    width: 10%;
   }
   .os-psr-items > table th:last-of-type,
   .os-psr-items > table td:last-of-type {
@@ -121,12 +121,28 @@
     text-align: right;
   }
 
-  .os-psr-totals {
+  .os-psr-summary {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
     flex: 1 1 auto;
+  }
+  .os-psr-summary > * {
+    width: 50%;
+  }
+  .os-psr-terms {
+    margin-bottom: 1em;
+  }
+  .os-psr-totals {
+    margin-left: 1em;
   }
   .os-psr-totals dd {
     flex: 1 1 auto;
     text-align: right;
+  }
+  .os-psr-totals-payment {
+    font-size: 0.85em;
+    padding-left: 1em;
   }
 
   .os-psr-footer dd {
@@ -147,7 +163,7 @@
   </div>
   <section class="os-psr-header">
     <h1>Sales Receipt</h1>
-    <div class="os-psr-header-subtitle">Biz Reg No. CR {{ branch_doc.os_cr_no }}</div>
+    <div class="os-psr-header-subtitle">CR No {{ branch_doc.os_cr_no }}</div>
     <div class="os-psr-header-content">
       <dl>
         <dt>POS Sales No</dt>
@@ -199,16 +215,16 @@
     <table class="table table-condensed">
       <thead>
         <tr>
-          <th>Type</th>
+          <th>No</th>
           <th>Description</th>
           <th>Amount</th>
         </tr>
       </thead>
       <tbody>
-        {% items.forEach(item => { %}
+        {% items.forEach((item, idx) => { %}
         <tr>
-          <td>{{ item.item_group }}</td>
-          <td>{{ item.item_name }}</td>
+          <td>{{ idx + 1 }}</td>
+          <td>{{ item.item_name }} x {{ item.qty }}</td>
           <td>{{ fmt_money(item.amount) }}</td>
         </tr>
         {% }) %}
@@ -216,26 +232,31 @@
     </table>
   </section>
 
-  <section class="os-psr-terms">
+  <section class="os-psr-summary">
     {% if (terms) { %}
-    <div>
-      <dl>
-        <dt>Notes</dt>
-        <dd>terms</dd>
-      </dl>
-    </div>
+    <div class="os-psr-terms">Notes: {{ terms }}</div>
     {% } %}
-  </section>
-
-  <section class="os-psr-totals">
-    <dl>
-      <dt>Rounding Adjustment</dt>
-      <dd>{{ fmt_money(rounding_adjustment) }}</dd>
-    </dl>
-    <dl>
-      <dt>Total Amount</dt>
-      <dd>{{ fmt_money(total) }}</dd>
-    </dl>
+    <div class="os-psr-totals">
+      <dl>
+        <dt>Rounding Adjustment</dt>
+        <dd>{{ fmt_money(rounding_adjustment) }}</dd>
+      </dl>
+      <dl>
+        <dt>Total Bill Amount</dt>
+        <dd>{{ fmt_money(total) }}</dd>
+      </dl>
+      <dl>
+        <dt>Total Amount Due</dt>
+        <dd>{{ fmt_money(outstanding_amount + paid_amount) }}</dd>
+      </dl>
+      <dl>
+        <dt>Total Received</dt>
+        <dd>{{ fmt_money(paid_amount) }}</dd>
+      </dl>
+      {% payments.filter(({ amount }) => amount > 0).forEach(({ mode_of_payment, amount }) => { %}
+      <div class="os-psr-totals-payment">{{ mode_of_payment }}: {{ fmt_money(amount) }} </div>
+      {% }) %}
+    </div>
   </section>
 
   <section class="os-psr-footer">
