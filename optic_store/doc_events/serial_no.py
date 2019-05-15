@@ -7,13 +7,14 @@ import frappe
 
 
 def after_insert(doc, method):
-    item = frappe.get_doc("Item", doc.item_code)
-    if item.is_gift_card:
+    is_gift_card = frappe.db.get_value("Item", doc.item_code, "is_gift_card")
+    if is_gift_card:
+        gift_card_value = frappe.db.get_value("Item", doc.item_code, "gift_card_value")
         frappe.get_doc(
             {
                 "doctype": "Gift Card",
                 "gift_card_no": doc.serial_no,
-                "amount": item.gift_card_value,
+                "amount": gift_card_value,
             }
         ).insert()
 
