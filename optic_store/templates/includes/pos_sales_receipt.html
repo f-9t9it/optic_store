@@ -69,6 +69,12 @@
   .os-psr-header-content dd.text-right {
     flex: 1 1 auto;
   }
+  .os-psr-header-new-indicator {
+    text-transform: uppercase;
+    font-weight: normal;
+    font-size: 0.75em;
+    color: #8d99a6;
+  }
 
   .os-psr dl {
     margin: 0;
@@ -178,8 +184,10 @@
       <dl>
         <dt>Name / ID</dt>
         <dd>
-          {{ customer_pos_id ? customer : customer_name }} / {{ customer_pos_id ? '' :
-          customer }}
+          {{ customer_doc.customer_name }} / {{ customer_doc.customer_id }}
+          {% if (customer_doc.is_new) { %}
+            <span class="os-psr-header-new-indicator">new</span>
+          {% } %}
         </dd>
       </dl>
       <dl>
