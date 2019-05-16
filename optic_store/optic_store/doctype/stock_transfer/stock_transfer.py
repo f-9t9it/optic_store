@@ -16,6 +16,15 @@ from optic_store.utils import pick, sum_by
 
 class StockTransfer(Document):
     def validate(self):
+        user_branch = get_user_branch()
+        if self.source_branch != user_branch:
+            frappe.throw(
+                _(
+                    "Only allowed for Source branch set to User branch: {}".format(
+                        user_branch
+                    )
+                )
+            )
         if self.source_branch == self.target_branch:
             frappe.throw(_("Source and Target Branches cannot be the same"))
         if not self.source_warehouse:
