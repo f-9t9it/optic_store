@@ -37,7 +37,7 @@ workflow = {
             "next_state": "In Transit",
             "allowed": "Stock User",
             "allow_self_approval": 1,
-            "condition": "doc.owner == frappe.session.user",
+            "condition": "frappe.db.get_value('Has Role', filters={'role': 'System Manager', 'parent': frappe.session.user }) or doc.owner == frappe.session.user",  # noqa
         },
         {
             "state": "In Transit",
@@ -45,7 +45,7 @@ workflow = {
             "next_state": "Cancelled",
             "allowed": "Stock User",
             "allow_self_approval": 1,
-            "condition": "doc.owner == frappe.session.user",
+            "condition": "frappe.db.get_value('Has Role', filters={'role': 'System Manager', 'parent': frappe.session.user }) or doc.owner == frappe.session.user",  # noqa
         },
         {
             "state": "In Transit",
@@ -53,14 +53,7 @@ workflow = {
             "next_state": "Received",
             "allowed": "Sales User",
             "allow_self_approval": 1,
-            "condition": "frappe.session.user == frappe.db.get_value('Branch', doc.target_branch, 'os_user') or frappe.db.get_value('Employee', filters={'user_id': frappe.session.user}, fieldname='branch')",  # noqa
-        },
-        {
-            "state": "Received",
-            "action": "Cancel",
-            "next_state": "Cancelled",
-            "allowed": "Stock User",
-            "allow_self_approval": 1,
+            "condition": "frappe.db.get_value('Has Role', filters={'role': 'System Manager', 'parent': frappe.session.user }) or frappe.session.user == frappe.db.get_value('Branch', doc.target_branch, 'os_user') or frappe.db.get_value('Employee', filters={'user_id': frappe.session.user}, fieldname='branch')",  # noqa
         },
     ],
 }
