@@ -95,11 +95,14 @@ export default class DeliverDialog {
               mode_of_payment === 'Gift Card' ? { gift_card_no } : {}
             )
           );
-        const total_paid = payments.reduce((a, { amount = 0 }) => a + amount, 0);
+        const total_paid = flt(
+          payments.reduce((a, { amount = 0 }) => a + amount, 0),
+          precision('outstanding_amount')
+        );
         if (total_paid > frm.doc.outstanding_amount) {
           return frappe.throw(__('Paid amount cannot be greater than outstanding'));
         }
-        if (deliver && total_paid !== frm.doc.outstanding) {
+        if (deliver && total_paid !== frm.doc.outstanding_amount) {
           return frappe.throw(__('Paid amount must be equal to outstanding'));
         }
         this.dialog.hide();

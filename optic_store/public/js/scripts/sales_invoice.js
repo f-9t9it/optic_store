@@ -40,21 +40,33 @@ async function render_qol_button(frm) {
       (a, { delivered_qty }) => a + delivered_qty,
       0
     );
-    const { status } = frm.doc;
+    const { status, update_stock } = frm.doc;
     const { message: so_statuses = [] } = await frappe.call({
       method: 'optic_store.api.sales_invoice.get_ref_so_statuses',
       args: { sales_invoice: frm.doc.name },
     });
-    if (so_statuses.some(state => state !== 'Ready to Deliver')) {
+
+    const can_be_paid = ['Unpaid', 'Overdue'].includes(status);
+    const can_be_collected =
+      !so_statuses.some(state => state !== 'Ready to Deliver') &&
+      cint(update_stock) !== 1 &&
+      actual_qty > delivered_qty;
+
+    if (can_be_paid) {
       frm.add_custom_button(__('Payment Top Up'), function() {
-        frm.deliver_dialog && frm.deliver_dialog.payment_and_deliver(frm);
+        const deliver = false;
+        frm.deliver_dialog && frm.deliver_dialog.payment_and_deliver(frm, deliver);
       });
-    } else if (['Unpaid', 'Overdue'].includes(status) || delivered_qty < actual_qty) {
+    }
+
+    if (can_be_collected) {
       frm.add_custom_button(__('Collect Order'), function() {
         const deliver = true;
         frm.deliver_dialog && frm.deliver_dialog.payment_and_deliver(frm, deliver);
       });
-    } else {
+    }
+
+    if (!can_be_paid || !can_be_collected) {
       frm.add_custom_button(__('Print Invoice'), function() {
         frm.deliver_dialog && frm.deliver_dialog.print(frm);
       });
