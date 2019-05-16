@@ -12,7 +12,7 @@ from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
 )
 from functools import partial, reduce
-from toolz import compose, unique, pluck
+from toolz import compose, unique, pluck, concat
 
 
 @frappe.whitelist()
@@ -129,22 +129,20 @@ def get_payments(doc):
         sales_orders = _get_sales_orders(doc.name)
         so_payments = _get_payments_against("Sales Order", sales_orders)
         si_payments = _get_payments_against("Sales Invoice", [doc.name])
-        self_payments = map(
-            lambda x: {
-                "payment_entry": None,
-                "mode_of_payment": x.mode_of_payment,
-                "reference_doctype": doc.doctype,
-                "reference_name": doc.name,
-                "paid_amount": x.amount,
-            },
-            doc.payments,
-        )
+        self_payments = _get_si_self_payments(doc)
         return so_payments + si_payments + self_payments
     if doc.doctype == "Sales Order":
         so_payments = _get_payments_against("Sales Order", [doc.name])
         sales_invoices = _get_sales_invoices(doc.name)
         si_payments = _get_payments_against("Sales Invoice", sales_invoices)
-        return so_payments + si_payments
+
+        get_si_self_payment = compose(
+            _get_si_self_payments, partial(frappe.get_doc, "Sales Invoice")
+        )
+        si_self_payments = compose(list, concat, partial(map, get_si_self_payment))(
+            sales_invoices
+        )
+        return so_payments + si_payments + si_self_payments
     return []
 
 
@@ -160,13 +158,14 @@ def _get_sales_invoices(sales_order):
     q = frappe.db.sql(
         """
             SELECT sii.parent AS name
-            FROM `tabSales Invoice Item`
+            FROM `tabSales Invoice Item` AS sii
             LEFT JOIN `tabSales Invoice` AS si ON sii.parent = si.name
             WHERE si.docstatus = 1 AND sii.sales_order = %(sales_order)s
         """,
         values={"sales_order": sales_order},
+        as_dict=1,
     )
-    get_si_names = compose(unique, partial(pluck, "name"))
+    get_si_names = compose(list, unique, partial(pluck, "name"))
     return get_si_names(q)
 
 
@@ -174,7 +173,8 @@ def _get_payments_against(doctype, names):
     return frappe.db.sql(
         """
             SELECT
-                pe.name AS payment_entry,
+                pe.name AS payment_name,
+                'Payment Entry' AS payment_doctype,
                 pe.posting_date AS posting_date,
                 pe.mode_of_payment AS mode_of_payment,
                 per.reference_doctype AS reference_doctype,
@@ -191,6 +191,18 @@ def _get_payments_against(doctype, names):
         """,
         values={"doctype": doctype, "names": list(names)},
         as_dict=1,
+    )
+
+
+def _get_si_self_payments(doc):
+    return map(
+        lambda x: {
+            "payment_name": doc.name,
+            "payment_doctype": doc.doctype,
+            "mode_of_payment": x.mode_of_payment,
+            "paid_amount": x.amount,
+        },
+        doc.payments,
     )
 
 
