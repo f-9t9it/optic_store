@@ -133,14 +133,19 @@
       <dt>{{ _('Total Amount') }}</dt>
       <dd>{{ doc.get_formatted('total') }}</dd>
     </dl>
-    {%- for payment in get_advance_payments(doc) -%}
+    {%- set payments = get_advance_payments(doc) -%}
     <dl>
-      <dt>
-        {{ _('Amount received from ') + payment.payment_entry if payment.payment_entry
-        else _('Amount received on this invoice') }}
-      </dt>
-      <dd>{{ frappe.utils.fmt_money(payment.paid_amount, currency=doc.currency) }}</dd>
+      <dt>{{ _('Total Received') }}</dt>
+      <dd>
+        {{ frappe.utils.fmt_money(payments|sum(attribute='paid_amount'),
+        currency=doc.currency) }}
+      </dd>
     </dl>
+    {%- for payment in payments -%}
+    <div class="os-sof-totals-payment">
+      {{ payment.payment_name }}: {{ frappe.utils.fmt_money(payment.paid_amount,
+      currency=doc.currency) }}
+    </div>
     {%- endfor -%}
   </div>
   <div class="os-lof-footer">

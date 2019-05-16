@@ -135,14 +135,24 @@
         <dt>{{ _('Rounding Adjustment') }}</dt>
         <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
       </dl>
-      <dl>
+      <dl class="os-sr-totals-divide">
         <dt>{{ _('Total Amount') }}</dt>
         <dd>{{ doc.get_formatted('total') }}</dd>
       </dl>
+      {%- set payments = get_advance_payments(doc) -%}
       <dl>
-        <dt>{{ _('Cash Received') }}</dt>
-        <dd>{{ doc.get_formatted('advance_paid') }}</dd>
+        <dt>{{ _('Total Received') }}</dt>
+        <dd>
+          {{ frappe.utils.fmt_money(payments|sum(attribute='paid_amount'),
+          currency=doc.currency) }}
+        </dd>
       </dl>
+      {%- for payment in payments -%}
+      <div class="os-sof-totals-payment">
+        {{ payment.payment_name }}: {{ frappe.utils.fmt_money(payment.paid_amount,
+        currency=doc.currency) }}
+      </div>
+      {%- endfor -%}
     </div>
   </div>
   <div class="os-sr-terms">
