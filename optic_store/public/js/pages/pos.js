@@ -444,9 +444,10 @@ export default function extend_pos(PosClass) {
       if (!this.frm.doc.customer_pos_id) {
         this.frm.doc.customer_pos_id = null;
       }
-      const sales_person = this.sales_persons_data.find(
-        ({ value }) => (value = this.frm.doc.os_sales_person) || {}
-      );
+      const sales_person =
+        this.sales_persons_data.find(
+          ({ value }) => value === this.frm.doc.os_sales_person
+        ) || {};
       this.frm.doc.sales_person_name = sales_person.label;
       return invoice_data;
     }
