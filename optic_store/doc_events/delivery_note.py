@@ -19,7 +19,7 @@ def validate(doc, method):
     if sales_orders and not _are_billed(sales_orders):
         frappe.throw("Reference Sales Order not billed fully")
     if sales_orders and not _are_paid(sales_orders):
-        frappe.throw("Sales Invoice not paid fully")
+        frappe.throw("Cannot deliver until Sales Invoice is fully paid")
 
 
 def _are_billed(sales_orders):

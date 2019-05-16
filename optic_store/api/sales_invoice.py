@@ -6,17 +6,22 @@ from __future__ import unicode_literals
 import json
 import frappe
 from frappe import _
-from frappe.utils import nowdate
+from frappe.utils import nowdate, cint
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
 from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
 )
 from functools import partial, reduce
-from toolz import compose, unique, pluck, concat
+from toolz import compose, unique, pluck, concat, merge
+
+from optic_store.utils import sum_by
 
 
 @frappe.whitelist()
-def payment_qol(name, payments):
+def deliver_qol(name, payments=[], deliver=0):
+    is_delivery = cint(deliver)
+    si = frappe.get_doc("Sales Invoice", name)
+
     def make_payment(payment):
         pe = _make_payment_entry(
             name,
@@ -29,12 +34,13 @@ def payment_qol(name, payments):
         pe.name
 
     make_payments = compose(partial(map, make_payment), json.loads)
-    return make_payments(payments)
+    pe_names = make_payments(payments) if payments else []
 
+    result = {"payment_entries": pe_names}
 
-@frappe.whitelist()
-def deliver_qol(name):
-    si = frappe.get_doc("Sales Invoice", name)
+    def si_deliverable(items):
+        return sum_by("qty")(items) > sum_by("delivered_qty")(items)
+
     sos_deliverable = compose(
         lambda states: reduce(lambda a, x: a and x == "Ready to Deliver", states, True),
         partial(map, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")),
@@ -42,24 +48,28 @@ def deliver_qol(name):
         partial(filter, lambda x: x),
         partial(map, lambda x: x.sales_order),
     )
-    if not sos_deliverable(si.items):
-        return frappe.throw(
-            _("Cannot make delivery until Sales Order status is 'Ready to Deliver'")
+    if is_delivery:
+        if si.update_stock or not si_deliverable(si.items):
+            return frappe.throw(_("Delivery has already been processed"))
+        if not sos_deliverable(si.items):
+            return frappe.throw(
+                _("Cannot make delivery until Sales Order status is 'Ready to Deliver'")
+            )
+        dn = make_delivery_note(name)
+        dn.os_branch = si.os_branch
+        warehouse = (
+            frappe.db.get_value("Branch", si.os_branch, "warehouse")
+            if si.os_branch
+            else None
         )
-    dn = make_delivery_note(name)
-    dn.os_branch = si.os_branch
-    warehouse = (
-        frappe.db.get_value("Branch", si.os_branch, "warehouse")
-        if si.os_branch
-        else None
-    )
-    if warehouse:
-        for item in dn.items:
-            item.warehouse = warehouse
-    dn.insert(ignore_permissions=True)
-    dn.submit()
+        if warehouse:
+            for item in dn.items:
+                item.warehouse = warehouse
+        dn.insert(ignore_permissions=True)
+        dn.submit()
+        result = merge(result, {"delivery_note": dn.name})
 
-    return dn.name
+    return result
 
 
 def _make_payment_entry(name, mode_of_payment, paid_amount, gift_card_no):

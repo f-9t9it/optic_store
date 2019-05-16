@@ -95,28 +95,21 @@ export default class DeliverDialog {
               mode_of_payment === 'Gift Card' ? { gift_card_no } : {}
             )
           );
-        if (
-          payments.reduce((a, { amount = 0 }) => a + amount, 0) >
-          frm.doc.outstanding_amount
-        ) {
+        const total_paid = payments.reduce((a, { amount = 0 }) => a + amount, 0);
+        if (total_paid > frm.doc.outstanding_amount) {
           return frappe.throw(__('Paid amount cannot be greater than outstanding'));
+        }
+        if (deliver && total_paid !== frm.doc.outstanding) {
+          return frappe.throw(__('Paid amount must be equal to outstanding'));
         }
         this.dialog.hide();
         try {
           await frappe.call({
-            method: 'optic_store.api.sales_invoice.payment_qol',
+            method: 'optic_store.api.sales_invoice.deliver_qol',
             freeze: true,
-            freeze_message: __('Creating Payment Entries'),
-            args: { name, payments },
+            freeze_message: __('Creating Payment Entry / Delivery Note'),
+            args: { name, payments, deliver: deliver ? 1 : 0 },
           });
-          if (deliver) {
-            await frappe.call({
-              method: 'optic_store.api.sales_invoice.deliver_qol',
-              freeze: true,
-              freeze_message: __('Creating Delivery Note'),
-              args: { name },
-            });
-          }
         } finally {
           frm.reload_doc();
         }
