@@ -1,4 +1,4 @@
-import { print_doc } from './InvoiceDialog';
+import { print_doc, set_amount } from './InvoiceDialog';
 
 export default class DeliverDialog {
   constructor(print_formats = [], mode_of_payments = []) {
@@ -95,28 +95,24 @@ export default class DeliverDialog {
               mode_of_payment === 'Gift Card' ? { gift_card_no } : {}
             )
           );
-        if (
-          payments.reduce((a, { amount = 0 }) => a + amount, 0) >
-          frm.doc.outstanding_amount
-        ) {
+        const total_paid = flt(
+          payments.reduce((a, { amount = 0 }) => a + amount, 0),
+          precision('outstanding_amount')
+        );
+        if (total_paid > frm.doc.outstanding_amount) {
           return frappe.throw(__('Paid amount cannot be greater than outstanding'));
+        }
+        if (deliver && total_paid !== frm.doc.outstanding_amount) {
+          return frappe.throw(__('Paid amount must be equal to outstanding'));
         }
         this.dialog.hide();
         try {
           await frappe.call({
-            method: 'optic_store.api.sales_invoice.payment_qol',
+            method: 'optic_store.api.sales_invoice.deliver_qol',
             freeze: true,
-            freeze_message: __('Creating Payment Entries'),
-            args: { name, payments },
+            freeze_message: __('Creating Payment Entry / Delivery Note'),
+            args: { name, payments, deliver: deliver ? 1 : 0 },
           });
-          if (deliver) {
-            await frappe.call({
-              method: 'optic_store.api.sales_invoice.deliver_qol',
-              freeze: true,
-              freeze_message: __('Creating Delivery Note'),
-              args: { name },
-            });
-          }
         } finally {
           frm.reload_doc();
         }
@@ -163,8 +159,7 @@ export default class DeliverDialog {
   }
   set_payments(frm) {
     this.dialog.fields_dict.payments.grid.grid_rows.forEach(gr => {
-      gr.doc.amount = 0;
-      gr.refresh_field('amount');
+      set_amount(gr, 0);
     });
 
     let amount_to_set = frm.doc.outstanding_amount;
@@ -173,16 +168,14 @@ export default class DeliverDialog {
       ({ doc }) => doc.mode_of_payment === 'Gift Card'
     );
     if (gift_card_balance && gift_card_gr) {
-      gift_card_gr.doc.amount = Math.min(gift_card_balance, amount_to_set);
-      gift_card_gr.refresh_field('amount');
+      set_amount(gift_card_gr, Math.min(gift_card_balance, amount_to_set));
       amount_to_set -= gift_card_gr.doc.amount;
     }
     const first_payment_gr = this.dialog.fields_dict.payments.grid.grid_rows.filter(
       ({ doc }) => doc.mode_of_payment !== 'Gift Card'
     )[0];
     if (first_payment_gr) {
-      first_payment_gr.doc.amount = amount_to_set;
-      first_payment_gr.refresh_field('amount');
+      set_amount(first_payment_gr, amount_to_set);
     }
   }
   async print(frm) {

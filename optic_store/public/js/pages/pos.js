@@ -356,7 +356,10 @@ export default function extend_pos(PosClass) {
       super.make_offline_customer(new_customer);
       const values = this.customer_doc.get_values();
       this.customers_details_data[this.frm.doc.customer] = Object.assign(
-        {},
+        {
+          customer_pos_id: values.customer_pos_id,
+          full_name: values.full_name,
+        },
         this.customers_details_data[this.frm.doc.customer],
         pick(values, CUSTOMER_DETAILS_FIELDS)
       );
@@ -432,6 +435,27 @@ export default function extend_pos(PosClass) {
       super.submit_invoice();
     }
     create_invoice() {
+      function get_offline_customer(customer) {
+        const docjson = (JSON.parse(localStorage.getItem('customer_details')) || {})[
+          customer
+        ];
+        return docjson ? JSON.parse(docjson) : {};
+      }
+      const get_customer_doc = customer => {
+        const doc = this.customers_details_data[customer];
+        if (doc) {
+          return Object.assign(doc, { customer_id: doc.name });
+        }
+        const offline_doc = get_offline_customer(customer);
+        if (offline_doc) {
+          return Object.assign(offline_doc, {
+            is_new: true,
+            customer_name: offline_doc.full_name,
+            customer_id: null,
+          });
+        }
+        return {};
+      };
       const invoice_data = super.create_invoice();
       // this is possible because invoice_data already references this.frm.doc
       // this will be used by the print format to render barcodes
@@ -439,14 +463,12 @@ export default function extend_pos(PosClass) {
         this.frm.doc.offline_pos_name
       );
       this.frm.doc.branch_doc = this.branch_details;
-      this.frm.doc.customer_doc =
-        this.customers_details_data[this.frm.doc.customer] || {};
-      if (!this.frm.doc.customer_pos_id) {
-        this.frm.doc.customer_pos_id = null;
-      }
-      const sales_person = this.sales_persons_data.find(
-        ({ value }) => (value = this.frm.doc.os_sales_person) || {}
-      );
+      this.frm.doc.customer_doc = get_customer_doc(this.frm.doc.customer);
+      console.log(this.frm.doc.customer_doc);
+      const sales_person =
+        this.sales_persons_data.find(
+          ({ value }) => value === this.frm.doc.os_sales_person
+        ) || {};
       this.frm.doc.sales_person_name = sales_person.label;
       return invoice_data;
     }

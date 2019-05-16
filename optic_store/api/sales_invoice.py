@@ -6,17 +6,22 @@ from __future__ import unicode_literals
 import json
 import frappe
 from frappe import _
-from frappe.utils import nowdate
+from frappe.utils import nowdate, cint
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
 from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
 )
 from functools import partial, reduce
-from toolz import compose, unique
+from toolz import compose, unique, pluck, concat, merge
+
+from optic_store.utils import sum_by
 
 
 @frappe.whitelist()
-def payment_qol(name, payments):
+def deliver_qol(name, payments=[], deliver=0):
+    is_delivery = cint(deliver)
+    si = frappe.get_doc("Sales Invoice", name)
+
     def make_payment(payment):
         pe = _make_payment_entry(
             name,
@@ -29,12 +34,13 @@ def payment_qol(name, payments):
         pe.name
 
     make_payments = compose(partial(map, make_payment), json.loads)
-    return make_payments(payments)
+    pe_names = make_payments(payments) if payments else []
 
+    result = {"payment_entries": pe_names}
 
-@frappe.whitelist()
-def deliver_qol(name):
-    si = frappe.get_doc("Sales Invoice", name)
+    def si_deliverable(items):
+        return sum_by("qty")(items) > sum_by("delivered_qty")(items)
+
     sos_deliverable = compose(
         lambda states: reduce(lambda a, x: a and x == "Ready to Deliver", states, True),
         partial(map, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")),
@@ -42,24 +48,28 @@ def deliver_qol(name):
         partial(filter, lambda x: x),
         partial(map, lambda x: x.sales_order),
     )
-    if not sos_deliverable(si.items):
-        return frappe.throw(
-            _("Cannot make delivery until Sales Order status is 'Ready to Deliver'")
+    if is_delivery:
+        if si.update_stock or not si_deliverable(si.items):
+            return frappe.throw(_("Delivery has already been processed"))
+        if not sos_deliverable(si.items):
+            return frappe.throw(
+                _("Cannot make delivery until Sales Order status is 'Ready to Deliver'")
+            )
+        dn = make_delivery_note(name)
+        dn.os_branch = si.os_branch
+        warehouse = (
+            frappe.db.get_value("Branch", si.os_branch, "warehouse")
+            if si.os_branch
+            else None
         )
-    dn = make_delivery_note(name)
-    dn.os_branch = si.os_branch
-    warehouse = (
-        frappe.db.get_value("Branch", si.os_branch, "warehouse")
-        if si.os_branch
-        else None
-    )
-    if warehouse:
-        for item in dn.items:
-            item.warehouse = warehouse
-    dn.insert(ignore_permissions=True)
-    dn.submit()
+        if warehouse:
+            for item in dn.items:
+                item.warehouse = warehouse
+        dn.insert(ignore_permissions=True)
+        dn.submit()
+        result = merge(result, {"delivery_note": dn.name})
 
-    return dn.name
+    return result
 
 
 def _make_payment_entry(name, mode_of_payment, paid_amount, gift_card_no):
@@ -125,64 +135,102 @@ def search_serial_or_batch_or_barcode_number(search_value):
 
 
 def get_payments(doc):
-    sales_orders = _get_sales_orders(doc.name)
-    so_payments = _get_payments_against(
-        "Sales Order", map(lambda x: x.name, sales_orders)
-    )
-    si_payments = _get_payments_against("Sales Invoice", [doc.name])
-    self_payments = map(
-        lambda x: {
-            "payment_entry": None,
-            "reference_doctype": doc.doctype,
-            "reference_name": doc.name,
-            "paid_amount": x.amount,
-        },
-        doc.payments,
-    )
-    return so_payments + si_payments + self_payments
+    if doc.doctype == "Sales Invoice":
+        sales_orders = _get_sales_orders(doc.name)
+        so_payments = _get_payments_against("Sales Order", sales_orders)
+        si_payments = _get_payments_against("Sales Invoice", [doc.name])
+        self_payments = _get_si_self_payments(doc)
+        return so_payments + si_payments + self_payments
+    if doc.doctype == "Sales Order":
+        so_payments = _get_payments_against("Sales Order", [doc.name])
+        sales_invoices = _get_sales_invoices(doc.name)
+        si_payments = _get_payments_against("Sales Invoice", sales_invoices)
+
+        get_si_self_payment = compose(
+            _get_si_self_payments, partial(frappe.get_doc, "Sales Invoice")
+        )
+        si_self_payments = compose(list, concat, partial(map, get_si_self_payment))(
+            sales_invoices
+        )
+        return so_payments + si_payments + si_self_payments
+    return []
 
 
 def _get_sales_orders(sales_invoice):
     doc = frappe.get_doc("Sales Invoice", sales_invoice)
-    if not doc:
-        return None
-    sos = compose(
+    get_so_names = compose(
         unique, partial(filter, lambda x: x), partial(map, lambda x: x.sales_order)
-    )(doc.items)
-    return map(lambda x: frappe.get_doc("Sales Order", x), sos)
+    )
+    return get_so_names(doc.items)
+
+
+def _get_sales_invoices(sales_order):
+    q = frappe.db.sql(
+        """
+            SELECT sii.parent AS name
+            FROM `tabSales Invoice Item` AS sii
+            LEFT JOIN `tabSales Invoice` AS si ON sii.parent = si.name
+            WHERE si.docstatus = 1 AND sii.sales_order = %(sales_order)s
+        """,
+        values={"sales_order": sales_order},
+        as_dict=1,
+    )
+    get_si_names = compose(list, unique, partial(pluck, "name"))
+    return get_si_names(q)
 
 
 def _get_payments_against(doctype, names):
-    if not names:
-        return []
     return frappe.db.sql(
         """
             SELECT
-                pe.name AS payment_entry,
+                pe.name AS payment_name,
+                'Payment Entry' AS payment_doctype,
+                pe.posting_date AS posting_date,
+                pe.mode_of_payment AS mode_of_payment,
                 per.reference_doctype AS reference_doctype,
-                per.reference_name AS reference_name2,
+                per.reference_name AS reference_name,
                 SUM(per.allocated_amount) AS paid_amount
             FROM `tabPayment Entry Reference` AS per
             LEFT JOIN `tabPayment Entry` AS pe ON
                 per.parent = pe.name
             WHERE
+                pe.docstatus = 1 AND
                 per.reference_doctype = %(doctype)s AND
                 per.reference_name IN %(names)s
             GROUP BY pe.name
         """,
-        values={"doctype": doctype, "names": names},
+        values={"doctype": doctype, "names": list(names)},
         as_dict=1,
     )
 
 
-def get_ref_so_date(sales_invoice):
-    sos = _get_sales_orders(sales_invoice)
-    return (
-        compose(min, partial(map, lambda x: x.transaction_date))(sos) if sos else None
+def _get_si_self_payments(doc):
+    return map(
+        lambda x: {
+            "payment_name": doc.name,
+            "payment_doctype": doc.doctype,
+            "mode_of_payment": x.mode_of_payment,
+            "paid_amount": x.amount,
+        },
+        doc.payments,
     )
+
+
+def get_ref_so_date(sales_invoice):
+    get_transaction_dates = compose(
+        min,
+        partial(
+            map, lambda x: frappe.db.get_value("Sales Order", x, "transaction_date")
+        ),
+        _get_sales_orders,
+    )
+    return get_transaction_dates(sales_invoice)
 
 
 @frappe.whitelist()
 def get_ref_so_statuses(sales_invoice):
-    sos = _get_sales_orders(sales_invoice)
-    return compose(partial(map, lambda x: x.workflow_state))(sos) if sos else None
+    get_statuses = compose(
+        partial(map, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")),
+        _get_sales_orders,
+    )
+    return get_statuses(sales_invoice)

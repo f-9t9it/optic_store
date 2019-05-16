@@ -69,6 +69,12 @@
   .os-psr-header-content dd.text-right {
     flex: 1 1 auto;
   }
+  .os-psr-header-new-indicator {
+    text-transform: uppercase;
+    font-weight: normal;
+    font-size: 0.75em;
+    color: #8d99a6;
+  }
 
   .os-psr dl {
     margin: 0;
@@ -107,7 +113,7 @@
     table-layout: fixed;
   }
   .os-psr-items > table th,
-  .os-psr-items > table td  {
+  .os-psr-items > table td {
     padding: 0 2pt !important;
     background-color: transparent !important;
   }
@@ -171,15 +177,17 @@
       </dl>
       <dl>
         <dt>Invoice Date</dt>
-        <dd>{{ posting_date }}</dd>
+        <dd>{{ frappe.datetime.str_to_user(posting_date) }}</dd>
       </dl>
     </div>
     <div>
       <dl>
         <dt>Name / ID</dt>
         <dd>
-          {{ customer_pos_id ? customer : customer_name }} / {{ customer_pos_id ? '' :
-          customer }}
+          {{ customer_doc.customer_name }} / {{ customer_doc.customer_id }}
+          {% if (customer_doc.is_new) { %}
+            <span class="os-psr-header-new-indicator">new</span>
+          {% } %}
         </dd>
       </dl>
       <dl>
@@ -238,10 +246,6 @@
     {% } %}
     <div class="os-psr-totals">
       <dl>
-        <dt>Rounding Adjustment</dt>
-        <dd>{{ fmt_money(rounding_adjustment) }}</dd>
-      </dl>
-      <dl>
         <dt>Total Bill Amount</dt>
         <dd>{{ fmt_money(total) }}</dd>
       </dl>
@@ -253,8 +257,11 @@
         <dt>Total Received</dt>
         <dd>{{ fmt_money(paid_amount) }}</dd>
       </dl>
-      {% payments.filter(({ amount }) => amount > 0).forEach(({ mode_of_payment, amount }) => { %}
-      <div class="os-psr-totals-payment">{{ mode_of_payment }}: {{ fmt_money(amount) }} </div>
+      {% payments.filter(({ amount }) => amount > 0).forEach(({ mode_of_payment, amount
+      }) => { %}
+      <div class="os-psr-totals-payment">
+        {{ mode_of_payment }}: {{ fmt_money(amount) }}
+      </div>
       {% }) %}
     </div>
   </section>

@@ -16,6 +16,15 @@ from optic_store.utils import pick, sum_by
 
 class StockTransfer(Document):
     def validate(self):
+        user_branch = get_user_branch()
+        if not _is_sys_mgr() and self.source_branch != user_branch:
+            frappe.throw(
+                _(
+                    "Source branch only allowed to be set to User branch: {}".format(
+                        user_branch
+                    )
+                )
+            )
         if self.source_branch == self.target_branch:
             frappe.throw(_("Source and Target Branches cannot be the same"))
         if not self.source_warehouse:
@@ -34,6 +43,9 @@ class StockTransfer(Document):
             self.outgoing_datetime = now()
         self.set_missing_fields()
 
+    def before_submit(self):
+        self.validate_owner()
+
     def on_submit(self):
         if self.workflow_state == "In Transit":
             warehouses = self.get_warehouses(incoming=False)
@@ -49,6 +61,15 @@ class StockTransfer(Document):
             self.set_ref_doc("outgoing_stock_entry", ref_doc)
 
     def before_update_after_submit(self):
+        if not _is_sys_mgr() and self.target_branch != get_user_branch():
+            frappe.throw(
+                _(
+                    "Only users from Branch: {} can perform this".format(
+                        self.target_branch
+                    )
+                )
+            )
+
         if not self.incoming_datetime:
             self.incoming_datetime = now()
         self.validate_dates()
@@ -68,8 +89,7 @@ class StockTransfer(Document):
             self.set_ref_doc("incoming_stock_entry", ref_doc)
 
     def before_cancel(self):
-        if self.target_branch == get_user_branch():
-            frappe.throw(_("Users from Target branch cannot Cancel"))
+        self.validate_owner()
 
     def on_cancel(self):
         if self.incoming_stock_entry:
@@ -89,6 +109,10 @@ class StockTransfer(Document):
     def validate_dates(self):
         if get_datetime(self.outgoing_datetime) > get_datetime(self.incoming_datetime):
             frappe.throw(_("Outgoing Datetime cannot be after Incoming Datetime"))
+
+    def validate_owner(self):
+        if not _is_sys_mgr() and self.owner != frappe.session.user:
+            frappe.throw(_("Only document owner can perform this"))
 
     def set_ref_doc(self, field, ref_doc):
         self.db_set(field, ref_doc)
@@ -162,3 +186,7 @@ def _make_stock_entry(args):
     doc.insert()
     doc.submit()
     return doc.name
+
+
+def _is_sys_mgr():
+    return "System Manager" in frappe.get_roles(frappe.session.user)
