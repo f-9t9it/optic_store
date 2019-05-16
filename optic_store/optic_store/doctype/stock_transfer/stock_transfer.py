@@ -17,10 +17,10 @@ from optic_store.utils import pick, sum_by
 class StockTransfer(Document):
     def validate(self):
         user_branch = get_user_branch()
-        if self.source_branch != user_branch:
+        if not _is_sys_mgr() and self.source_branch != user_branch:
             frappe.throw(
                 _(
-                    "Only allowed for Source branch set to User branch: {}".format(
+                    "Source branch only allowed to be set to User branch: {}".format(
                         user_branch
                     )
                 )
@@ -61,10 +61,7 @@ class StockTransfer(Document):
             self.set_ref_doc("outgoing_stock_entry", ref_doc)
 
     def before_update_after_submit(self):
-        if self.owner == frappe.session.user:
-            frappe.throw(_("Only document owner cannot perform this"))
-
-        if self.target_branch != get_user_branch():
+        if not _is_sys_mgr() and self.target_branch != get_user_branch():
             frappe.throw(
                 _(
                     "Only users from Branch: {} can perform this".format(
@@ -114,7 +111,7 @@ class StockTransfer(Document):
             frappe.throw(_("Outgoing Datetime cannot be after Incoming Datetime"))
 
     def validate_owner(self):
-        if self.owner != frappe.session.user:
+        if not _is_sys_mgr() and self.owner != frappe.session.user:
             frappe.throw(_("Only document owner can perform this"))
 
     def set_ref_doc(self, field, ref_doc):
@@ -189,3 +186,7 @@ def _make_stock_entry(args):
     doc.insert()
     doc.submit()
     return doc.name
+
+
+def _is_sys_mgr():
+    return "System Manager" in frappe.get_roles(frappe.session.user)
