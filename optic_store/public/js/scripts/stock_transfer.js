@@ -91,7 +91,6 @@ async function toggle_cancel_action(frm) {
   const { message: branch } = await frappe.call({
     method: 'optic_store.api.customer.get_user_branch',
   });
-  console.log(branch);
   frm.page.actions
     .find('a.grey-link:contains("Cancel")')
     .toggle(
@@ -110,7 +109,6 @@ export default {
   },
   onload_post_render: function(frm) {
     // workflow related ui changes need to be here
-    toggle_cancel_action(frm);
     if (frm.doc.workflow_state === 'In Transit') {
       set_route_to_list(frm);
     }

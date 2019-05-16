@@ -37,6 +37,7 @@ workflow = {
             "next_state": "In Transit",
             "allowed": "Stock User",
             "allow_self_approval": 1,
+            "condition": "doc.owner == frappe.session.user",
         },
         {
             "state": "In Transit",
@@ -44,6 +45,7 @@ workflow = {
             "next_state": "Cancelled",
             "allowed": "Stock User",
             "allow_self_approval": 1,
+            "condition": "doc.owner == frappe.session.user",
         },
         {
             "state": "In Transit",
