@@ -147,9 +147,9 @@
           currency=doc.currency) }}
         </dd>
       </dl>
-      {%- for payment in payments -%}
+      {%- for mop, list in payments|groupby('mode_of_payment') -%}
       <div class="os-sof-totals-payment">
-        {{ payment.payment_name }}: {{ frappe.utils.fmt_money(payment.paid_amount,
+        {{ mop }}: {{ frappe.utils.fmt_money(list|sum(attribute='paid_amount'),
         currency=doc.currency) }}
       </div>
       {%- endfor -%}
