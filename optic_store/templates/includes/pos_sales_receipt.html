@@ -107,7 +107,7 @@
     table-layout: fixed;
   }
   .os-psr-items > table th,
-  .os-psr-items > table td  {
+  .os-psr-items > table td {
     padding: 0 2pt !important;
     background-color: transparent !important;
   }
@@ -171,7 +171,7 @@
       </dl>
       <dl>
         <dt>Invoice Date</dt>
-        <dd>{{ posting_date }}</dd>
+        <dd>{{ frappe.datetime.str_to_user(posting_date) }}</dd>
       </dl>
     </div>
     <div>
@@ -253,8 +253,11 @@
         <dt>Total Received</dt>
         <dd>{{ fmt_money(paid_amount) }}</dd>
       </dl>
-      {% payments.filter(({ amount }) => amount > 0).forEach(({ mode_of_payment, amount }) => { %}
-      <div class="os-psr-totals-payment">{{ mode_of_payment }}: {{ fmt_money(amount) }} </div>
+      {% payments.filter(({ amount }) => amount > 0).forEach(({ mode_of_payment, amount
+      }) => { %}
+      <div class="os-psr-totals-payment">
+        {{ mode_of_payment }}: {{ fmt_money(amount) }}
+      </div>
       {% }) %}
     </div>
   </section>
