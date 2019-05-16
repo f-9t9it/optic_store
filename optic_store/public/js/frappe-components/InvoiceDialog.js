@@ -14,6 +14,21 @@ export function print_doc(doctype, docname, print_format, no_letterhead) {
   }
 }
 
+export async function set_amount(gr, amount) {
+  // this is necessary because gr.get_field throws 'fieldname not found' error the
+  // first time the dialog is opened. furthermore, the code in the catch block is
+  // unable to handle succeeding opens. catch block handles the first run;
+  // succeeding opens by the try block. the issue - if using the catch block code -
+  // for all opens is that succeeding opens will set the value in doc properly,
+  // but the ui input field will remain with the value from the previous open
+  try {
+    await gr.get_field('amount').set_value(amount);
+  } catch (e) {
+    gr.doc.amount = amount;
+    gr.refresh_field('amount');
+  }
+}
+
 export default class InvoiceDialog {
   constructor(print_formats = [], mode_of_payments = []) {
     this.mode_of_payments = mode_of_payments.map(mode_of_payment => ({
@@ -201,8 +216,7 @@ export default class InvoiceDialog {
   }
   set_payments(frm) {
     this.dialog.fields_dict.payments.grid.grid_rows.forEach(gr => {
-      gr.doc.amount = 0;
-      gr.refresh_field('amount');
+      set_amount(gr, 0);
     });
 
     let amount_to_set = frm.doc.rounded_total - this.state.loyalty_amount_redeem;
@@ -214,16 +228,14 @@ export default class InvoiceDialog {
       ({ doc }) => doc.mode_of_payment === 'Gift Card'
     );
     if (gift_card_balance && gift_card_gr) {
-      gift_card_gr.doc.amount = Math.min(gift_card_balance, amount_to_set);
-      gift_card_gr.refresh_field('amount');
+      set_amount(gift_card_gr, Math.min(gift_card_balance, amount_to_set));
       amount_to_set -= gift_card_gr.doc.amount;
     }
     const first_payment_gr = this.dialog.fields_dict.payments.grid.grid_rows.filter(
       ({ doc }) => doc.mode_of_payment !== 'Gift Card'
     )[0];
     if (first_payment_gr) {
-      first_payment_gr.doc.amount = amount_to_set;
-      first_payment_gr.refresh_field('amount');
+      set_amount(first_payment_gr, amount_to_set);
     }
   }
   async handle_loyalty(frm, loyalty_card_no) {
