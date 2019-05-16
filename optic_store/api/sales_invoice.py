@@ -12,7 +12,7 @@ from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
 )
 from functools import partial, reduce
-from toolz import compose, unique
+from toolz import compose, unique, pluck
 
 
 @frappe.whitelist()
@@ -125,64 +125,90 @@ def search_serial_or_batch_or_barcode_number(search_value):
 
 
 def get_payments(doc):
-    sales_orders = _get_sales_orders(doc.name)
-    so_payments = _get_payments_against(
-        "Sales Order", map(lambda x: x.name, sales_orders)
-    )
-    si_payments = _get_payments_against("Sales Invoice", [doc.name])
-    self_payments = map(
-        lambda x: {
-            "payment_entry": None,
-            "reference_doctype": doc.doctype,
-            "reference_name": doc.name,
-            "paid_amount": x.amount,
-        },
-        doc.payments,
-    )
-    return so_payments + si_payments + self_payments
+    if doc.doctype == "Sales Invoice":
+        sales_orders = _get_sales_orders(doc.name)
+        so_payments = _get_payments_against("Sales Order", sales_orders)
+        si_payments = _get_payments_against("Sales Invoice", [doc.name])
+        self_payments = map(
+            lambda x: {
+                "payment_entry": None,
+                "mode_of_payment": x.mode_of_payment,
+                "reference_doctype": doc.doctype,
+                "reference_name": doc.name,
+                "paid_amount": x.amount,
+            },
+            doc.payments,
+        )
+        return so_payments + si_payments + self_payments
+    if doc.doctype == "Sales Order":
+        so_payments = _get_payments_against("Sales Order", [doc.name])
+        sales_invoices = _get_sales_invoices(doc.name)
+        si_payments = _get_payments_against("Sales Invoice", sales_invoices)
+        return so_payments + si_payments
+    return []
 
 
 def _get_sales_orders(sales_invoice):
     doc = frappe.get_doc("Sales Invoice", sales_invoice)
-    if not doc:
-        return None
-    sos = compose(
+    get_so_names = compose(
         unique, partial(filter, lambda x: x), partial(map, lambda x: x.sales_order)
-    )(doc.items)
-    return map(lambda x: frappe.get_doc("Sales Order", x), sos)
+    )
+    return get_so_names(doc.items)
+
+
+def _get_sales_invoices(sales_order):
+    q = frappe.db.sql(
+        """
+            SELECT sii.parent AS name
+            FROM `tabSales Invoice Item`
+            LEFT JOIN `tabSales Invoice` AS si ON sii.parent = si.name
+            WHERE si.docstatus = 1 AND sii.sales_order = %(sales_order)s
+        """,
+        values={"sales_order": sales_order},
+    )
+    get_si_names = compose(unique, partial(pluck, "name"))
+    return get_si_names(q)
 
 
 def _get_payments_against(doctype, names):
-    if not names:
-        return []
     return frappe.db.sql(
         """
             SELECT
                 pe.name AS payment_entry,
+                pe.posting_date AS posting_date,
+                pe.mode_of_payment AS mode_of_payment,
                 per.reference_doctype AS reference_doctype,
-                per.reference_name AS reference_name2,
+                per.reference_name AS reference_name,
                 SUM(per.allocated_amount) AS paid_amount
             FROM `tabPayment Entry Reference` AS per
             LEFT JOIN `tabPayment Entry` AS pe ON
                 per.parent = pe.name
             WHERE
+                pe.docstatus = 1 AND
                 per.reference_doctype = %(doctype)s AND
                 per.reference_name IN %(names)s
             GROUP BY pe.name
         """,
-        values={"doctype": doctype, "names": names},
+        values={"doctype": doctype, "names": list(names)},
         as_dict=1,
     )
 
 
 def get_ref_so_date(sales_invoice):
-    sos = _get_sales_orders(sales_invoice)
-    return (
-        compose(min, partial(map, lambda x: x.transaction_date))(sos) if sos else None
+    get_transaction_dates = compose(
+        min,
+        partial(
+            map, lambda x: frappe.db.get_value("Sales Order", x, "transaction_date")
+        ),
+        _get_sales_orders,
     )
+    return get_transaction_dates(sales_invoice)
 
 
 @frappe.whitelist()
 def get_ref_so_statuses(sales_invoice):
-    sos = _get_sales_orders(sales_invoice)
-    return compose(partial(map, lambda x: x.workflow_state))(sos) if sos else None
+    get_statuses = compose(
+        partial(map, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")),
+        _get_sales_orders,
+    )
+    return get_statuses(sales_invoice)
