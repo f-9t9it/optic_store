@@ -188,6 +188,7 @@ fixtures = [
                     "Item-quick_entry",
                     "Item-naming_series-options",
                     "Batch-search_fields",
+                    "Batch-expiry_date-bold",
                     "Sales Order-naming_series-read_only",
                     "Sales Order-order_type-hidden",
                     "Sales Order-set_warehouse-read_only",

@@ -151,6 +151,15 @@ export default {
     });
     render_prescription(frm);
     render_qol_button(frm);
+
+    // this is a hack to make the hide the 'Make' menu button
+    const hide_make_hack = setInterval(() => {
+      const make_btns = frm.page.inner_toolbar.find('div[data-label="Make"]');
+      if (make_btns.length > 0) {
+        frm.page.inner_toolbar.find('div[data-label="Make"]').hide();
+        clearInterval(hide_make_hack);
+      }
+    }, 60);
   },
   os_branch: function(frm) {
     set_naming_series(frm);

@@ -12,7 +12,7 @@ from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
 )
 from functools import partial, reduce
-from toolz import compose, unique, pluck, concat, merge
+from toolz import compose, unique, pluck, concat, merge, excepts
 
 from optic_store.utils import sum_by
 
@@ -159,7 +159,10 @@ def get_payments(doc):
 def _get_sales_orders(sales_invoice):
     doc = frappe.get_doc("Sales Invoice", sales_invoice)
     get_so_names = compose(
-        unique, partial(filter, lambda x: x), partial(map, lambda x: x.sales_order)
+        list,
+        unique,
+        partial(filter, lambda x: x),
+        partial(map, lambda x: x.sales_order),
     )
     return get_so_names(doc.items)
 
@@ -180,6 +183,8 @@ def _get_sales_invoices(sales_order):
 
 
 def _get_payments_against(doctype, names):
+    if not names:
+        return []
     return frappe.db.sql(
         """
             SELECT
@@ -218,7 +223,7 @@ def _get_si_self_payments(doc):
 
 def get_ref_so_date(sales_invoice):
     get_transaction_dates = compose(
-        min,
+        excepts(ValueError, min, lambda x: None),
         partial(
             map, lambda x: frappe.db.get_value("Sales Order", x, "transaction_date")
         ),

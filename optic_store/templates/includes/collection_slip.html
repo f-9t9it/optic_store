@@ -139,13 +139,12 @@
         <dt>{{ _('Total Amount') }}</dt>
         <dd>{{ doc.get_formatted('total') }}</dd>
       </dl>
-      {%- set payments = get_advance_payments(doc) -%}
+      {%- set payments = get_advance_payments(doc)|selectattr('payment_doctype', 'eq',
+      'Sales Invoice')|list -%} {%- set total_received =
+      payments|sum(attribute='paid_amount') -%}
       <dl>
         <dt>{{ _('Total Received') }}</dt>
-        <dd>
-          {{ frappe.utils.fmt_money(payments|sum(attribute='paid_amount'),
-          currency=doc.currency) }}
-        </dd>
+        <dd>{{ frappe.utils.fmt_money(total_received, currency=doc.currency) }}</dd>
       </dl>
       {%- for mop, list in payments|groupby('mode_of_payment') -%}
       <div class="os-sof-totals-payment">
@@ -153,6 +152,13 @@
         currency=doc.currency) }}
       </div>
       {%- endfor -%}
+      <dl>
+        <dt>{{ _('Balance Amount') }}</dt>
+        <dd>
+          {{ frappe.utils.fmt_money(doc.total - total_received, currency=doc.currency)
+          }}
+        </dd>
+      </dl>
     </div>
   </div>
   <div class="os-sr-terms">
