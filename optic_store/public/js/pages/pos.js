@@ -464,12 +464,12 @@ export default function extend_pos(PosClass) {
       );
       this.frm.doc.branch_doc = this.branch_details;
       this.frm.doc.customer_doc = get_customer_doc(this.frm.doc.customer);
-      console.log(this.frm.doc.customer_doc);
       const sales_person =
         this.sales_persons_data.find(
           ({ value }) => value === this.frm.doc.os_sales_person
         ) || {};
       this.frm.doc.sales_person_name = sales_person.label;
+      this.update_invoice();
       return invoice_data;
     }
     set_interval_for_si_sync() {
