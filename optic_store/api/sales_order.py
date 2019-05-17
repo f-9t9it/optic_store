@@ -176,6 +176,12 @@ workflow = {
         },
         {
             "state": "Ready to Deliver",
+            "style": "Info",
+            "doc_status": "1",
+            "allow_edit": "Sales User",
+        },
+        {
+            "state": "Collected",
             "style": "Success",
             "doc_status": "1",
             "allow_edit": "Sales User",
@@ -328,7 +334,7 @@ workflow = {
         },
         {
             "state": "In Transit (with Driver)",
-            "action": "Complete",
+            "action": "Accept",
             "next_state": "Ready to Deliver",
             "allowed": "Sales User",
             "allow_self_approval": 1,
@@ -342,6 +348,21 @@ workflow = {
         },
         {
             "state": "In Transit (with Driver)",
+            "action": "Cancel",
+            "next_state": "Cancelled",
+            "allowed": "Sales User",
+            "allow_self_approval": 1,
+        },
+        {
+            "state": "Ready to Deliver",
+            "action": "Complete",
+            "next_state": "Collected",
+            "allowed": "Sales User",
+            "allow_self_approval": 1,
+            "condition": "doc.delivery_status == 'Fully Delivered'",  # noqa
+        },
+        {
+            "state": "Ready to Deliver",
             "action": "Cancel",
             "next_state": "Cancelled",
             "allowed": "Sales User",
