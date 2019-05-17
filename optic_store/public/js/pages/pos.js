@@ -442,10 +442,6 @@ export default function extend_pos(PosClass) {
         return docjson ? JSON.parse(docjson) : {};
       }
       const get_customer_doc = customer => {
-        const doc = this.customers_details_data[customer];
-        if (doc) {
-          return Object.assign(doc, { customer_id: doc.name });
-        }
         const offline_doc = get_offline_customer(customer);
         if (offline_doc) {
           return Object.assign(offline_doc, {
@@ -453,6 +449,10 @@ export default function extend_pos(PosClass) {
             customer_name: offline_doc.full_name,
             customer_id: null,
           });
+        }
+        const doc = this.customers_details_data[customer];
+        if (doc) {
+          return Object.assign(doc, { customer_id: doc.name });
         }
         return {};
       };
@@ -462,7 +462,7 @@ export default function extend_pos(PosClass) {
       this.frm.doc.pos_name_barcode_uri = get_barcode_uri(
         this.frm.doc.offline_pos_name
       );
-      this.frm.doc.branch_doc = this.branch_details;
+      this.frm.doc.branch_doc = this.branch_details || {};
       this.frm.doc.customer_doc = get_customer_doc(this.frm.doc.customer);
       const sales_person =
         this.sales_persons_data.find(
