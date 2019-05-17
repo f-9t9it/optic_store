@@ -389,8 +389,12 @@ export default function extend_pos(PosClass) {
         this.set_opening_entry();
       }
     }
-    set_primary_action() {
-      super.set_primary_action();
+    make_menu_list() {
+      super.make_menu_list();
+      this.page.menu
+        .find('a.grey-link:contains("Cashier Closing")')
+        .parent()
+        .hide();
       this.page.add_menu_item(
         'XZ Report',
         async function() {
