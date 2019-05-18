@@ -282,7 +282,10 @@ doctype_js = {"Stock Entry": "public/js/stock_entry.js"}
 # Hook on document methods and events
 
 doc_events = {
-    "Delivery Note": {"validate": "optic_store.doc_events.delivery_note.validate"},
+    "Delivery Note": {
+        "validate": "optic_store.doc_events.delivery_note.validate",
+        "on_submit": "optic_store.doc_events.delivery_note.on_submit",
+    },
     "Sales Order": {
         "before_naming": "optic_store.doc_events.sales_order.before_naming",
         "validate": "optic_store.doc_events.sales_order.validate",
