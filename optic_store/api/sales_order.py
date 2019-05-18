@@ -359,7 +359,7 @@ workflow = {
             "next_state": "Collected",
             "allowed": "Sales User",
             "allow_self_approval": 1,
-            "condition": "doc.delivery_status == 'Fully Delivered'",  # noqa
+            "condition": "doc.delivery_status == 'Fully Delivered' and frappe.db.get_value('Has Role', filters={'role': 'System Manager', 'parent': frappe.session.user })",  # noqa
         },
         {
             "state": "Ready to Deliver",

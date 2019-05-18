@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.model.workflow import apply_workflow
 from functools import partial, reduce
 from toolz import compose, unique, pluck
 
@@ -45,3 +46,19 @@ def _are_paid(sales_orders):
         ),
     )
     return reduce(lambda a, x: a and (x in ["Paid"]), statuses, True)
+
+
+def on_submit(doc, method):
+    def advance_wf(name):
+        doc = frappe.get_doc("Sales Order", name)
+        if doc and doc.workflow_state == "Ready to Deliver":
+            apply_workflow(doc, "Complete")
+
+    transit_sales_orders = compose(
+        partial(map, advance_wf),
+        unique,
+        partial(filter, lambda x: x),
+        partial(map, lambda x: x.against_sales_order),
+    )
+
+    transit_sales_orders(doc.items)
