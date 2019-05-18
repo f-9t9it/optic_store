@@ -61,6 +61,13 @@ function get_barcode_uri(text) {
   })._renderProperties.element.toDataURL();
 }
 
+function get_offline_customer(customer) {
+  const docjson = (JSON.parse(localStorage.getItem('customer_details')) || {})[
+    customer
+  ];
+  return docjson ? JSON.parse(docjson) : null;
+}
+
 export default function extend_pos(PosClass) {
   class PosClassExtended extends PosClass {
     onload() {
@@ -366,13 +373,22 @@ export default function extend_pos(PosClass) {
     make_offline_customer(new_customer) {
       super.make_offline_customer(new_customer);
       const values = this.customer_doc.get_values();
+      const is_new = !this.customers_details_data[this.frm.doc.customer];
+      const current = this.customers_details_data[this.frm.doc.customer] || {};
       this.customers_details_data[this.frm.doc.customer] = Object.assign(
         {
           customer_pos_id: values.customer_pos_id,
           full_name: values.full_name,
         },
-        this.customers_details_data[this.frm.doc.customer],
-        pick(values, CUSTOMER_DETAILS_FIELDS)
+        current,
+        pick(values, CUSTOMER_DETAILS_FIELDS),
+        {
+          customer_name:
+            values.full_name !== current.customer_name
+              ? values.full_name
+              : current.customer_name,
+          is_new,
+        }
       );
     }
     make_keyboard() {
@@ -450,26 +466,15 @@ export default function extend_pos(PosClass) {
       super.submit_invoice();
     }
     create_invoice() {
-      function get_offline_customer(customer) {
-        const docjson = (JSON.parse(localStorage.getItem('customer_details')) || {})[
-          customer
-        ];
-        return docjson ? JSON.parse(docjson) : {};
-      }
       const get_customer_doc = customer => {
-        const offline_doc = get_offline_customer(customer);
-        if (offline_doc) {
-          return Object.assign(offline_doc, {
-            is_new: true,
-            customer_name: offline_doc.full_name,
-            customer_id: null,
-          });
-        }
         const doc = this.customers_details_data[customer];
-        if (doc) {
-          return Object.assign(doc, { customer_id: doc.name });
-        }
-        return {};
+        const offline_doc = get_offline_customer(customer);
+        return Object.assign({}, doc, offline_doc, {
+          is_new: doc ? doc.hasOwnProperty('is_new') && doc.is_new : true,
+          customer_id: doc ? doc.name : null,
+          customer_name:
+            (doc && doc.customer_name) || (offline_doc && offline_doc.full_name),
+        });
       };
       const invoice_data = super.create_invoice();
       // this is possible because invoice_data already references this.frm.doc
