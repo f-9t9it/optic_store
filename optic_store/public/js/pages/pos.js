@@ -266,6 +266,17 @@ export default function extend_pos(PosClass) {
       this.prompt_details.customer_group = customer_group;
       return JSON.stringify(this.prompt_details);
     }
+    set_item_details(item_code, field, value, remove_zero_qty_items) {
+      super.set_item_details(item_code, field, value, remove_zero_qty_items);
+      if (field === 'rate') {
+        const item = this.frm.doc.items.find(({ item_code: x }) => x === item_code);
+        if (item) {
+          const { rate, price_list_rate } = item;
+          item.discount_percentage = (1 - flt(rate) / flt(price_list_rate)) * 100.0;
+          this.update_paid_amount_status(false);
+        }
+      }
+    }
     make_item_list(customer) {
       super.make_item_list(customer);
       const items = keyBy(this.item_data, 'name');
