@@ -219,7 +219,8 @@ export default class InvoiceDialog {
       set_amount(gr, 0);
     });
 
-    let amount_to_set = frm.doc.rounded_total - this.state.loyalty_amount_redeem;
+    let amount_to_set =
+      (frm.doc.rounded_total || frm.doc.grand_total) - this.state.loyalty_amount_redeem;
     const gift_card_balance = frm.doc.os_gift_cards.reduce(
       (a, { balance }) => a + balance,
       0
