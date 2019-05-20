@@ -1,4 +1,5 @@
 import scripts, {
+  payment_entry,
   sales_invoice,
   sales_invoice_item,
   sales_invoice_gift_card,
@@ -16,6 +17,7 @@ import scripts, {
 import extend_pos from './pages/pos';
 import extend_batch_selector from './pages/serial_no_and_batch_selector';
 
+frappe.ui.form.on('Payment Entry', payment_entry);
 frappe.ui.form.on('Sales Invoice', sales_invoice);
 frappe.ui.form.on('Sales Invoice Item', sales_invoice_item);
 frappe.ui.form.on('Sales Invoice Gift Card', sales_invoice_gift_card);
