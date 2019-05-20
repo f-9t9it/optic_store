@@ -34,6 +34,17 @@ def get_data():
             ],
         },
         {
+            "label": _("Reports"),
+            "items": [
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Item-wise Stock",
+                    "label": _("Item-wise Stock"),
+                }
+            ],
+        },
+        {
             "label": _("Setup"),
             "items": [
                 {
