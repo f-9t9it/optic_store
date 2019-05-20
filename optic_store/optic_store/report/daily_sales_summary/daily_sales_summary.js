@@ -3,21 +3,26 @@
 /* eslint-disable */
 
 frappe.query_reports['Daily Sales Summary'] = {
+  onload: async function(rep) {
+    const { message: branch } = await frappe.call({
+      method: 'optic_store.api.customer.get_user_branch',
+    });
+    rep.set_filter_value('branch', branch);
+  },
   filters: [
     {
-      fieldname: 'from_date',
-      label: __('From Date'),
+      fieldname: 'posting_date',
+      label: __('Date'),
       fieldtype: 'Date',
-      default: frappe.datetime.add_days(
-        frappe.datetime.add_months(frappe.datetime.get_today(), -1),
-        1
-      ),
+      reqd: 1,
+      default: frappe.datetime.get_today(),
     },
     {
-      fieldname: 'to_date',
-      label: __('To Date'),
-      fieldtype: 'Date',
-      default: frappe.datetime.get_today(),
+      fieldname: 'branch',
+      label: __('Branch'),
+      fieldtype: 'Link',
+      options: 'Branch',
+      read_only: !frappe.user_roles.includes('Sales Manager'),
     },
   ],
 };
