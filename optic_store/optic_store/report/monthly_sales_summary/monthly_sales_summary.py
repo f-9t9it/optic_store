@@ -5,15 +5,16 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from functools import partial
-from toolz import compose, pluck, keyfilter, valmap, groupby, merge
+from toolz import compose, pluck, valmap, groupby, merge, concatv
 
-from optic_store.utils import sum_by
+from optic_store.utils import sum_by, pick
 
 
 def execute(filters=None):
     columns = _get_columns()
     keys = compose(list, partial(pluck, "fieldname"))(columns)
-    data = _get_data(filters, keys)
+    clauses, values = _get_filters(filters)
+    data = _get_data(clauses, values, keys)
     return columns, data
 
 
@@ -38,14 +39,28 @@ def _get_columns():
     return columns + map(lambda x: make_column(x, x), mops)
 
 
-def _get_data(args, keys):
-    clauses = [
-        "s.docstatus = 1",
-        "s.posting_date BETWEEN %(from_date)s AND %(to_date)s",
-    ]
-    if args.branch:
-        clauses += ["s.os_branch = %(branch)s"]
+def _get_filters(filters):
+    branches = (
+        compose(
+            partial(filter, lambda x: x),
+            partial(map, lambda x: x.strip()),
+            lambda x: x.split(","),
+        )(filters.branch)
+        if filters.branch
+        else None
+    )
+    clauses = concatv(
+        ["s.docstatus = 1", "s.posting_date BETWEEN %(from_date)s AND %(to_date)s"],
+        ["s.os_branch IN %(branches)s"] if branches else [],
+    )
+    values = merge(
+        pick(["from_date", "to_date"], filters),
+        {"branches": branches} if branches else {},
+    )
+    return " AND ".join(clauses), values
 
+
+def _get_data(clauses, values, keys):
     items = frappe.db.sql(
         """
             SELECT
@@ -64,9 +79,9 @@ def _get_data(args, keys):
             WHERE {clauses}
             GROUP BY s.posting_date
         """.format(
-            clauses=" AND ".join(clauses)
+            clauses=clauses
         ),
-        values=args,
+        values=values,
         as_dict=1,
     )
     payments = frappe.db.sql(
@@ -80,15 +95,15 @@ def _get_data(args, keys):
             WHERE {clauses}
             GROUP BY s.posting_date, p.mode_of_payment
         """.format(
-            clauses=" AND ".join(clauses)
+            clauses=clauses
         ),
-        values=args,
+        values=values,
         as_dict=1,
     )
 
     make_row = compose(
         partial(valmap, lambda x: x or None),
-        partial(keyfilter, lambda k: k in keys),
+        partial(pick, keys),
         _set_payments(payments),
     )
 

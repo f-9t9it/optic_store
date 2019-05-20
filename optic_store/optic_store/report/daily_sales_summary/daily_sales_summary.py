@@ -5,13 +5,16 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from functools import partial, reduce
-from toolz import compose, pluck, keyfilter, valmap, groupby, merge, get
+from toolz import compose, pluck, valmap, groupby, merge, get, concatv
+
+from optic_store.utils import pick
 
 
 def execute(filters=None):
     columns = _get_columns()
     keys = compose(list, partial(pluck, "fieldname"))(columns)
-    data = _get_data(filters, keys)
+    clauses, values = _get_filters(filters)
+    data = _get_data(clauses, values, keys)
     return columns, data
 
 
@@ -40,11 +43,27 @@ def _get_columns():
     return columns + map(lambda x: make_column(x, x), mops)
 
 
-def _get_data(args, keys):
-    clauses = ["s.docstatus = 1", "s.posting_date = %(posting_date)s"]
-    if args.branch:
-        clauses += ["s.os_branch = %(branch)s"]
+def _get_filters(filters):
+    branches = (
+        compose(
+            partial(filter, lambda x: x),
+            partial(map, lambda x: x.strip()),
+            lambda x: x.split(","),
+        )(filters.branch)
+        if filters.branch
+        else None
+    )
+    clauses = concatv(
+        ["s.docstatus = 1", "s.posting_date = %(posting_date)s"],
+        ["s.os_branch IN %(branches)s"] if branches else [],
+    )
+    values = merge(
+        pick(["posting_date"], filters), {"branches": branches} if branches else {}
+    )
+    return " AND ".join(clauses), values
 
+
+def _get_data(clauses, values, keys):
     items = frappe.db.sql(
         """
             SELECT
@@ -57,10 +76,11 @@ def _get_data(args, keys):
                 s.base_grand_total AS grand_total
             FROM `tabSales Invoice` AS s WHERE {clauses}
         """.format(
-            clauses=" AND ".join(clauses)
+            clauses=clauses
         ),
-        values=args,
+        values=values,
         as_dict=1,
+        debug=1,
     )
     payments = frappe.db.sql(
         """
@@ -72,15 +92,15 @@ def _get_data(args, keys):
             LEFT JOIN `tabSales Invoice Payment` as p ON p.parent = s.name
             WHERE {clauses}
         """.format(
-            clauses=" AND ".join(clauses)
+            clauses=clauses
         ),
-        values=args,
+        values=values,
         as_dict=1,
     )
 
     make_row = compose(
         partial(valmap, lambda x: x or None),
-        partial(keyfilter, lambda k: k in keys),
+        partial(pick, keys),
         _set_payments(payments),
     )
 
