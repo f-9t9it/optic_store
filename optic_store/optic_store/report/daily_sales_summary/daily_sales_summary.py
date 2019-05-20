@@ -40,7 +40,11 @@ def _get_columns():
         make_column("grand_total", "Grand Total"),
     ]
     mops = pluck("name", frappe.get_all("Mode of Payment"))
-    return columns + map(lambda x: make_column(x, x), mops)
+    return (
+        columns
+        + map(lambda x: make_column(x, x), mops)
+        + [make_column("total_collected", "Total Collected")]
+    )
 
 
 def _get_filters(filters):
@@ -118,6 +122,7 @@ def _set_payments(payments):
     )(payments)
 
     def fn(row):
-        return merge(row, get(row.get("sales_invoice"), payments_grouped, {}))
+        mops = get(row.get("sales_invoice"), payments_grouped, {})
+        return merge(row, mops, {"total_collected": sum(mops.values())})
 
     return fn
