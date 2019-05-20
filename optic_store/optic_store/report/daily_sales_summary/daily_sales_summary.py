@@ -38,6 +38,9 @@ def _get_columns():
         make_column("net_total", "Net Total"),
         make_column("tax_total", "Tax Total"),
         make_column("grand_total", "Grand Total"),
+        make_column("outstanding_amount", "Outstanding"),
+        make_column("sales_person", "Sales Person", type="Link", options="Employee"),
+        make_column("sales_person_name", "Sales Person Name", type="Data", width=150),
     ]
     mops = pluck("name", frappe.get_all("Mode of Payment"))
     return (
@@ -77,8 +80,13 @@ def _get_data(clauses, values, keys):
                 s.customer_name AS customer_name,
                 s.base_net_total AS net_total,
                 s.base_total_taxes_and_charges AS tax_total,
-                s.base_grand_total AS grand_total
-            FROM `tabSales Invoice` AS s WHERE {clauses}
+                s.base_grand_total AS grand_total,
+                s.outstanding_amount AS outstanding_amount,
+                s.os_sales_person AS sales_person,
+                e.employee_name AS sales_person_name
+            FROM `tabSales Invoice` AS s
+            LEFT JOIN `tabEmployee` AS e ON e.name = s.os_sales_person
+            WHERE {clauses}
         """.format(
             clauses=clauses
         ),
