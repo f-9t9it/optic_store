@@ -74,6 +74,26 @@ async function render_qol_button(frm) {
   }
 }
 
+function render_return_button(frm) {
+  const { docstatus, is_return, outstanding_amount = 0, grand_total = 0 } = frm.doc;
+  if (
+    docstatus === 1 &&
+    !is_return &&
+    (outstanding_amount >= 0 || Math.abs(flt(outstanding_amount)) < flt(grand_total)) &&
+    ['Accounts Manager', 'Accounts User', 'System Manager'].some(role =>
+      frappe.user_roles.includes(role)
+    )
+  ) {
+    frm.add_custom_button('Return / Credit Note', function() {
+      frappe.model.open_mapped_doc({
+        method:
+          'erpnext.accounts.doctype.sales_invoice.sales_invoice.make_sales_return',
+        frm,
+      });
+    });
+  }
+}
+
 async function get_cost_center(frm) {
   if (frm.os_cost_center) {
     return frm.os_cost_center;
@@ -152,7 +172,7 @@ export default {
     render_prescription(frm);
     render_qol_button(frm);
 
-    // this is a hack to make the hide the 'Make' menu button
+    // this is a hack to hide the 'Make' menu button
     const hide_make_hack = setInterval(() => {
       const make_btns = frm.page.inner_toolbar.find('div[data-label="Make"]');
       if (make_btns.length > 0) {
@@ -160,6 +180,7 @@ export default {
         clearInterval(hide_make_hack);
       }
     }, 60);
+    render_return_button(frm);
   },
   os_branch: function(frm) {
     set_naming_series(frm);
