@@ -81,6 +81,7 @@ def _make_payment_entry(name, mode_of_payment, paid_amount, gift_card_no):
         {
             "payment_type": "Receive",
             "company": si.company,
+            "os_branch": si.os_branch,
             "posting_date": nowdate(),
             "mode_of_payment": mode_of_payment,
             "os_gift_card": gift_card_no,

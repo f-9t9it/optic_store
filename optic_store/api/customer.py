@@ -34,6 +34,12 @@ def get_user_branch():
 
 
 @frappe.whitelist()
+def get_user_warehouse():
+    branch = get_user_branch()
+    return frappe.db.get_value("Branch", branch, "warehouse") if branch else None
+
+
+@frappe.whitelist()
 def get_dashboard_data(customer):
     labels = compose(list, partial(pluck, "item_group"), frappe.get_all)(
         "Optical Store Settings Dashboard Item Group",

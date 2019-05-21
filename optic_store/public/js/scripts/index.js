@@ -6,6 +6,7 @@ import stock_transfer, { stock_transfer_item } from './stock_transfer';
 import sales_order_bulk_update, { bulk_update_order } from './sales_order_bulk_update';
 import xz_report from './xz_report';
 
+export { default as payment_entry } from './payment_entry';
 export {
   sales_invoice_item,
   sales_invoice_gift_card,
