@@ -171,6 +171,7 @@ fixtures = [
                     "Sales Invoice Item-os_minimum_selling_2_rate",
                     "Sales Invoice Payment-os_in_alt_tab",
                     "Delivery Note-os_branch",
+                    "Payment Entry-os_posting_time",
                     "Payment Entry-os_branch",
                     "Payment Entry-os_gift_card",
                 ],
@@ -316,6 +317,7 @@ doc_events = {
     "Payment Entry": {
         "validate": "optic_store.doc_events.payment_entry.validate",
         "before_insert": "optic_store.doc_events.payment_entry.before_insert",
+        "before_save": "optic_store.doc_events.payment_entry.before_save",
         "on_submit": "optic_store.doc_events.payment_entry.on_submit",
         "on_cancel": "optic_store.doc_events.payment_entry.on_cancel",
     },

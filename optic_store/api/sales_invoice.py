@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import json
 import frappe
 from frappe import _
-from frappe.utils import nowdate, cint
+from frappe.utils import nowdate, nowtime, cint
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
 from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
@@ -83,6 +83,7 @@ def _make_payment_entry(name, mode_of_payment, paid_amount, gift_card_no):
             "company": si.company,
             "os_branch": si.os_branch,
             "posting_date": nowdate(),
+            "os_posting_time": nowtime(),
             "mode_of_payment": mode_of_payment,
             "os_gift_card": gift_card_no,
             "party_type": "Customer",
