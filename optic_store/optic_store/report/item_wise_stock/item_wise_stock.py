@@ -75,6 +75,5 @@ def _get_data(clauses, values, keys):
         ),
         values=values,
         as_dict=1,
-        debug=1,
     )
     return map(partial(pick, keys), items)
