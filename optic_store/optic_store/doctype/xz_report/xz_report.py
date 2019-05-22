@@ -223,7 +223,8 @@ def _get_payments(args):
             WHERE docstatus = 1 AND
                 company = %(company)s AND
                 owner = %(user)s AND
-                creation BETWEEN %(start_time)s AND %(end_time)s
+                TIMESTAMP(posting_date, os_posting_time)
+                    BETWEEN %(start_time)s AND %(end_time)s
             GROUP BY mode_of_payment
         """,
         values=args,

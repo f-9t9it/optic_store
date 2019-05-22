@@ -29,13 +29,8 @@ def _get_columns():
         }
 
     return [
-        make_column("brand", "Brand", type="Link", options="Brand"),
-        make_column("item_code", "Item", type="Link", options="Item"),
-        make_column("item_group", "Item Group", type="Link", options="Item Group"),
-        make_column("item_name", "Item Name", type="Data", width=150),
-        make_column("standard_selling", "Standard Selling"),
+        make_column("brand", "Brand", type="Link", options="Brand", width=180),
         make_column("qty", "Qty", type="Float"),
-        make_column("minimum_selling", "Minumum Selling"),
     ]
 
 
@@ -54,22 +49,11 @@ def _get_data(clauses, values, keys):
         """
             SELECT
                 i.brand AS brand,
-                i.item_code AS item_code,
-                i.item_group AS item_group,
-                i.item_name AS item_name,
-                ipss.price_list_rate AS standard_selling,
-                SUM(b.actual_qty) AS qty,
-                ipms.price_list_rate AS minimum_selling
+                SUM(b.actual_qty) AS qty
             FROM `tabItem` AS i
             LEFT JOIN `tabBin` AS b ON b.item_code = i.item_code
-            LEFT JOIN (
-                SELECT * FROM `tabItem Price` WHERE price_list = 'Standard Selling'
-            ) AS ipss ON ipss.item_code = i.item_code
-            LEFT JOIN (
-                SELECT * FROM `tabItem Price` WHERE price_list = 'Minimum Selling'
-            ) AS ipms ON ipms.item_code = i.item_code
             WHERE {clauses}
-            GROUP BY i.item_code
+            GROUP BY i.brand
         """.format(
             clauses=clauses
         ),

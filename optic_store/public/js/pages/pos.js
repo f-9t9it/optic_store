@@ -279,7 +279,10 @@ export default function extend_pos(PosClass) {
         const item = this.frm.doc.items.find(({ item_code: x }) => x === item_code);
         if (item) {
           const { rate, price_list_rate } = item;
-          item.discount_percentage = (1 - flt(rate) / flt(price_list_rate)) * 100.0;
+          item.discount_percentage = flt(
+            (1 - flt(rate) / flt(price_list_rate)) * 100.0,
+            precision('discount_percentage')
+          );
           this.update_paid_amount_status(false);
         }
       }

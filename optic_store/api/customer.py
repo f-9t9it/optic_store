@@ -9,6 +9,7 @@ from toolz import compose, pluck
 
 CUSTOMER_DETAILS_FIELDS = [
     "os_short_name",
+    "os_unverified_loyalty_card_no",
     "os_cpr_no",
     "os_date_of_birth",
     "os_occupation",

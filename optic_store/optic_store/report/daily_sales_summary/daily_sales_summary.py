@@ -109,9 +109,12 @@ def _get_data(clauses, values, keys):
         as_dict=1,
     )
 
+    template = reduce(lambda a, x: merge(a, {x: None}), keys, {})
+
     make_row = compose(
         partial(valmap, lambda x: x or None),
         partial(pick, keys),
+        partial(merge, template),
         _set_payments(payments),
     )
 

@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from functools import partial
+from functools import partial, reduce
 from toolz import compose, pluck, valmap, groupby, merge, concatv
 
 from optic_store.utils import sum_by, pick
@@ -127,9 +127,12 @@ def _get_data(clauses, values, keys):
         as_dict=1,
     )
 
+    template = reduce(lambda a, x: merge(a, {x: None}), keys, {})
+
     make_row = compose(
         partial(valmap, lambda x: x or None),
         partial(pick, keys),
+        partial(merge, template),
         _set_payments(si_payments + pe_payments),
     )
 

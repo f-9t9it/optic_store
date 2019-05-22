@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import flt, nowtime
 
 from optic_store.api.customer import get_user_branch
 
@@ -22,6 +22,11 @@ def validate(doc, method):
 def before_insert(doc, method):
     if not doc.os_branch:
         doc.os_branch = get_user_branch()
+
+
+def before_save(doc, method):
+    if not doc.os_posting_time:
+        doc.os_posting_time = nowtime()
 
 
 def on_submit(doc, method):
