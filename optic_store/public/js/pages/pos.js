@@ -449,6 +449,9 @@ export default function extend_pos(PosClass) {
       );
     }
     submit_invoice() {
+      if (this.frm.doc.change_amount !== 0) {
+        return frappe.throw(__('<strong>Change Amount</strong> must be zero'));
+      }
       if (this.frm.doc.grand_total !== this.frm.doc.paid_amount) {
         return frappe.throw(
           __(
