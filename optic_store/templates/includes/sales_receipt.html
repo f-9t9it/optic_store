@@ -133,8 +133,7 @@
       <dt>{{ _('Total Amount') }}</dt>
       <dd>{{ doc.get_formatted('total') }}</dd>
     </dl>
-    {%- set payments = get_advance_payments(doc)|selectattr('payment_doctype', 'eq',
-    'Sales Invoice')|list -%} {%- set total_received =
+    {%- set payments = get_advance_payments(doc) -%} {%- set total_received =
     payments|sum(attribute='paid_amount') -%}
     <dl>
       <dt>{{ _('Total Received') }}</dt>
