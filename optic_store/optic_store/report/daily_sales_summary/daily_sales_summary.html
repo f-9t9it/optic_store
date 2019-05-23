@@ -1,0 +1,162 @@
+<style>
+  .os-rep {
+    font-size: 10pt;
+  }
+  .os-rep-header h1,
+  .os-rep-header h2 {
+    text-align: center;
+  }
+  .os-rep-smalltext,
+  .os-rep-result {
+    font-size: 0.8em;
+  }
+  .os-rep-summary {
+    display: flex;
+    flex-flow: row wrap;
+  }
+  .os-rep-summary > * {
+    max-width: 50%;
+    margin: 0;
+  }
+  .os-rep-summary-totals {
+    padding: 8px 2em;
+    width: 100%;
+  }
+  .os-rep-summary-totals > dl {
+    display: flex;
+    margin: 1em 0;
+    justify-content: flex-end;
+  }
+  .os-rep-summary-totals > dl > dt,
+  .os-rep-summary-totals > dl > dd {
+    text-align: right;
+  }
+  .os-rep-summary-totals > dl > dd {
+    min-width: 12em;
+  }
+</style>
+
+<main class="os-rep">
+  <section class="os-rep-header">
+    <h1>Branch: {{ filters.branch || 'All' }}</h1>
+    <h2>
+      Daily Sales Summary: {{ moment(filters.posting_date).format('dddd, MMM D, YYYY')
+      }}
+    </h2>
+    <p class="os-rep-smalltext">
+      Printed on {{ moment().format('dddd, MMM D, YYYY, h:mm:ss A') }}
+    </p>
+  </section>
+  <section class="os-rep-result">
+    <table class="table table-condensed">
+      <thead>
+        <tr>
+          <th>Transaction No</th>
+          <th>Time</th>
+          <th class="text-right">No of Items</th>
+          <th class="text-right">Net Total</th>
+          <th class="text-right">Tax</th>
+          <th class="text-right">Grand Total</th>
+          <th>Mode of Payment</th>
+          <th>Remarks</th>
+          <th>Sales Person</th>
+          <th>Reference Inv</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% const allowed_mops = report.raw_data.data_to_be_printed.mops %} {% const
+        currency = frappe.defaults.get_default('currency'); const transactions =
+        data.filter(({ sales_invoice }) => sales_invoice !== 'Total'); %} {%
+        transactions.forEach(({ sales_invoice, posting_time, total_qty, net_total,
+        tax_total, grand_total, sales_person_name, return_against, ...rest }) => { %} {%
+        const mops = allowed_mops.filter(mop => rest[mop]) %}
+        <tr>
+          <td>{{ sales_invoice }}</td>
+          <td>{{ moment(posting_time, 'HH:mm:ss.SSS').format('HH:mm') }}</td>
+          <td class="text-right">{{ total_qty }}</td>
+          <td class="text-right">{{ format_currency(net_total, currency) }}</td>
+          <td class="text-right">{{ format_currency(tax_total, currency) }}</td>
+          <td class="text-right">{{ format_currency(grand_total, currency) }}</td>
+          <td>{{ mops.join('<br />') }}</td>
+          <td>
+            {{ mops.map(mop => `${mop}: ${format_currency(rest[mop],
+            currency)}`).join('<br />') }}
+          </td>
+          <td>{{ sales_person_name }}</td>
+          <td>{{ return_against }}</td>
+        </tr>
+        {% }) %}
+      </tbody>
+    </table>
+  </section>
+  <div class="os-rep-summary">
+    {% const sales = transactions.filter(({ is_return }) => cint(is_return) === 0);
+    const returns = transactions.filter(({ is_return }) => cint(is_return) === 1); %} {%
+    function sum(items, field) { return items.map(row => row[field]).reduce((a, x = 0)
+    => a + x, 0); } %}
+    <table class="table table-condensed">
+      <thead>
+        <tr>
+          <th>Transaction</th>
+          <th class="text-right">Count</th>
+          <th class="text-right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% allowed_mops.forEach(mop => { %}
+        <tr>
+          <td>{{ mop }}</td>
+          <td class="text-right">{{ sales.filter(row => row[mop]).length }}</td>
+          <td class="text-right">{{ format_currency(sum(sales, mop), currency) }}</td>
+        </tr>
+        {% }) %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>Total Transactions *</th>
+          <th class="text-right">{{ sales.length }}</th>
+          <th class="text-right"></th>
+        </tr>
+        <tr>
+          <th>Void Transactions</th>
+          <th class="text-right">{{ returns.length }}</th>
+          <th class="text-right">
+            {{ format_currency(sum(returns, 'grand_total'), currency) }}
+          </th>
+        </tr>
+        <tr>
+          {% const { pe_count, pe_amount } = report.raw_data.data_to_be_printed %}
+          <th>Payment Top Up</th>
+          <th class="text-right">{{ pe_count }}</th>
+          <th class="text-right">{{ format_currency(pe_amount, currency) }}</th>
+        </tr>
+        <tr>
+          <td colspan="3" class="os-rep-smalltext">
+            * Total Transactions might not match with transactions table above because
+            (1) some transactions contain payment from multiple Modes of Payment, and
+            (2) only non Void Transactions are considered
+          </td>
+        </tr>
+      </tfoot>
+      <caption></caption>
+    </table>
+    <section class="os-rep-summary-totals">
+      <dl>
+        <dt>Net Total</dt>
+        <dd>{{ format_currency(sum(sales, 'net_total'), currency) }}</dd>
+      </dl>
+      <dl>
+        <dt>Tax Total</dt>
+        <dd>{{ format_currency(sum(sales, 'tax_total'), currency) }}</dd>
+      </dl>
+      <dl>
+        <dt>Grand Total</dt>
+        <dd>{{ format_currency(sum(sales, 'grand_total'), currency) }}</dd>
+      </dl>
+      <dl>
+        <dt>Total Sales Achieved</dt>
+        <dd>{{ format_currency(sum(transactions, 'grand_total'), currency) }}</dd>
+      </dl>
+    </section>
+  </div>
+</main>
