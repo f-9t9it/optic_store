@@ -37,9 +37,6 @@
       <thead>
         <tr>
           <th>{{ _('Sr') }}</th>
-          <th>{{ _('Brand') }}</th>
-          <th>{{ _('Code') }}</th>
-          <th>{{ _('Group') }}</th>
           <th>{{ _('Description') }}</th>
           <th>{{ _('Qty') }}</th>
         </tr>
@@ -48,10 +45,7 @@
         {% for item in doc.items %}
         <tr>
           <td>{{ loop.index }}</td>
-          <td>{{ item.brand or '' }}</td>
-          <td>{{ item.item_code }}</td>
-          <td>{{ item.item_group }}</td>
-          <td>{{ item.item_name }}</td>
+          <td><em>{{ item.item_code }}</em>: {{ item.item_name }}</td>
           <td>{{ item.get_formatted('qty', doc) }}</td>
         </tr>
         {%- endfor -%}
