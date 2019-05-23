@@ -449,16 +449,6 @@ export default function extend_pos(PosClass) {
       );
     }
     submit_invoice() {
-      if (this.frm.doc.change_amount !== 0) {
-        return frappe.throw(__('<strong>Change Amount</strong> must be zero'));
-      }
-      if (this.frm.doc.grand_total !== this.frm.doc.paid_amount) {
-        return frappe.throw(
-          __(
-            '<strong>Paid Amount</strong> must be equal to <strong>Total Amount</strong>'
-          )
-        );
-      }
       const gift_card_no = this.os_payment_fg.get_value('gift_card_no');
       const { amount } = this.frm.doc.payments.find(
         ({ mode_of_payment }) => mode_of_payment === 'Gift Card'
@@ -719,6 +709,21 @@ export default function extend_pos(PosClass) {
       // totally override validation to check for zero amount to enable payment thru
       // loyalty program
       this.dialog.set_primary_action(__('Submit'), () => {
+        if (this.frm.doc.change_amount !== 0) {
+          return frappe.throw(
+            __(
+              '<strong>Change Amount</strong> must be zero. Please verify that ' +
+                '<strong>Paid Amount</strong> does not exceed billed amount'
+            )
+          );
+        }
+        if (this.frm.doc.grand_total !== this.frm.doc.paid_amount) {
+          return frappe.throw(
+            __(
+              '<strong>Paid Amount</strong> must be equal to <strong>Total Amount</strong>'
+            )
+          );
+        }
         this.dialog.hide();
         this.submit_invoice();
       });
