@@ -5,7 +5,18 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from functools import partial, reduce
-from toolz import compose, pluck, valmap, groupby, merge, get, concatv
+from toolz import (
+    compose,
+    pluck,
+    valmap,
+    groupby,
+    merge,
+    get,
+    concatv,
+    unique,
+    excepts,
+    first,
+)
 
 from optic_store.utils import pick
 
@@ -14,18 +25,19 @@ def execute(filters=None):
     columns = _get_columns()
     keys = compose(list, partial(pluck, "fieldname"))(columns)
     clauses, values = _get_filters(filters)
-    data = _get_data(clauses, values, keys)
-    return columns, data
+    data, meta = _get_data(clauses, values, keys)
+    return columns, data, None, None, meta
 
 
 def _get_columns():
-    def make_column(key, label, type="Currency", options=None, width=120):
+    def make_column(key, label, type="Currency", options=None, width=120, hidden=0):
         return {
             "label": _(label),
             "fieldname": key,
             "fieldtype": type,
             "options": options,
             "width": width,
+            "hidden": hidden,
         }
 
     columns = [
@@ -35,12 +47,21 @@ def _get_columns():
         make_column("posting_time", "Time", type="Time", width=90),
         make_column("customer", "Customer", type="Link", options="Customer"),
         make_column("customer_name", "Customer Name", type="Data", width=150),
+        make_column("total_qty", "Total Qty"),
         make_column("net_total", "Net Total"),
         make_column("tax_total", "Tax Total"),
         make_column("grand_total", "Grand Total"),
         make_column("outstanding_amount", "Outstanding"),
         make_column("sales_person", "Sales Person", type="Link", options="Employee"),
         make_column("sales_person_name", "Sales Person Name", type="Data", width=150),
+        make_column("is_return", "Is Return", type="Check", hidden=1),
+        make_column(
+            "return_against",
+            "Return Against",
+            type="Link",
+            options="Sales Invoice",
+            hidden=1,
+        ),
     ]
     mops = pluck("name", frappe.get_all("Mode of Payment"))
     return (
@@ -76,8 +97,11 @@ def _get_data(clauses, values, keys):
             SELECT
                 s.name AS sales_invoice,
                 s.posting_time AS posting_time,
+                s.is_return AS is_return,
+                s.return_against AS return_against,
                 s.customer AS customer,
                 s.customer_name AS customer_name,
+                s.total_qty AS total_qty,
                 s.base_net_total AS net_total,
                 s.base_total_taxes_and_charges AS tax_total,
                 s.base_grand_total AS grand_total,
@@ -109,6 +133,23 @@ def _get_data(clauses, values, keys):
         as_dict=1,
     )
 
+    collection = frappe.db.sql(
+        """
+            SELECT
+                COUNT(s.name) AS pe_count,
+                SUM(s.paid_amount) AS pe_amount
+            FROM `tabPayment Entry` AS s
+            WHERE
+                s.payment_type = 'Receive' AND
+                s.party_type = 'Customer' AND
+                {clauses}
+        """.format(
+            clauses=clauses
+        ),
+        values=values,
+        as_dict=1,
+    )
+
     template = reduce(lambda a, x: merge(a, {x: None}), keys, {})
 
     make_row = compose(
@@ -118,7 +159,12 @@ def _get_data(clauses, values, keys):
         _set_payments(payments),
     )
 
-    return map(make_row, items)
+    make_mops = compose(
+        lambda x: {"mops": x}, unique, partial(pluck, "mode_of_payment")
+    )
+    make_pe = excepts("StopIteration", first, {"pe_count": 0, "pe_amount": 0})
+
+    return map(make_row, items), merge(make_mops(payments), make_pe(collection))
 
 
 def _set_payments(payments):

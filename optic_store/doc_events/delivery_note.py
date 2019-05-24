@@ -18,17 +18,21 @@ def validate(doc, method):
     )
     sales_orders = get_sales_orders(doc.items)
     if sales_orders and not _are_billed(sales_orders):
-        frappe.throw("Reference Sales Order not billed fully")
+        frappe.throw("Reference Sales Order not fully cleared or billed")
     if sales_orders and not _are_paid(sales_orders):
         frappe.throw("Cannot deliver until Sales Invoice is fully paid")
 
 
 def _are_billed(sales_orders):
-    statuses = map(
-        partial(frappe.db.get_value, "Sales Order", fieldname="billing_status"),
-        sales_orders,
+    def verify_status(field, values):
+        statuses = map(
+            partial(frappe.db.get_value, "Sales Order", fieldname=field), sales_orders
+        )
+        return reduce(lambda a, x: a and (x in values), statuses, True)
+
+    return verify_status("billing_status", ["Fully Billed", "Closed"]) or verify_status(
+        "status", ["To Deliver", "Closed"]
     )
-    return reduce(lambda a, x: a and (x in ["Fully Billed", "Closed"]), statuses, True)
 
 
 def _are_paid(sales_orders):
