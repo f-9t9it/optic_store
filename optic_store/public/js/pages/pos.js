@@ -71,6 +71,8 @@ function get_offline_customer(customer) {
 export default function extend_pos(PosClass) {
   class PosClassExtended extends PosClass {
     onload() {
+      // property to test client runtime
+      this.last_update = '2019-05-26T12:48:24.513Z';
       super.onload();
       this.batch_dialog = new frappe.ui.Dialog({
         title: __('Select Batch No'),
