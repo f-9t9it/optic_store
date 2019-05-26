@@ -36,12 +36,18 @@ def _get_columns():
 
 def _get_filters(filters):
     clauses = concatv(
-        ["disabled = 0"],
+        ["i.disabled = 0"],
         ["i.brand = %(brand)s"] if filters.brand else [],
         ["i.item_group = %(item_group)s"] if filters.item_group else [],
+    )
+    bin_clauses = concatv(
+        ["b.item_code = i.item_code"],
         ["b.warehouse = %(warehouse)s"] if filters.warehouse else [],
     )
-    return " AND ".join(clauses), filters
+    return (
+        {"clauses": " AND ".join(clauses), "bin_clauses": " AND ".join(bin_clauses)},
+        filters,
+    )
 
 
 def _get_data(clauses, values, keys):
@@ -51,11 +57,11 @@ def _get_data(clauses, values, keys):
                 i.brand AS brand,
                 SUM(b.actual_qty) AS qty
             FROM `tabItem` AS i
-            LEFT JOIN `tabBin` AS b ON b.item_code = i.item_code
+            LEFT JOIN `tabBin` AS b ON {bin_clauses}
             WHERE {clauses}
             GROUP BY i.brand
         """.format(
-            clauses=clauses
+            **clauses
         ),
         values=values,
         as_dict=1,
