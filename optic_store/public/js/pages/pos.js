@@ -278,14 +278,28 @@ export default function extend_pos(PosClass) {
       if (field === 'rate') {
         const item = this.frm.doc.items.find(({ item_code: x }) => x === item_code);
         if (item) {
-          const { rate, price_list_rate } = item;
-          item.discount_percentage = flt(
-            (1 - flt(rate) / flt(price_list_rate)) * 100.0,
-            precision('discount_percentage')
+          const { price_list_rate } = item;
+          const discount_percentage = flt(
+            (1.0 - flt(value) / flt(price_list_rate)) * 100.0
           );
+          if (discount_percentage > 0) {
+            item.discount_percentage = discount_percentage;
+          }
           this.update_paid_amount_status(false);
         }
       }
+    }
+    show_items_in_item_cart() {
+      super.show_items_in_item_cart();
+      this.wrapper
+        .find('.items')
+        .find('.pos-bill-item > .cell:nth-child(3)')
+        .each((i, el) => {
+          const value = el.innerText;
+          if (value !== '0') {
+            el.innerText = flt(value, precision('discount_percentage'));
+          }
+        });
     }
     make_item_list(customer) {
       super.make_item_list(customer);
