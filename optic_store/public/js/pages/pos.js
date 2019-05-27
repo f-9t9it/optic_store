@@ -1,5 +1,6 @@
 import pick from 'lodash/pick';
 import keyBy from 'lodash/keyBy';
+import sumBy from 'lodash/sumBy';
 import mapValues from 'lodash/mapValues';
 import JsBarcode from 'jsbarcode';
 
@@ -72,7 +73,7 @@ export default function extend_pos(PosClass) {
   class PosClassExtended extends PosClass {
     onload() {
       // property to test client runtime
-      this.last_update = '2019-05-26T12:48:24.513Z';
+      this.last_update = '2019-05-27T15:15:14.776Z';
       super.onload();
       this.batch_dialog = new frappe.ui.Dialog({
         title: __('Select Batch No'),
@@ -725,15 +726,7 @@ export default function extend_pos(PosClass) {
       // totally override validation to check for zero amount to enable payment thru
       // loyalty program
       this.dialog.set_primary_action(__('Submit'), () => {
-        if (this.frm.doc.change_amount !== 0) {
-          return frappe.throw(
-            __(
-              '<strong>Change Amount</strong> must be zero. Please verify that ' +
-                '<strong>Paid Amount</strong> does not exceed billed amount'
-            )
-          );
-        }
-        if (this.frm.doc.grand_total !== this.frm.doc.paid_amount) {
+        if (sumBy(this.frm.doc.payments, 'amount') !== this.frm.doc.grand_total) {
           return frappe.throw(
             __(
               '<strong>Paid Amount</strong> must be equal to <strong>Total Amount</strong>'
