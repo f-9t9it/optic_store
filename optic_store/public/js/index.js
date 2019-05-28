@@ -16,6 +16,7 @@ import scripts, {
 } from './scripts';
 import extend_pos from './pages/pos';
 import extend_batch_selector from './pages/serial_no_and_batch_selector';
+import reports from './reports';
 
 frappe.ui.form.on('Payment Entry', payment_entry);
 frappe.ui.form.on('Sales Invoice', sales_invoice);
@@ -43,4 +44,4 @@ frappe.ui.form.BatchQuickEntryForm = frappe.ui.form.QuickEntryForm.extend(batch_
 const __version__ = '0.5.15';
 
 frappe.provide('optic_store');
-optic_store = { __version__, scripts, extend_pos, extend_batch_selector };
+optic_store = { __version__, scripts, reports, extend_pos, extend_batch_selector };
