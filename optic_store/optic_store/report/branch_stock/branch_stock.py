@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.utils import cint
 from functools import partial, reduce
 from toolz import compose, pluck, merge, concatv, valmap, groupby
 
@@ -11,14 +12,16 @@ from optic_store.utils import pick, split_to_list, sum_by
 
 
 def execute(filters=None):
-    columns = _get_columns()
+    if cint(filters.hqm_view) and "Sales Manager" not in frappe.get_roles():
+        return frappe.throw(_("Insufficient permission for HQM View"))
+    columns = _get_columns(filters)
     keys = compose(list, partial(pluck, "fieldname"))(columns)
     clauses, values = _get_filters(filters)
     data = _get_data(clauses, values, keys)
     return columns, data
 
 
-def _get_columns():
+def _get_columns(filters):
     def make_column(key, label, type="Data", options=None, width=120):
         return {
             "label": _(label),
@@ -28,19 +31,28 @@ def _get_columns():
             "width": width,
         }
 
-    columns = [
-        make_column("item_group", "Item Group", type="Link", options="Item Group"),
-        make_column("brand", "Brand", type="Link", options="Brand"),
-        make_column("item_code", "Item Code", type="Link", options="Item"),
-        make_column("item_name", "Item Name", width=180),
-        make_column("minimum_selling", "Minimum Selling", type="Currency", width=90),
-        make_column("standard_selling", "Standard Selling", type="Currency", width=90),
-    ]
     branches = pluck("name", frappe.get_all("Branch", filters={"disabled": 0}))
-    return (
-        columns
-        + map(lambda x: make_column(x, x, type="Float", width=90), branches)
-        + [make_column("total_qty", "Total Qty", type="Float", width=90)]
+    join_columns = compose(list, concatv)
+    return join_columns(
+        [
+            make_column("item_group", "Item Group", type="Link", options="Item Group"),
+            make_column("brand", "Brand", type="Link", options="Brand"),
+            make_column("item_code", "Item Code", type="Link", options="Item"),
+            make_column("item_name", "Item Name", width=180),
+        ],
+        [make_column("cost_price", "Cost Price", type="Currency", width=90)]
+        if cint(filters.hqm_view)
+        else [],
+        [
+            make_column(
+                "minimum_selling", "Minimum Selling", type="Currency", width=90
+            ),
+            make_column(
+                "standard_selling", "Standard Selling", type="Currency", width=90
+            ),
+        ],
+        map(lambda x: make_column(x, x, type="Float", width=90), branches),
+        [make_column("total_qty", "Total Qty", type="Float", width=90)],
     )
 
 
@@ -73,9 +85,13 @@ def _get_data(clauses, values, keys):
                 i.brand AS brand,
                 i.item_code AS item_code,
                 i.item_name AS item_name,
+                ipsb.price_list_rate AS cost_price,
                 ipms.price_list_rate AS minimum_selling,
                 ipss.price_list_rate AS standard_selling
             FROM `tabItem` AS i
+            LEFT JOIN (
+                SELECT * FROM `tabItem Price` WHERE price_list = 'Standard Buying'
+            ) AS ipsb ON ipsb.item_code = i.item_code
             LEFT JOIN (
                 SELECT * FROM `tabItem Price` WHERE price_list = 'Minimum Selling'
             ) AS ipms ON ipms.item_code = i.item_code

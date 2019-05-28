@@ -48,6 +48,12 @@ def get_data():
                     "name": "Brand-wise Stock",
                     "label": _("Brand-wise Stock"),
                 },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Branch Stock",
+                    "label": _("Branch Stock"),
+                },
             ],
         },
         {
