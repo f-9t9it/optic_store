@@ -8,7 +8,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import now, flt
 from functools import partial
-from toolz import compose, excepts, first, get, unique, pluck
+from toolz import compose, excepts, first, get, unique, pluck, merge
 
 from optic_store.api.customer import get_user_branch
 from optic_store.utils import pick, sum_by
@@ -43,6 +43,8 @@ class XZReport(Document):
     def before_insert(self):
         if not self.branch:
             self.branch = get_user_branch()
+        if not self.start_time:
+            self.start_time = now()
 
     def before_save(self):
         self.expected_cash = (
@@ -53,9 +55,18 @@ class XZReport(Document):
         )
         self.difference_cash = self.expected_cash - flt(self.closing_cash)
 
+    def before_submit(self):
+        if not self.end_time:
+            self.end_time = now()
+        self.set_report_details()
+
     def set_report_details(self):
-        args = pick(
-            ["user", "pos_profile", "company", "start_time", "end_time"], self.as_dict()
+        args = merge(
+            pick(["user", "pos_profile", "company"], self.as_dict()),
+            {
+                "start_time": self.start_time or now(),
+                "end_time": self.end_time or now(),
+            },
         )
 
         sales, returns = _get_invoices(args)

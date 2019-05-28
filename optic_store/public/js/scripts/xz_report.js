@@ -19,14 +19,11 @@ async function set_missing_fields(frm) {
   if (frm.doc.__islocal && !start_time) {
     frm.set_value('start_time', frappe.datetime.now_datetime());
   }
-  if (!frm.doc.__islocal && frm.doc.docstatus === 0 && !end_time) {
-    frm.set_value('end_time', frappe.datetime.now_datetime());
-  }
 }
 
 async function set_report_details(frm) {
-  const { user, pos_profile, start_time, end_time } = frm.doc;
-  if (user && pos_profile && start_time && end_time) {
+  const { user, pos_profile, start_time } = frm.doc;
+  if (user && pos_profile && start_time) {
     await frappe.call({
       method: 'set_report_details',
       doc: frm.doc,
