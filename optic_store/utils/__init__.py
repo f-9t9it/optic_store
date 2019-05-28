@@ -1,5 +1,5 @@
 from functools import partial
-from toolz import keyfilter, compose, reduceby, merge
+from toolz import keyfilter, compose, reduceby, merge, excepts
 
 
 def pick(whitelist, d):
@@ -12,3 +12,14 @@ def sum_by(key):
 
 def key_by(key, items):
     return reduceby(key, lambda a, x: merge(a, x), items, {})
+
+
+split_to_list = excepts(
+    AttributeError,
+    compose(
+        partial(filter, lambda x: x),
+        partial(map, lambda x: x.strip()),
+        lambda x: x.split(","),
+    ),
+    lambda x: None,
+)

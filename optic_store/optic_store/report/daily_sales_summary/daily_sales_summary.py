@@ -18,7 +18,7 @@ from toolz import (
     first,
 )
 
-from optic_store.utils import pick
+from optic_store.utils import pick, split_to_list
 
 
 def execute(filters=None):
@@ -72,15 +72,7 @@ def _get_columns():
 
 
 def _get_filters(filters):
-    branches = (
-        compose(
-            partial(filter, lambda x: x),
-            partial(map, lambda x: x.strip()),
-            lambda x: x.split(","),
-        )(filters.branch)
-        if filters.branch
-        else None
-    )
+    branches = split_to_list(filters.branch)
     clauses = concatv(
         ["s.docstatus = 1", "s.posting_date = %(posting_date)s"],
         ["s.os_branch IN %(branches)s"] if branches else [],
