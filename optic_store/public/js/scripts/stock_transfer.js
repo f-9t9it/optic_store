@@ -84,7 +84,7 @@ function set_route_to_list(frm) {
 
 function toggle_incoming_datetime(frm) {
   frm.toggle_enable('incoming_datetime', frm.doc.workflow_state === 'In Transit');
-  frm.toggle_reqd('incoming_datetime', frm.doc.workflow_state === 'In Transit');
+  // frm.toggle_reqd('incoming_datetime', frm.doc.workflow_state === 'In Transit');
 }
 
 async function toggle_cancel_action(frm) {
