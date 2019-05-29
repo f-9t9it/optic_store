@@ -44,6 +44,7 @@ def _get_filters(filters):
         ["i.disabled = 0"],
         ["i.brand = %(brand)s"] if filters.brand else [],
         ["i.item_group = %(item_group)s"] if filters.item_group else [],
+        ["INSTR(i.item_name, %(item_name)s) > 0"] if filters.item_name else [],
     )
     bin_clauses = concatv(
         ["b.item_code = i.item_code"],
