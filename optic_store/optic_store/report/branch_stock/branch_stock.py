@@ -9,6 +9,7 @@ from functools import partial, reduce
 from toolz import compose, pluck, merge, concatv, valmap, groupby
 
 from optic_store.utils import pick, split_to_list, sum_by
+from optic_store.optic_store.report.item_wise_stock.item_wise_stock import price_sq
 
 
 def execute(filters=None):
@@ -89,18 +90,15 @@ def _get_data(clauses, values, keys):
                 ipms.price_list_rate AS minimum_selling,
                 ipss.price_list_rate AS standard_selling
             FROM `tabItem` AS i
-            LEFT JOIN (
-                SELECT * FROM `tabItem Price` WHERE price_list = 'Standard Buying'
-            ) AS ipsb ON ipsb.item_code = i.item_code
-            LEFT JOIN (
-                SELECT * FROM `tabItem Price` WHERE price_list = 'Minimum Selling'
-            ) AS ipms ON ipms.item_code = i.item_code
-            LEFT JOIN (
-                SELECT * FROM `tabItem Price` WHERE price_list = 'Standard Selling'
-            ) AS ipss ON ipss.item_code = i.item_code
+            LEFT JOIN ({standard_buying_sq}) AS ipsb ON ipsb.item_code = i.item_code
+            LEFT JOIN ({minimum_selling_sq}) AS ipms ON ipms.item_code = i.item_code
+            LEFT JOIN ({standard_selling_sq}) AS ipss ON ipss.item_code = i.item_code
             WHERE {clauses}
         """.format(
-            clauses=clauses
+            clauses=clauses,
+            standard_buying_sq=price_sq("Standard Buying"),
+            minimum_selling_sq=price_sq("Minimum Selling"),
+            standard_selling_sq=price_sq("Standard Selling"),
         ),
         values=values,
         as_dict=1,
