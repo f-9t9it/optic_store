@@ -7,7 +7,7 @@
  "doctype": "Report", 
  "idx": 0, 
  "is_standard": "Yes", 
- "modified": "2019-05-28 17:45:01.771017", 
+ "modified": "2019-05-30 21:16:29.640076", 
  "modified_by": "Administrator", 
  "module": "Optic Store", 
  "name": "Branch Stock", 
@@ -28,6 +28,9 @@
   }, 
   {
    "role": "Sales Manager"
+  }, 
+  {
+   "role": "Stock Manager"
   }
  ]
 }
