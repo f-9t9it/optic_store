@@ -1,9 +1,14 @@
 import sumBy from 'lodash/sumBy';
 
 function set_queries(frm) {
-  const { company } = frm.doc;
   ['source_warehouse', 'target_warehouse'].forEach(field => {
-    frm.set_query(field, { company, is_group: 0 });
+    frm.set_query(field, function({ company }) {
+      return { company, is_group: 0 };
+    });
+  });
+  frm.set_query('batch_no', 'items', function(_, cdt, cdn) {
+    const { item_code } = frappe.get_doc(cdt, cdn) || {};
+    return { filters: { item: item_code } };
   });
 }
 
@@ -99,8 +104,8 @@ async function toggle_cancel_action(frm) {
 }
 
 export default {
+  setup: set_queries,
   refresh: function(frm) {
-    set_queries(frm);
     if (frm.doc.__islocal) {
       frm.set_value('outgoing_datetime', frappe.datetime.now_datetime());
       set_source_branch(frm);
