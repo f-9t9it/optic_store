@@ -9,7 +9,10 @@ from frappe.utils import getdate, cint
 from functools import partial
 from toolz import compose
 
-from optic_store.api.customer import get_user_branch
+from optic_store.doc_events.sales_order import (
+    before_insert as so_before_insert,
+    before_save as so_before_save,
+)
 
 
 def before_naming(doc, method):
@@ -61,6 +64,14 @@ def _validate_loyalty_card_no(customer, loyalty_card_no):
                 )
             )
         )
+
+
+def before_insert(doc, method):
+    so_before_insert(doc, method)
+
+
+def before_save(doc, method):
+    so_before_save(doc, method)
 
 
 def before_submit(doc, method):
@@ -123,8 +134,3 @@ def _set_gift_card_balances(doc, cancel=False):
 
 def on_cancel(doc, method):
     _set_gift_card_balances(doc, cancel=True)
-
-
-def before_insert(doc, method):
-    if not doc.os_branch:
-        doc.os_branch = get_user_branch()

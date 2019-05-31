@@ -5,6 +5,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from functools import partial
+from toolz import compose
 
 from optic_store.api.customer import get_user_branch
 
@@ -45,6 +47,63 @@ def validate(doc, method):
 def before_insert(doc, method):
     if not doc.os_branch:
         doc.os_branch = get_user_branch()
+
+
+def before_save(doc, method):
+    if doc.orx_type == "Spectacles":
+        settings = frappe.get_single("Optical Store Settings")
+        frames = map(lambda x: x.item_group, settings.frames)
+        lenses = map(lambda x: x.item_group, settings.lens)
+
+        validate_item_group = _validate_item_group(frames, lenses)
+        no_of_lenses = 0
+
+        for item in doc.items:
+            if item.os_spec_part:
+                validate_item_group(item)
+                if item.item_group in lenses:
+                    no_of_lenses += 1
+            else:
+                if item.item_group in frames:
+                    item.os_spec_part = "Frame"
+                elif item.item_group in lenses:
+                    if no_of_lenses == 0:
+                        item.os_spec_part = "Lens Right"
+                    elif no_of_lenses == 1:
+                        item.os_spec_part = "Lens Left"
+                    no_of_lenses += 1
+
+        _validate_spec_parts(doc.items)
+
+
+def _validate_item_group(frames, lenses):
+    def throw_err(item):
+        frappe.throw(
+            _("Item in row {} cannot be {}".format(item.idx, item.os_spec_part))
+        )
+
+    def fn(item):
+        if item.os_spec_part in ["Frame"] and item.item_group not in frames:
+            throw_err(item)
+        elif (
+            item.os_spec_part in ["Lens Right", "Lens Left"]
+            and item.item_group not in lenses
+        ):
+            if item.item_group not in lenses:
+                throw_err(item)
+
+    return fn
+
+
+def _validate_spec_parts(items):
+    parts = map(lambda x: x.os_spec_part, items)
+
+    def count(part):
+        return compose(len, partial(filter, lambda x: x == part))
+
+    for part in ["Frame", "Lens Right", "Lens Left"]:
+        if count(part)(parts) > 1:
+            frappe.throw(_("There can only be one row for {}".format(part)))
 
 
 def on_update(doc, method):
