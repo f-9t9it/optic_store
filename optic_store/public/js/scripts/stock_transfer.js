@@ -34,28 +34,40 @@ async function set_source_branch(frm) {
 
 export const stock_transfer_item = {
   item_code: async function(frm, cdt, cdn) {
-    const { item_code } = frappe.model.get_doc(cdt, cdn);
+    const item = frappe.model.get_doc(cdt, cdn) || {};
     const { source_warehouse: warehouse, company } = frm.doc;
-    frappe.model.set_value(cdt, cdn, 'qty', item_code ? 1 : 0);
-    frappe.model.set_value(cdt, cdn, 'conversion_factor', 1);
+    const { item_code } = item;
+    frappe.model.set_value(cdt, cdn, {
+      qty: item_code ? 1 : 0,
+      conversion_factor: 1,
+    });
     if (item_code) {
-      const { has_batch_no, has_serial_no } = await frappe.db.get_doc(
-        'Item',
-        item_code
-      );
-      erpnext.show_serial_batch_selector(
-        frm,
-        { item_code, has_batch_no, has_serial_no, warehouse },
-        ({ batch_no, serial_no, qty }) => {
-          frappe.model.set_value(cdt, cdn, 'qty', qty);
-          if (has_batch_no) {
-            frappe.model.set_value(cdt, cdn, 'batch_no', batch_no);
+      const {
+        item_name,
+        item_group,
+        brand,
+        has_batch_no,
+        has_serial_no,
+      } = await frappe.db.get_doc('Item', item_code);
+      if ((has_batch_no && !item.batch_no) || (has_serial_no && !item.serial_no)) {
+        // do not show selector if either batch_no or serial_no is used in scan_barcode
+        erpnext.show_serial_batch_selector(
+          frm,
+          { item_code, has_batch_no, has_serial_no, warehouse },
+          ({ batch_no, serial_no, qty }) => {
+            frappe.model.set_value(cdt, cdn, 'qty', qty);
+            if (has_batch_no) {
+              frappe.model.set_value(cdt, cdn, 'batch_no', batch_no);
+            }
+            if (has_serial_no) {
+              frappe.model.set_value(cdt, cdn, 'serial_no', serial_no);
+            }
           }
-          if (has_serial_no) {
-            frappe.model.set_value(cdt, cdn, 'serial_no', serial_no);
-          }
-        }
-      );
+        );
+      } else {
+        frappe.model.set_value(cdt, cdn, { item_name, item_group, brand });
+        frm.refresh_field('items');
+      }
       const [posting_date, posting_time] = frm.doc.outgoing_datetime.split(' ');
       const { serial_no, qty } = frappe.model.get_doc(cdt, cdn);
       const { message: basic_rate = 0 } = await frappe.call({
