@@ -1,4 +1,7 @@
+import Vue from 'vue/dist/vue.js';
 import sumBy from 'lodash/sumBy';
+
+import StockTransferDashboard from '../components/StockTransferDashboard.vue';
 
 function set_queries(frm) {
   ['source_warehouse', 'target_warehouse'].forEach(field => {
@@ -13,16 +16,16 @@ function set_queries(frm) {
 }
 
 function calc_and_set_row_amount(frm, cdt, cdn) {
-  const { qty = 0, basic_rate = 0 } = frappe.model.get_doc(cdt, cdn);
+  const { qty = 0, basic_rate = 0 } = frappe.model.get_doc(cdt, cdn) || {};
   const amount = qty * basic_rate;
   frappe.model.set_value(cdt, cdn, 'amount', qty * basic_rate);
   frappe.model.set_value(cdt, cdn, 'valuation_rate', amount / qty);
 }
 
-function calc_and_set_total_amount(frm, cdt, cdn) {
+async function calc_and_set_total_amount(frm, cdt, cdn) {
   const items = frm.fields_dict.items.grid.grid_rows.map(({ doc }) => doc);
   frm.set_value('total_value', sumBy(items, 'amount'));
-  frm.set_value('total_qty', sumBy(items, 'qty'));
+  return frm.set_value('total_qty', sumBy(items, 'qty'));
 }
 
 async function set_source_branch(frm) {
@@ -30,6 +33,23 @@ async function set_source_branch(frm) {
     method: 'optic_store.api.customer.get_user_branch',
   });
   frm.set_value('source_branch', branch);
+}
+
+function render_dashboard_data(frm) {
+  if (!frm.doc.__islocal) {
+    frm.dashboard.show();
+    const $wrapper = $('<div class="form-dashboard-section custom" />').appendTo(
+      frm.dashboard.wrapper
+    );
+    const { items } = frm.doc;
+    frm.brand_summary_vue = new Vue({
+      data: { items },
+      el: $wrapper.html('<div />').children()[0],
+      render: function(h) {
+        return h(StockTransferDashboard, { props: { items: this.items } });
+      },
+    });
+  }
 }
 
 export const stock_transfer_item = {
@@ -87,7 +107,17 @@ export const stock_transfer_item = {
       frappe.model.set_value(cdt, cdn, 'basic_rate', basic_rate);
     }
   },
-  qty: calc_and_set_row_amount,
+  qty: async function(frm) {
+    await calc_and_set_row_amount(frm);
+    if (frm.brand_summary_vue) {
+      frm.brand_summary_vue.items = frm.doc.items;
+    }
+  },
+  brand: function(frm) {
+    if (frm.brand_summary_vue) {
+      frm.brand_summary_vue.items = frm.doc.items;
+    }
+  },
   basic_rate: calc_and_set_row_amount,
   amount: calc_and_set_total_amount,
   items_remove: calc_and_set_row_amount,
@@ -123,6 +153,7 @@ export default {
       set_source_branch(frm);
     }
     toggle_incoming_datetime(frm);
+    render_dashboard_data(frm);
   },
   onload_post_render: function(frm) {
     // workflow related ui changes need to be here
