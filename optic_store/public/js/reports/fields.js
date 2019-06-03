@@ -23,6 +23,10 @@ export function make_check(args) {
   return make_base('Check', args);
 }
 
+export function make_link(args) {
+  return make_base('Link', args);
+}
+
 export function make_multiselect(args) {
   const { fieldname, options } = args;
   return make_base(

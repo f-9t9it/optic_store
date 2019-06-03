@@ -44,6 +44,7 @@ def _get_filters(filters):
         ["i.disabled = 0"],
         ["i.brand = %(brand)s"] if filters.brand else [],
         ["i.item_group = %(item_group)s"] if filters.item_group else [],
+        ["INSTR(i.item_name, %(item_name)s) > 0"] if filters.item_name else [],
     )
     bin_clauses = concatv(
         ["b.item_code = i.item_code"],
@@ -52,6 +53,17 @@ def _get_filters(filters):
     return (
         {"clauses": " AND ".join(clauses), "bin_clauses": " AND ".join(bin_clauses)},
         filters,
+    )
+
+
+def price_sq(price_list):
+    return """
+        SELECT item_code, AVG(price_list_rate) AS price_list_rate
+        FROM `tabItem Price`
+        WHERE price_list = '{price_list}'
+        GROUP BY item_code
+    """.format(
+        price_list=price_list
     )
 
 
@@ -68,15 +80,13 @@ def _get_data(clauses, values, keys):
                 ipms.price_list_rate AS minimum_selling
             FROM `tabItem` AS i
             LEFT JOIN `tabBin` AS b ON {bin_clauses}
-            LEFT JOIN (
-                SELECT * FROM `tabItem Price` WHERE price_list = 'Standard Selling'
-            ) AS ipss ON ipss.item_code = i.item_code
-            LEFT JOIN (
-                SELECT * FROM `tabItem Price` WHERE price_list = 'Minimum Selling'
-            ) AS ipms ON ipms.item_code = i.item_code
+            LEFT JOIN ({standard_selling_sq}) AS ipss ON ipss.item_code = i.item_code
+            LEFT JOIN ({minimum_selling_sq}) AS ipms ON ipms.item_code = i.item_code
             WHERE {clauses}
             GROUP BY i.item_code
         """.format(
+            standard_selling_sq=price_sq("Standard Selling"),
+            minimum_selling_sq=price_sq("Minimum Selling"),
             **clauses
         ),
         values=values,

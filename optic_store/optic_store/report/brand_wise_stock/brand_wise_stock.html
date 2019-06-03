@@ -1,0 +1,56 @@
+<style>
+  .os-subtitle {
+    display: flex;
+    flex-flow: row wrap;
+  }
+  .os-subtitle > dl {
+    margin-left: 1em;
+    margin-right: 1em;
+  }
+  .os-rep-smalltext {
+    font-size: 0.8em;
+  }
+</style>
+
+<main>
+  <h2>{{ title }}</h2>
+  <div class="os-subtitle">
+    {% if (filters.brand) { %}
+    <dl>
+      <dt>Brand</dt>
+      <dd>{{ filters.brand }}</dd>
+    </dl>
+    {% } %} {% if (filters.item_group) { %}
+    <dl>
+      <dt>Item Group</dt>
+      <dd>{{ filters.item_group }}</dd>
+    </dl>
+    {% } %} {% if (filters.warehouse) { %}
+    <dl>
+      <dt>Warehouse</dt>
+      <dd>{{ filters.warehouse }}</dd>
+    </dl>
+    {% } %}
+  </div>
+  <p class="os-rep-smalltext">
+    Printed on {{ moment().format('dddd, MMM D, YYYY, h:mm:ss A') }}
+  </p>
+
+  <hr />
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Brand</th>
+        <th class="text-right">Qty</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% data.forEach(({ brand, qty }) => { %}
+      <tr>
+        <td>{{ brand }}</td>
+        <td class="text-right">{{ format_number(qty) }}</td>
+      </tr>
+      {% }) %}
+    </tbody>
+  </table>
+</main>

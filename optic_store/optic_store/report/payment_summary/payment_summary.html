@@ -1,0 +1,70 @@
+<style>
+  .os-subtitle {
+    display: flex;
+    flex-flow: row wrap;
+  }
+  .os-subtitle > dl {
+    margin-left: 1em;
+    margin-right: 1em;
+  }
+  .os-rep-smalltext {
+    font-size: 0.8em;
+  }
+</style>
+
+<main>
+  <h2>{{ title }}</h2>
+  <div class="os-subtitle">
+    <dl>
+      <dt>Start Date</dt>
+      <dd>{{ filters.start_date }}</dd>
+    </dl>
+    <dl>
+      <dt>End Date</dt>
+      <dd>{{ filters.end_date }}</dd>
+    </dl>
+    {% if (filters.modes_of_payment) { %}
+    <dl>
+      <dt>Modes of Payment</dt>
+      <dd>{{ filters.modes_of_payment }}</dd>
+    </dl>
+    {% } %} {% if (filters.branches) { %}
+    <dl>
+      <dt>Branches</dt>
+      <dd>{{ filters.branches }}</dd>
+    </dl>
+    {% } %}
+  </div>
+  <p class="os-rep-smalltext">
+    Printed on {{ moment().format('dddd, MMM D, YYYY, h:mm:ss A') }}
+  </p>
+
+  <hr />
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        {% columns.forEach(({ label, fieldname }) => { %}
+        <th
+          class="{{ ['posting_date', 'paid_amount'].includes(fieldname) && 'text-right' }}"
+        >
+          {{ label }}
+        </th>
+        {% }) %}
+      </tr>
+    </thead>
+    <tbody>
+      {% data.forEach(row => { %}
+      <tr>
+        {% columns.forEach(({ fieldname, fieldtype }) => { %}
+        <td
+          class="{{ ['posting_date', 'paid_amount'].includes(fieldname) && 'text-right' }}"
+        >
+          {{ fieldtype === 'Date' ? frappe.datetime.str_to_user(row[fieldname]) :
+          fieldtype === 'Currency' ? format_currency(row[fieldname]) : row[fieldname] }}
+        </td>
+        {% }) %}
+      </tr>
+      {% }) %}
+    </tbody>
+  </table>
+</main>
