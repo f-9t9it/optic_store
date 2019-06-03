@@ -79,7 +79,10 @@
       <tbody>
         <tr>
           <td>{{ _('Frame') }}</td>
-          <td>{%- if items.frame -%} {{ items.frame.item_name }} {%- endif -%}</td>
+          <td>
+            {%- if items.frame -%} {{ items.frame.item_name }} x {{ items.frame.qty }}
+            {%- endif -%}
+          </td>
           <td>
             {{ items.frame.get_formatted('amount', doc) if items.frame else '-' }}
           </td>
@@ -87,7 +90,8 @@
         <tr>
           <td>{{ _('Lens (R)') }}</td>
           <td>
-            {%- if items.lens_right -%} {{ items.lens_right.item_name }} {%- endif -%}
+            {%- if items.lens_right -%} {{ items.lens_right.item_name }} x {{
+            items.lens_right.qty }} {{ items.lens_right.uom }} {%- endif -%}
           </td>
           <td>
             {{ items.lens_right.get_formatted('amount', doc) if items.lens_right else
@@ -97,7 +101,8 @@
         <tr>
           <td>{{ _('Lens (L)') }}</td>
           <td>
-            {%- if items.lens_left -%} {{ items.lens_left.item_name }} {%- endif -%}
+            {%- if items.lens_left -%} {{ items.lens_left.item_name }} x {{
+            items.lens_left.qty }} {{ items.lens_left.uom }} {%- endif -%}
           </td>
           <td>
             {{ items.lens_left.get_formatted('amount', doc) if items.lens_left else '-'
@@ -107,7 +112,7 @@
         {%- for item in items.others -%}
         <tr>
           <td>{{ item.item_group }}</td>
-          <td>{{ item.item_name }}</td>
+          <td>{{ item.item_name }} x {{ item.qty }} {{ item.uom }}</td>
           <td>{{ item.get_formatted('amount', doc) }}</td>
         </tr>
         {%- endfor -%}
@@ -135,7 +140,7 @@
     </dl>
     {%- if doc.discount_amount -%}
     <dl>
-      <dt>{{ _('Discount') (-) }}</dt>
+      <dt>{{ _('Discount') }} (-)</dt>
       <dd>{{ doc.get_formatted('discount_amount') }}</dd>
     </dl>
     {%- endif -%} {%- if doc.taxes|len -%} {%- for tax in doc.taxes -%}

@@ -80,24 +80,29 @@
       {%- set items = get_optical_items(doc.items, frame_ig, lens_ig) -%}
       <dl>
         <dt>{{ _('Frame / Model') }}</dt>
-        <dd>{%- if items.frame -%} {{ items.frame.item_name }} {%- endif -%}</dd>
+        <dd>
+          {%- if items.frame -%} {{ items.frame.item_name }} x {{ items.frame.qty }} {{
+          items.frame.uom }} {%- endif -%}
+        </dd>
       </dl>
       <dl>
         <dt>{{ _('Lens (R)') }}</dt>
         <dd>
-          {%- if items.lens_right -%} {{ items.lens_right.item_name }} {%- endif -%}
+          {%- if items.lens_right -%} {{ items.lens_right.item_name }} x {{
+          items.lens_right.qty }} {{ items.lens_right.uom }} {%- endif -%}
         </dd>
       </dl>
       <dl>
         <dt>{{ _('Lens (L)') }}</dt>
         <dd>
-          {%- if items.lens_left -%} {{ items.lens_left.item_name }} {%- endif -%}
+          {%- if items.lens_left -%} {{ items.lens_left.item_name }} x {{
+          items.lens_left.qty }} {{ items.lens_left.uom }} {%- endif -%}
         </dd>
       </dl>
       {%- for item in items.others -%}
       <dl>
         <dt>{{ item.item_group }}</dt>
-        <dd>{{ item.item_name }}</dd>
+        <dd>{{ item.item_name }} x {{ item.qty }} {{ item.uom }}</dd>
       </dl>
       {%- endfor -%}
     </div>
