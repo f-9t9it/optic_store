@@ -139,9 +139,25 @@
         <dt>{{ _('Total Amount') }}</dt>
         <dd>{{ doc.get_formatted('total') }}</dd>
       </dl>
-      {%- set payments = get_advance_payments(doc)|selectattr('payment_doctype', 'eq',
-      'Sales Invoice')|list -%} {%- set total_received =
-      payments|sum(attribute='paid_amount') -%}
+      {%- if doc.discount_amount -%}
+      <dl>
+        <dt>{{ _('Discount') }} (-)</dt>
+        <dd>{{ doc.get_formatted('discount_amount') }}</dd>
+      </dl>
+      {%- endif -%} {%- if doc.taxes|len -%} {%- for tax in doc.taxes -%}
+      <dl>
+        <dt>{{ _(tax.description) }}</dt>
+        <dd>{{ tax.get_formatted('tax_amount', doc) }}</dd>
+      </dl>
+      {%- endfor -%} {%- endif-%} {%- if doc.total != doc.grand_total -%}
+      <dl class="os-sr-totals-divide">
+        <dt>{{ _('Grand Total') }}</dt>
+        <dd>{{ doc.get_formatted('grand_total') }}</dd>
+      </dl>
+      {%- endif -%} {%- set payments =
+      get_advance_payments(doc)|selectattr('payment_doctype', 'eq', 'Sales
+      Invoice')|list -%} {%- set total_received = payments|sum(attribute='paid_amount')
+      -%}
       <dl>
         <dt>{{ _('Total Received') }}</dt>
         <dd>{{ frappe.utils.fmt_money(total_received, currency=doc.currency) }}</dd>
@@ -155,8 +171,8 @@
       <dl>
         <dt>{{ _('Balance Amount') }}</dt>
         <dd>
-          {{ frappe.utils.fmt_money(doc.total - total_received, currency=doc.currency)
-          }}
+          {{ frappe.utils.fmt_money(doc.grand_total - total_received,
+          currency=doc.currency) }}
         </dd>
       </dl>
     </div>
