@@ -360,6 +360,6 @@ jenv = {
     "methods": [
         "get_optical_items:optic_store.utils.helpers.get_optical_items",
         "get_ref_so_date:optic_store.api.sales_invoice.get_ref_so_date",
-        "get_advance_payments:optic_store.api.sales_invoice.get_payments",
+        "get_payments:optic_store.api.sales_invoice.get_payments",
     ]
 }

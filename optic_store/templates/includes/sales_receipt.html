@@ -153,8 +153,8 @@
       <dt>{{ _('Grand Total') }}</dt>
       <dd>{{ doc.get_formatted('grand_total') }}</dd>
     </dl>
-    {%- endif -%} {%- set payments = get_advance_payments(doc) -%} {%- set
-    total_received = payments|sum(attribute='paid_amount') -%}
+    {%- endif -%} {%- set payments = get_payments(doc) -%} {%- set total_received =
+    payments|sum(attribute='paid_amount') -%}
     <dl>
       <dt>{{ _('Total Received') }}</dt>
       <dd>{{ frappe.utils.fmt_money(total_received, currency=doc.currency) }}</dd>
