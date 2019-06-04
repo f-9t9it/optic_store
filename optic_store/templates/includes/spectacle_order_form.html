@@ -171,10 +171,11 @@
           <td>{{ _('Frame') }}</td>
           <td>
             {%- if items.frame -%} {{ items.frame.item_name }} x {{ items.frame.qty }}
-            {{ items.frame.uom }}{%- endif -%}
+            {{ items.frame.uom }} {%- endif -%}
           </td>
           <td>
-            {{ items.frame.get_formatted('amount', doc) if items.frame else '-' }}
+            {{ frappe.utils.fmt_money(items.frame.qty * items.frame.price_list_rate,
+            currency=doc.currency) if items.frame else '-' }}
           </td>
         </tr>
         <tr>
@@ -184,8 +185,9 @@
             items.lens_right.qty }} {{ items.lens_right.uom }} {%- endif -%}
           </td>
           <td>
-            {{ items.lens_right.get_formatted('amount', doc) if items.lens_right else
-            '-' }}
+            {{ frappe.utils.fmt_money(items.lens_right.qty *
+            items.lens_right.price_list_rate, currency=doc.currency) if items.lens_right
+            else '-' }}
           </td>
         </tr>
         <tr>
@@ -195,15 +197,19 @@
             items.lens_left.qty }} {{ items.lens_left.uom }} {%- endif -%}
           </td>
           <td>
-            {{ items.lens_left.get_formatted('amount', doc) if items.lens_left else '-'
-            }}
+            {{ frappe.utils.fmt_money(items.lens_left.qty *
+            items.lens_left.price_list_rate, currency=doc.currency) if items.lens_left
+            else '-' }}
           </td>
         </tr>
         {%- for item in items.others -%}
         <tr>
           <td>{{ item.item_group }}</td>
           <td>{{ item.item_name }} x {{ item.qty }} {{ item.uom }}</td>
-          <td>{{ item.get_formatted('amount', doc) }}</td>
+          <td>
+            {{ frappe.utils.fmt_money(item.qty * item.price_list_rate,
+            currency=doc.currency) }}
+          </td>
         </tr>
         {%- endfor -%}
       </tbody>
@@ -221,18 +227,22 @@
       </dl>
     </div>
     <div class="os-sof-totals">
+      {%- if doc.rounding_adjustment -%}
       <dl>
         <dt>{{ _('Rounding Adjustment') }}</dt>
         <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
       </dl>
+      {%- endif -%} {%- set amounts = get_amounts(doc) -%}
       <dl class="os-sr-totals-divide">
         <dt>{{ _('Total Amount') }}</dt>
-        <dd>{{ doc.get_formatted('total') }}</dd>
+        <dd>{{ frappe.utils.fmt_money(amounts.total, currency=doc.currency) }}</dd>
       </dl>
-      {%- if doc.discount_amount -%}
+      {%- if amounts.discount_amount -%}
       <dl>
         <dt>{{ _('Discount') }} (-)</dt>
-        <dd>{{ doc.get_formatted('discount_amount') }}</dd>
+        <dd>
+          {{ frappe.utils.fmt_money(amounts.discount_amount, currency=doc.currency) }}
+        </dd>
       </dl>
       {%- endif -%} {%- if doc.taxes|len -%} {%- for tax in doc.taxes -%}
       <dl>
