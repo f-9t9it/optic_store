@@ -86,7 +86,7 @@
           <td>{{ _('Frame') }}</td>
           <td>
             {%- if items.frame -%} {{ items.frame.item_name }} x {{ items.frame.qty }}
-            {{ items.frame.uom }} {%- endif -%}
+            {%- endif -%}
           </td>
           <td>
             {{ frappe.utils.fmt_money(items.frame.qty * items.frame.price_list_rate,
@@ -97,7 +97,7 @@
           <td>{{ _('Lens (R)') }}</td>
           <td>
             {%- if items.lens_right -%} {{ items.lens_right.item_name }} x {{
-            items.lens_right.qty }} {{ items.lens_right.uom }} {%- endif -%}
+            items.lens_right.qty }} {%- endif -%}
           </td>
           <td>
             {{ frappe.utils.fmt_money(items.lens_right.qty *
@@ -109,7 +109,7 @@
           <td>{{ _('Lens (L)') }}</td>
           <td>
             {%- if items.lens_left -%} {{ items.lens_left.item_name }} x {{
-            items.lens_left.qty }} {{ items.lens_left.uom }} {%- endif -%}
+            items.lens_left.qty }} {%- endif -%}
           </td>
           <td>
             {{ frappe.utils.fmt_money(items.lens_left.qty *
@@ -120,7 +120,7 @@
         {%- for item in items.others -%}
         <tr>
           <td>{{ item.item_group }}</td>
-          <td>{{ item.item_name }} x {{ item.qty }} {{ item.uom }}</td>
+          <td>{{ item.item_name }} x {{ item.qty }}</td>
           <td>
             {{ frappe.utils.fmt_money(item.qty * item.price_list_rate,
             currency=doc.currency) }}
@@ -164,7 +164,7 @@
         <dt>{{ _(tax.description) }}</dt>
         <dd>{{ tax.get_formatted('tax_amount', doc) }}</dd>
       </dl>
-      {%- endfor -%} {%- endif-%} {%- if doc.total != doc.grand_total -%}
+      {%- endfor -%} {%- endif-%} {%- if amounts.total != doc.grand_total -%}
       <dl class="os-sr-totals-divide">
         <dt>{{ _('Grand Total') }}</dt>
         <dd>{{ doc.get_formatted('grand_total') }}</dd>
