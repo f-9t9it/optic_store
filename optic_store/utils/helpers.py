@@ -6,8 +6,7 @@ from __future__ import unicode_literals
 from datetime import date
 from functools import partial
 from toolz import compose, first, excepts
-
-from frappe.utils import get_first_day, get_last_day, getdate, add_months, add_days
+from frappe.utils import get_first_day, get_last_day, getdate, add_months, add_days, flt
 
 
 def generate_intervals(interval, start_date, end_date):
@@ -85,3 +84,12 @@ def get_optical_items(items, frames=[], lenses=[]):
         "lens_left": lens_left,
         "others": filter(lambda x: x not in [frame, lens_right, lens_left], items),
     }
+
+
+def get_amounts(doc):
+    get_price_list_amount = compose(
+        sum, partial(map, lambda x: flt(x.price_list_rate) * flt(x.qty))
+    )
+    total = get_price_list_amount(doc.items)
+    discount_amount = total - doc.total + doc.discount_amount
+    return {"total": total, "discount_amount": discount_amount}

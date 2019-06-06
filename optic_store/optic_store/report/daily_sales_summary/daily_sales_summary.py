@@ -47,7 +47,7 @@ def _get_columns():
         make_column("posting_time", "Time", type="Time", width=90),
         make_column("customer", "Customer", type="Link", options="Customer"),
         make_column("customer_name", "Customer Name", type="Data", width=150),
-        make_column("total_qty", "Total Qty"),
+        make_column("total_qty", "Total Qty", type="Float"),
         make_column("net_total", "Net Total"),
         make_column("tax_total", "Tax Total"),
         make_column("grand_total", "Grand Total"),

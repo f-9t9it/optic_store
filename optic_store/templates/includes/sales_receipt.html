@@ -79,36 +79,47 @@
       <tbody>
         <tr>
           <td>{{ _('Frame') }}</td>
-          <td>{%- if items.frame -%} {{ items.frame.item_name }} {%- endif -%}</td>
           <td>
-            {{ items.frame.get_formatted('amount', doc) if items.frame else '-' }}
+            {%- if items.frame -%} {{ items.frame.item_name }} x {{ items.frame.qty }}
+            {%- endif -%}
+          </td>
+          <td>
+            {{ frappe.utils.fmt_money(items.frame.qty * items.frame.price_list_rate,
+            currency=doc.currency) if items.frame else '-' }}
           </td>
         </tr>
         <tr>
           <td>{{ _('Lens (R)') }}</td>
           <td>
-            {%- if items.lens_right -%} {{ items.lens_right.item_name }} {%- endif -%}
+            {%- if items.lens_right -%} {{ items.lens_right.item_name }} x {{
+            items.lens_right.qty }} {%- endif -%}
           </td>
           <td>
-            {{ items.lens_right.get_formatted('amount', doc) if items.lens_right else
-            '-' }}
+            {{ frappe.utils.fmt_money(items.lens_right.qty *
+            items.lens_right.price_list_rate, currency=doc.currency) if items.lens_right
+            else '-' }}
           </td>
         </tr>
         <tr>
           <td>{{ _('Lens (L)') }}</td>
           <td>
-            {%- if items.lens_left -%} {{ items.lens_left.item_name }} {%- endif -%}
+            {%- if items.lens_left -%} {{ items.lens_left.item_name }} x {{
+            items.lens_left.qty }} {%- endif -%}
           </td>
           <td>
-            {{ items.lens_left.get_formatted('amount', doc) if items.lens_left else '-'
-            }}
+            {{ frappe.utils.fmt_money(items.lens_left.qty *
+            items.lens_left.price_list_rate, currency=doc.currency) if items.lens_left
+            else '-' }}
           </td>
         </tr>
         {%- for item in items.others -%}
         <tr>
           <td>{{ item.item_group }}</td>
-          <td>{{ item.item_name }}</td>
-          <td>{{ item.get_formatted('amount', doc) }}</td>
+          <td>{{ item.item_name }} x {{ item.qty }}</td>
+          <td>
+            {{ frappe.utils.fmt_money(item.qty * item.price_list_rate,
+            currency=doc.currency) }}
+          </td>
         </tr>
         {%- endfor -%}
       </tbody>
@@ -125,15 +136,34 @@
     {%- endif -%}
   </div>
   <div class="os-sr-totals">
+    {%- if doc.rounding_adjustment -%}
     <dl>
       <dt>{{ _('Rounding Adjustment') }}</dt>
       <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
     </dl>
+    {%- endif -%} {%- set amounts = get_amounts(doc) -%}
     <dl class="os-sr-totals-divide">
       <dt>{{ _('Total Amount') }}</dt>
-      <dd>{{ doc.get_formatted('total') }}</dd>
+      <dd>{{ frappe.utils.fmt_money(amounts.total, currency=doc.currency) }}</dd>
     </dl>
-    {%- set payments = get_advance_payments(doc) -%} {%- set total_received =
+    {%- if amounts.discount_amount -%}
+    <dl>
+      <dt>{{ _('Discount') }} (-)</dt>
+      <dd>
+        {{ frappe.utils.fmt_money(amounts.discount_amount, currency=doc.currency) }}
+      </dd>
+    </dl>
+    {%- endif -%} {%- if doc.taxes|len -%} {%- for tax in doc.taxes -%}
+    <dl>
+      <dt>{{ _(tax.description) }}</dt>
+      <dd>{{ tax.get_formatted('tax_amount', doc) }}</dd>
+    </dl>
+    {%- endfor -%} {%- endif-%} {%- if amounts.total != doc.grand_total -%}
+    <dl class="os-sr-totals-divide">
+      <dt>{{ _('Grand Total') }}</dt>
+      <dd>{{ doc.get_formatted('grand_total') }}</dd>
+    </dl>
+    {%- endif -%} {%- set payments = get_payments(doc) -%} {%- set total_received =
     payments|sum(attribute='paid_amount') -%}
     <dl>
       <dt>{{ _('Total Received') }}</dt>
@@ -142,7 +172,8 @@
     <dl>
       <dt>{{ _('Balance Amount') }}</dt>
       <dd>
-        {{ frappe.utils.fmt_money(doc.total - total_received, currency=doc.currency) }}
+        {{ frappe.utils.fmt_money(doc.grand_total - total_received,
+        currency=doc.currency) }}
       </dd>
     </dl>
   </div>

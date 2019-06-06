@@ -184,10 +184,9 @@
       <dl>
         <dt>Name / ID</dt>
         <dd>
-          {{ customer_doc.customer_name }} / {{ customer_doc.customer_id }}
-          {% if (customer_doc.is_new) { %}
-            <span class="os-psr-header-new-indicator">new</span>
-          {% } %}
+          {{ customer_doc.customer_name }} / {{ customer_doc.customer_id }} {% if
+          (customer_doc.is_new) { %}
+          <span class="os-psr-header-new-indicator">new</span> {% } %}
         </dd>
       </dl>
       <dl>
@@ -233,7 +232,7 @@
         <tr>
           <td>{{ idx + 1 }}</td>
           <td>{{ item.item_name }} x {{ item.qty }}</td>
-          <td>{{ fmt_money(item.amount) }}</td>
+          <td>{{ fmt_money(item.price_list_rate * item.qty) }}</td>
         </tr>
         {% }) %}
       </tbody>
@@ -243,12 +242,30 @@
   <section class="os-psr-summary">
     {% if (terms) { %}
     <div class="os-psr-terms">Notes: {{ terms }}</div>
-    {% } %}
+    {% } %} {% const os_total = items.reduce((a, { price_list_rate = 0, qty = 0 }) => a
+    + price_list_rate * qty, 0) %} {% const os_discount_amount = os_total - total +
+    (discount_amount || 0) %}
     <div class="os-psr-totals">
       <dl>
-        <dt>Total Bill Amount</dt>
-        <dd>{{ fmt_money(total) }}</dd>
+        <dt>Total</dt>
+        <dd>{{ fmt_money(os_total) }}</dd>
       </dl>
+      {% if (os_discount_amount) { %}
+      <dl>
+        <dt>Discount (-)</dt>
+        <dd>{{ fmt_money(os_discount_amount) }}</dd>
+      </dl>
+      {% } %} {% taxes.forEach(({ description, tax_amount }) => { %}
+      <dl>
+        <dt>{{ description }}</dt>
+        <dd>{{ fmt_money(tax_amount) }}</dd>
+      </dl>
+      {% }) %} {% if (os_total !== grand_total) { %}
+      <dl>
+        <dt>Total Bill Amount</dt>
+        <dd>{{ fmt_money(grand_total) }}</dd>
+      </dl>
+      {% } %}
       <dl>
         <dt>Total Amount Due</dt>
         <dd>{{ fmt_money(outstanding_amount + paid_amount) }}</dd>
