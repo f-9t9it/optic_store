@@ -118,3 +118,8 @@ def _get_item_type(items, settings):
     if settings.standard_item_group in groups:
         return "Standard"
     return "Other"
+
+
+def before_cancel(doc, method):
+    if doc.workflow_state != "Cancelled":
+        doc.workflow_state = "Cancelled"

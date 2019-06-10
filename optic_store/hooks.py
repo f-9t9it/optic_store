@@ -296,6 +296,7 @@ doc_events = {
         "before_insert": "optic_store.doc_events.sales_order.before_insert",
         "before_save": "optic_store.doc_events.sales_order.before_save",
         "on_update": "optic_store.doc_events.sales_order.on_update",
+        "before_cancel": "optic_store.doc_events.sales_order.before_cancel",
     },
     "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
     "Item": {
