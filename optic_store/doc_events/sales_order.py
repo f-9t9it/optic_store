@@ -56,16 +56,21 @@ def before_save(doc, method):
         lenses = map(lambda x: x.item_group, settings.lens)
 
         validate_item_group = _validate_item_group(frames, lenses)
+        no_of_frames = 0
         no_of_lenses = 0
 
         for item in doc.items:
             if item.os_spec_part:
                 validate_item_group(item)
-                if item.item_group in lenses:
+                if item.item_group in frames:
+                    no_of_frames += 1
+                elif item.item_group in lenses:
                     no_of_lenses += 1
             else:
                 if item.item_group in frames:
-                    item.os_spec_part = "Frame"
+                    if no_of_frames == 0:
+                        item.os_spec_part = "Frame"
+                    no_of_frames += 1
                 elif item.item_group in lenses:
                     if no_of_lenses == 0:
                         item.os_spec_part = "Lens Right"
