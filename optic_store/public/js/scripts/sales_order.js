@@ -181,6 +181,27 @@ async function set_naming_series(frm) {
   }
 }
 
+export function hide_actions(frm) {
+  // this is a hack to make native ui elements
+  const hide_buttons = setInterval(() => {
+    const make_btns = frm.page.inner_toolbar.find('div[data-label="Make"]');
+    if (make_btns.length > 0) {
+      make_btns.hide();
+      clearInterval(hide_buttons);
+    }
+  }, 60);
+
+  if (!frappe.user_roles.includes('System Manager')) {
+    const hide_links = setInterval(() => {
+      const links = frm.dashboard.links_area.find('div[data-doctype="Delivery Note"]');
+      if (links.length > 0) {
+        links.hide();
+        clearInterval(hide_links);
+      }
+    }, 60);
+  }
+}
+
 export default {
   setup: async function(frm) {
     const { order_pfs = [], invoice_mops = [] } = await frappe.db.get_doc(
@@ -209,15 +230,7 @@ export default {
     if (frm.doc.__islocal) {
       set_fields(frm);
     }
-
-    // this is a hack to make the hide the 'Make' menu button
-    const hide_make_hack = setInterval(() => {
-      const make_btns = frm.page.inner_toolbar.find('div[data-label="Make"]');
-      if (make_btns.length > 0) {
-        frm.page.inner_toolbar.find('div[data-label="Make"]').hide();
-        clearInterval(hide_make_hack);
-      }
-    }, 60);
+    hide_actions(frm);
   },
   customer: setup_orx_name,
   os_branch: set_naming_series,

@@ -6,6 +6,7 @@ import {
   handle_gift_card_entry,
   setup_employee_queries,
   set_spec_types_options,
+  hide_actions,
 } from './sales_order';
 import DeliverDialog from '../frappe-components/DeliverDialog';
 
@@ -172,14 +173,7 @@ export default {
     render_prescription(frm);
     render_qol_button(frm);
 
-    // this is a hack to hide the 'Make' menu button
-    const hide_make_hack = setInterval(() => {
-      const make_btns = frm.page.inner_toolbar.find('div[data-label="Make"]');
-      if (make_btns.length > 0) {
-        frm.page.inner_toolbar.find('div[data-label="Make"]').hide();
-        clearInterval(hide_make_hack);
-      }
-    }, 60);
+    hide_actions(frm);
     render_return_button(frm);
   },
   os_branch: function(frm) {
