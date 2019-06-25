@@ -16,7 +16,7 @@ import scripts, {
 } from './scripts';
 import extend_pos from './pages/pos';
 import extend_batch_selector from './pages/serial_no_and_batch_selector';
-import reports from './reports';
+import * as reports from './reports';
 
 frappe.ui.form.on('Payment Entry', payment_entry);
 frappe.ui.form.on('Sales Invoice', sales_invoice);
