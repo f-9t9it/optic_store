@@ -1,0 +1,148 @@
+<main class="os-lof">
+  <div class="os-lof-preheader">
+    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch,
+    ['branch_phone', 'os_cr_no']) or (None, None) -%}
+    <div>{{ doc.os_branch or '' }}</div>
+    {%- if branch_phone -%}
+    <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
+    {%- endif -%}
+  </div>
+  <div class="os-sr-header">
+    <h1>{{ _('Refund / Credit Note') }}</h1>
+    <div class="os-sr-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
+    <div class="os-sr-header-content">
+      <dl>
+        <dt>{{ _('Sales No')}}</dt>
+        <dd>{{ doc.name }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Date')}}</dt>
+        <dd class="text-right">{{ doc.get_formatted('posting_date') }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Ref No')}}</dt>
+        <dd>{{ doc.return_against or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Branch')}}</dt>
+        <dd>{{ doc.os_branch or '' }}</dd>
+      </dl>
+    </div>
+    {%- set customer = frappe.get_doc('Customer', doc.customer) -%}
+    <div>
+      <dl>
+        <dt>{{ _('Name / ID') }}</dt>
+        <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('IC No') }}</dt>
+        <dd>{{ customer.os_loyalty_card_no or ''}}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Address') }}</dt>
+        <dd>{{ customer.os_address or '' }}</dd>
+      </dl>
+    </div>
+    <div class="os-sr-header-content">
+      <dl>
+        <dt>{{ _('Office No') }}</dt>
+        <dd>{{ customer.os_office_number or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Mobile No') }}</dt>
+        <dd>{{ customer.os_mobile_number or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Home No') }}</dt>
+        <dd>{{ customer.os_home_number or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Other No') }}</dt>
+        <dd>{{ customer.os_other_number or '' }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="os-sof-items os-fill">
+    <table class="table table-condensed os-items">
+      <thead>
+        <tr>
+          <th>{{ _('Sr No') }}</th>
+          <th>{{ _('Description') }}</th>
+          <th>{{ _('Amount') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for item in doc.items -%}
+        <tr>
+          <td>{{ item.idx }}</td>
+          <td>{{ item.item_name }} x {{ -item.qty }}</td>
+          <td>{{ item.get_formatted('amount') }}</td>
+        </tr>
+        {%- endfor -%}
+      </tbody>
+    </table>
+  </div>
+  <div class="os-summary">
+    <div class="os-sr-terms">
+      {%- if doc.terms -%}
+      <div>{{ _('Notes')}}</div>
+      <div>{{ doc.terms }}</div>
+      {%- endif -%}
+    </div>
+    <div class="os-sof-totals">
+      {%- if doc.rounding_adjustment -%}
+      <dl>
+        <dt>{{ _('Rounding Adjustment') }}</dt>
+        <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
+      </dl>
+      {%- endif -%} {%- if doc.taxes|len -%} {%- for tax in doc.taxes -%}
+      <dl>
+        <dt>{{ _(tax.description) }}</dt>
+        <dd>{{ tax.get_formatted('tax_amount', doc) }}</dd>
+      </dl>
+      {%- endfor -%} {%- endif-%} {%- if doc.discount_amount -%}
+      <dl>
+        <dt>{{ _('Discount') }} (-)</dt>
+        <dd>{{ doc.get_formatted('discount_amount') }}</dd>
+      </dl>
+      {%- endif -%}
+      <dl class="os-sr-totals-divide">
+        <dt>{{ _('Grand Total') }}</dt>
+        <dd>{{ doc.get_formatted('grand_total') }}</dd>
+      </dl>
+      {%- set payments = get_payments(doc) -%} {%- set total_received =
+      payments|sum(attribute='paid_amount') -%}
+      <dl>
+        <dt>{{ _('Total Received') }}</dt>
+        <dd>{{ frappe.utils.fmt_money(total_received, currency=doc.currency) }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Balance Amount') }}</dt>
+        <dd>
+          {{ frappe.utils.fmt_money(doc.grand_total - total_received,
+          currency=doc.currency) }}
+        </dd>
+      </dl>
+    </div>
+  </div>
+  <div class="os-lof-footer">
+    {%- set sales_person_name = frappe.db.get_value('Employee', doc.os_sales_person,
+    'employee_name') if doc.os_sales_person else '' -%}
+    <dl>
+      <dt>{{ _('Issued By') }}</dt>
+      <dd>{{ sales_person_name }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Sales Person') }}</dt>
+      <dd>{{ sales_person_name }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Printed On') }}</dt>
+      <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
+    </dl>
+    <div class="os-lof-footer-message">
+      This is a computer generated receipt. No signature is required.
+    </div>
+  </div>
+</main>
