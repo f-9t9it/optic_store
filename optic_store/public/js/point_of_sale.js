@@ -1,3 +1,5 @@
+POSCart = optic_store.addons.extend_cart(POSCart);
+
 erpnext.show_serial_batch_selector = function(frm, d, callback, on_close, show_dialog) {
   frappe.require('assets/erpnext/js/utils/serial_no_batch_selector.js', function() {
     const SerialNoBatchSelector = frappe.get_route().includes('point-of-sale')
