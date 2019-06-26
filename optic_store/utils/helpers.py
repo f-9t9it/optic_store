@@ -91,5 +91,6 @@ def get_amounts(doc):
         sum, partial(map, lambda x: flt(x.price_list_rate) * flt(x.qty))
     )
     total = get_price_list_amount(doc.items)
-    discount_amount = total - doc.total + doc.discount_amount
+    # `doc.discount_amount` is negative
+    discount_amount = doc.discount_amount + (doc.total - total)
     return {"total": total, "discount_amount": discount_amount}
