@@ -156,8 +156,8 @@
       </dl>
     </div>
   </div>
-  <div class="os-lof-notes">
-    <div>
+  <div class="os-summary">
+    <div class="os-bordered">
       <dl>
         <dt>{{ _('Storage Location')}}</dt>
         <dd>{{ doc.set_warehouse or ''}}</dd>
@@ -167,7 +167,7 @@
         <dd>{{ doc.os_orx_notes or '' }}</dd>
       </dl>
     </div>
-    <div>
+    <div class="os-bordered os-bordered-no-left">
       <dl>
         <dt>{{ _('Lab Remarks')}}</dt>
         <dd>{{ doc.os_notes or '' }}</dd>

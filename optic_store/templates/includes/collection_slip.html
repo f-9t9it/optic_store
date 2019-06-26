@@ -130,16 +130,33 @@
       </tbody>
     </table>
   </div>
-  <div class="os-lof-notes">
+  <div class="os-summary">
     <div>
-      <dl>
-        <dt>{{ _('Storage Location')}}</dt>
-        <dd></dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Remarks')}}</dt>
-        <dd>{{ doc.os_orx_notes or '' }}</dd>
-      </dl>
+      <div class="os-bordered os-fill">
+        <dl>
+          <dt>{{ _('Storage Location')}}</dt>
+          <dd></dd>
+        </dl>
+        <dl>
+          <dt>{{ _('Remarks')}}</dt>
+          <dd>{{ doc.os_orx_notes or '' }}</dd>
+        </dl>
+      </div>
+      <div class="os-sof-totals">
+        {%- set amounts = get_amounts(doc) -%}
+        <dl>
+          <dt>{{ _('Total Original Amount') }}</dt>
+          <dd>{{ frappe.utils.fmt_money(amounts.total, currency=doc.currency) }}</dd>
+        </dl>
+        {%- if amounts.discount_amount -%}
+        <dl>
+          <dt>{{ _('Total Discount') }} (-)</dt>
+          <dd>
+            {{ frappe.utils.fmt_money(amounts.discount_amount, currency=doc.currency) }}
+          </dd>
+        </dl>
+        {%- endif -%}
+      </div>
     </div>
     <div class="os-sof-totals">
       {%- if doc.rounding_adjustment -%}
@@ -147,7 +164,7 @@
         <dt>{{ _('Rounding Adjustment') }}</dt>
         <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
       </dl>
-      {%- endif -%} {%- set amounts = get_amounts(doc) -%}
+      {%- endif -%}
       <dl class="os-sr-totals-divide">
         <dt>{{ _('Total Amount') }}</dt>
         <dd>{{ frappe.utils.fmt_money(amounts.total, currency=doc.currency) }}</dd>
