@@ -42,3 +42,18 @@ export default function withSalesPerson(Cart) {
     }
   };
 }
+
+export function paymentWithSalesPerson(Payment) {
+  const isClass = Payment instanceof Function || Payment instanceof Class;
+  if (!isClass) {
+    return Payment;
+  }
+  return class PaymentWithSalesPerson extends Payment {
+    open_modal() {
+      if (!this.frm.doc.os_sales_person) {
+        frappe.throw(__('Sales Person is mandatory'));
+      }
+      super.open_modal();
+    }
+  };
+}
