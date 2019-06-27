@@ -1,6 +1,7 @@
 erpnext.pos.PointOfSale = optic_store.addons.extend_pos(erpnext.pos.PointOfSale);
 POSCart = optic_store.addons.extend_cart(POSCart);
 POSItems = optic_store.addons.extend_items(POSItems);
+Payment = optic_store.addons.extend_payment(Payment);
 
 erpnext.show_serial_batch_selector = function(frm, d, callback, on_close, show_dialog) {
   frappe.require('assets/erpnext/js/utils/serial_no_batch_selector.js', function() {
