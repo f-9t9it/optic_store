@@ -215,3 +215,26 @@ def _update_customer_details(customers_list):
     )
     updater(customers_list)
     frappe.db.commit()
+
+
+@frappe.whitelist()
+def get_items(
+    start, page_length, price_list, item_group, search_value="", pos_profile=None
+):
+    from erpnext.selling.page.point_of_sale.point_of_sale import get_items
+
+    result = get_items(
+        start, page_length, price_list, item_group, search_value="", pos_profile=None
+    )
+
+    get_prices = compose(_get_item_prices, list, partial(pluck, "item_code"))
+
+    items = get("items", result, [])
+    prices = get_prices(items)
+
+    def add_price(item):
+        item_code = get("item_code", item)
+        rates = get(item_code, prices)
+        return merge(item, rates) if rates else item
+
+    return merge(result, {"items": map(add_price, items)})
