@@ -1,4 +1,4 @@
-export default function withSalesperson(Cart) {
+export default function withSalesPerson(Cart) {
   const isClass = Cart instanceof Function || Cart instanceof Class;
   if (!isClass) {
     return Cart;
