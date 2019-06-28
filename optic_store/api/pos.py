@@ -238,3 +238,27 @@ def get_items(
         return merge(item, rates) if rates else item
 
     return merge(result, {"items": map(add_price, items)})
+
+
+@frappe.whitelist()
+def get_loyalty_program_details(
+    customer,
+    loyalty_program=None,
+    expiry_date=None,
+    company=None,
+    silent=False,
+    include_expired_entry=False,
+):
+    from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
+        get_loyalty_program_details,
+        get_loyalty_details,
+    )
+
+    program = get_loyalty_program_details(
+        customer, loyalty_program, expiry_date, company, silent, include_expired_entry
+    )
+    points = get_loyalty_details(
+        customer, program.loyalty_program, expiry_date, company, include_expired_entry
+    )
+
+    return merge(program, points)
