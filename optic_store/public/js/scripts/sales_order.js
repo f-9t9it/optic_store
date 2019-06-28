@@ -67,19 +67,27 @@ export async function apply_group_discount(frm) {
           item_codes: items.map(({ item_code }) => item_code),
         },
       });
-      items.forEach(({ doctype, docname, item_code }) => {
-        const { discount_rate = 0 } =
-          discounts.find(d => d.item_code === item_code) || {};
-        frappe.model.set_value(doctype, docname, 'discount_percentage', discount_rate);
-      });
+      return Promise.all(
+        items.map(({ doctype, docname, item_code }) => {
+          const { discount_rate = 0 } =
+            discounts.find(d => d.item_code === item_code) || {};
+          return frappe.model.set_value(
+            doctype,
+            docname,
+            'discount_percentage',
+            discount_rate
+          );
+        })
+      );
     } catch (e) {
       frappe.throw(__('Cannot apply Group Discount'));
     }
-  } else {
-    items.forEach(({ doctype, docname }) => {
-      frappe.model.set_value(doctype, docname, 'discount_percentage', 0);
-    });
   }
+  return Promise.all(
+    items.map(({ doctype, docname }) =>
+      frappe.model.set_value(doctype, docname, 'discount_percentage', 0)
+    )
+  );
 }
 
 function handle_order_type(frm) {
