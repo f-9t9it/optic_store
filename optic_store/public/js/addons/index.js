@@ -7,10 +7,11 @@ import withPaymentValidation from './withPaymentValidation';
 import withFieldsHidden from './withFieldsHidden';
 import withTabbedMops from './withTabbedMops';
 import withKeyboardShortcuts from './withKeyboardShortcuts';
+import withGroupDiscount from './withGroupDiscount';
 
 export const extend_pos = flowRight([withKeyboardShortcuts, withXzReport]);
 
-export const extend_cart = flowRight([withSalesPerson]);
+export const extend_cart = flowRight([withGroupDiscount, withSalesPerson]);
 
 export const extend_items = flowRight([withItemRates]);
 
