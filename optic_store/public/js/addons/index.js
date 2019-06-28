@@ -8,6 +8,7 @@ import withFieldsHidden from './withFieldsHidden';
 import withTabbedMops from './withTabbedMops';
 import withKeyboardShortcuts from './withKeyboardShortcuts';
 import withGroupDiscount from './withGroupDiscount';
+import withGiftCard from './withGiftCard';
 
 export const extend_pos = flowRight([withKeyboardShortcuts, withXzReport]);
 
@@ -17,6 +18,7 @@ export const extend_items = flowRight([withItemRates]);
 
 export const extend_payment = flowRight([
   withPaymentValidation,
+  withGiftCard,
   withTabbedMops,
   withFieldsHidden,
   paymentWithSalesPerson,
