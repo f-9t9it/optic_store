@@ -6,8 +6,9 @@ import withItemRates from './withItemRates';
 import withPaymentValidation from './withPaymentValidation';
 import withFieldsHidden from './withFieldsHidden';
 import withTabbedMops from './withTabbedMops';
+import withKeyboardShortcuts from './withKeyboardShortcuts';
 
-export const extend_pos = flowRight([withXzReport]);
+export const extend_pos = flowRight([withKeyboardShortcuts, withXzReport]);
 
 export const extend_cart = flowRight([withSalesPerson]);
 
