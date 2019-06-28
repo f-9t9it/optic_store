@@ -28,7 +28,9 @@ export default function withItemRates(Items) {
             'border-radius': '3px',
             'font-size': '0.75em',
           })
-          .appendTo(`a[data-item-code="${item_code}"] > div.image-field`);
+          .appendTo(
+            $template.find(`a[data-item-code="${item_code}"] > div.image-field`)
+          );
       }
       return $template.html();
     }
