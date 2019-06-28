@@ -1,3 +1,5 @@
+import sumBy from 'lodash/sumBy';
+
 import {
   render_prescription,
   set_fields,
@@ -11,6 +13,8 @@ import {
 import DeliverDialog from '../frappe-components/DeliverDialog';
 
 function set_gift_card_payment(frm) {
+  // do nothing for now
+  return;
   const payments = frm.get_field('payments');
   if (payments) {
     const row =
@@ -19,16 +23,14 @@ function set_gift_card_payment(frm) {
         .find(({ mode_of_payment }) => mode_of_payment === 'Gift Card') ||
       frappe.model.add_child(frm.doc, 'Sales Invoice Payment', 'payments');
 
-    const amount = (frm.get_field('os_gift_cards').grid.grid_rows || [])
-      .map(({ doc }) => doc.balance)
-      .reduce((a, x = 0) => a + x, 0);
-    const { rounded_total } = frm.doc;
+    const amount = sumBy(frm.doc.os_gift_cards, 'balance');
+    const { rounded_total, grand_total } = frm.doc;
 
     frappe.model.set_value(
       row.doctype,
       row.name,
       'amount',
-      Math.min(amount, rounded_total)
+      Math.min(amount, rounded_total || grand_total)
     );
     payments.refresh();
   }
