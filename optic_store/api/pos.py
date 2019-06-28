@@ -224,7 +224,7 @@ def get_items(
     from erpnext.selling.page.point_of_sale.point_of_sale import get_items
 
     result = get_items(
-        start, page_length, price_list, item_group, search_value="", pos_profile=None
+        start, page_length, price_list, item_group, search_value, pos_profile
     )
 
     get_prices = compose(_get_item_prices, list, partial(pluck, "item_code"))
