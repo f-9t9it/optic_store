@@ -11,8 +11,9 @@ import withKeyboardShortcuts from './withKeyboardShortcuts';
 import withGroupDiscount from './withGroupDiscount';
 import withGiftCard from './withGiftCard';
 import withLoyaltyCard from './withLoyaltyCard';
+import withBranch from './withBranch';
 
-export const extend_pos = flowRight([withKeyboardShortcuts, withXzReport]);
+export const extend_pos = flowRight([withKeyboardShortcuts, withXzReport, withBranch]);
 
 export const extend_cart = flowRight([withGroupDiscount, withSalesPerson]);
 
