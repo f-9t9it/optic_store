@@ -158,24 +158,6 @@
     padding: 0.5em 0;
   }
 
-  .os-lof-notes {
-    display: flex;
-    flex-flow: row nowrap;
-    min-height: 6em;
-    margin-bottom: 0.5em;
-  }
-  .os-lof-notes > * {
-    width: 50%;
-    padding: 0 0.2em;
-    border: 1px solid {{ style.border_color }};
-  }
-  .os-lof-notes > *:first-of-type {
-    border-right: none;
-  }
-  .os-lof-notes dl {
-    display: block;
-    margin-bottom: 0.5em;
-  }
   .os-lof-footer dd {
     font-size: 0.85em;
   }
@@ -212,8 +194,6 @@
     text-align: right;
   }
   .os-sof-totals {
-    border: none;
-    border-left: 1px solid {{ style.border_color }};
     padding-left: 0.6em;
   }
   .os-sof-totals dl {
@@ -315,5 +295,32 @@
     margin-top: 0.3em;
     border-top: 1px solid {{ style.border_color }};
     padding-top: 0.3em;
+  }
+
+  .os-summary {
+    display: flex;
+    flex-flow: row nowrap;
+    min-height: 6em;
+    margin-bottom: 0.5em;
+  }
+  .os-summary > * {
+    width: 50%;
+    display: flex;
+    flex-flow: column nowrap;
+  }
+    .os-summary dl {
+    margin-bottom: 0.3em;
+  }
+
+  .os-fill {
+    flex-grow: 1;
+  }
+  .os-bordered {
+    border: 1px solid {{ style.border_color }};
+    padding: 0.3em;
+    margin: 0.3em 0;
+  }
+  .os-bordered-no-left {
+    border-left: none;
   }
 </style>

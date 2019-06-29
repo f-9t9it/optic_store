@@ -54,6 +54,12 @@ def get_data():
                     "name": "Branch Stock",
                     "label": _("Branch Stock"),
                 },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Simple Stock Balance",
+                    "label": _("Simple Stock Balance"),
+                },
             ],
         },
         {

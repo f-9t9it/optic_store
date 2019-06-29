@@ -229,7 +229,7 @@ app_include_js = "/assets/js/optic_store.min.js"
 # web_include_js = "/assets/optic_store/js/optic_store.js"
 
 # include js in page
-page_js = {"pos": "public/js/pos.js"}
+page_js = {"pos": "public/js/pos.js", "point-of-sale": "public/js/point_of_sale.js"}
 
 # include js in doctype views
 doctype_js = {"Stock Entry": "public/js/stock_entry.js"}
@@ -296,6 +296,7 @@ doc_events = {
         "before_insert": "optic_store.doc_events.sales_order.before_insert",
         "before_save": "optic_store.doc_events.sales_order.before_save",
         "on_update": "optic_store.doc_events.sales_order.on_update",
+        "before_cancel": "optic_store.doc_events.sales_order.before_cancel",
     },
     "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
     "Item": {
@@ -351,6 +352,7 @@ override_whitelisted_methods = {
     "erpnext.accounts.doctype.sales_invoice.pos.get_pos_data": "optic_store.api.pos.get_pos_data",  # noqa
     "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice",  # noqa
     "erpnext.selling.page.point_of_sale.point_of_sale.search_serial_or_batch_or_barcode_number": "optic_store.api.sales_invoice.search_serial_or_batch_or_barcode_number",  # noqa
+    "erpnext.selling.page.point_of_sale.point_of_sale.get_items": "optic_store.api.pos.get_items",  # noqa
 }
 
 # Jinja Environment Customizations

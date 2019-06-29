@@ -45,7 +45,7 @@
       <tr>
         {% columns.forEach(({ label, fieldname }) => { %}
         <th
-          class="{{ ['posting_date', 'paid_amount'].includes(fieldname) && 'text-right' }}"
+          class="{{ ['posting_date', 'posting_time', 'paid_amount'].includes(fieldname) && 'text-right' }}"
         >
           {{ label }}
         </th>
@@ -57,7 +57,7 @@
       <tr>
         {% columns.forEach(({ fieldname, fieldtype }) => { %}
         <td
-          class="{{ ['posting_date', 'paid_amount'].includes(fieldname) && 'text-right' }}"
+          class="{{ ['posting_date', 'posting_time', 'paid_amount'].includes(fieldname) && 'text-right' }}"
         >
           {{ fieldtype === 'Date' ? frappe.datetime.str_to_user(row[fieldname]) :
           fieldtype === 'Currency' ? format_currency(row[fieldname]) : row[fieldname] }}

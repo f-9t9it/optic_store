@@ -98,8 +98,10 @@ def write_off_expired_gift_cards():
         ),
     )
 
-    _make_je(gift_cards, posting_date)
-    map(
-        lambda x: frappe.db.set_value("Gift Card", x.gift_card_no, "balance", 0),
-        gift_cards,
-    )
+    sum_of_balances = compose(sum, partial(map, lambda x: x.balance))
+    if gift_cards and sum_of_balances(gift_cards):
+        _make_je(gift_cards, posting_date)
+        map(
+            lambda x: frappe.db.set_value("Gift Card", x.gift_card_no, "balance", 0),
+            gift_cards,
+        )

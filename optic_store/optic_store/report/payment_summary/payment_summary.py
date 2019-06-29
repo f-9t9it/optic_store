@@ -31,6 +31,7 @@ def _get_columns():
 
     return [
         make_column("posting_date", "Payment Date", type="Date", width=90),
+        make_column("posting_time", "Payment Time", type="Time", width=90),
         make_column("voucher_type", "Voucher Type"),
         make_column(
             "voucher_no", "Voucher No", type="Dynamic Link", options="voucher_type"
