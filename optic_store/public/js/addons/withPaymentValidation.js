@@ -8,21 +8,19 @@ export default function withPaymentValidation(Payment) {
   return class PaymentWithPaymentValidation extends Payment {
     set_primary_action() {
       // complete override to validate exact payment
-      this.dialog.set_primary_action(__('Submit'), () => {
-        const {
-          outstanding_amount = 0,
-          write_off_amount = 0,
-          change_amount = 0,
-        } = this.frm.doc;
-        if (outstanding_amount > 0 || write_off_amount > 0 || change_amount > 0) {
-          return frappe.throw(
-            __('<strong>Paid Amount</strong> must be exactly equal to the amount due')
-          );
-        } else {
-          this.dialog.hide();
-          this.events.submit_form();
-        }
-      });
+      this.dialog.set_primary_action(
+        __('Submit'),
+        async function() {
+          try {
+            await this.validate();
+            this.dialog.hide();
+            this.events.submit_form();
+          } catch (e) {
+            frappe.throw(e);
+          }
+        }.bind(this)
+      );
     }
+    validate() {}
   };
 }
