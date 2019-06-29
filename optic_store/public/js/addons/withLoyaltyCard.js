@@ -85,10 +85,12 @@ export default function withLoyaltyCard(Payment) {
       });
     }
     async validate() {
-      await this.validate_loyalty_card_no();
       const { redeem_loyalty_points, loyalty_points = 0 } = this.frm.doc;
-      if (cint(redeem_loyalty_points) && loyalty_points % 10 !== 0) {
-        frappe.throw(__('Loyalty Points can only be redeemed in multiples of 10'));
+      if (cint(redeem_loyalty_points)) {
+        await this.validate_loyalty_card_no();
+        if (loyalty_points % 10 !== 0) {
+          frappe.throw(__('Loyalty Points can only be redeemed in multiples of 10'));
+        }
       }
       return super.validate();
     }
