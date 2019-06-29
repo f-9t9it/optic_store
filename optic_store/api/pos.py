@@ -240,6 +240,7 @@ def get_items(
     return merge(result, {"items": map(add_price, items)})
 
 
+# TODO: when PR #18111 is merged
 @frappe.whitelist()
 def get_loyalty_program_details(
     customer,
