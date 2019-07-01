@@ -6,7 +6,7 @@ export default function withSalesPerson(Cart) {
   return class CartWithSalesPerson extends Cart {
     make() {
       super.make();
-      this.make_sale_sperson_field();
+      this._make_sale_sperson_field();
     }
     make_dom() {
       super.make_dom();
@@ -16,7 +16,7 @@ export default function withSalesPerson(Cart) {
       super.reset();
       this.sales_person_field.set_value(this.frm.doc.os_sales_person);
     }
-    async make_sale_sperson_field() {
+    async _make_sale_sperson_field() {
       const sales_person_department = await frappe.db.get_single_value(
         'Optical Store Settings',
         'sales_person_department'

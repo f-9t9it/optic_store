@@ -5,7 +5,7 @@ export default function withXzReport(Pos) {
   }
   return class PosWithXzReport extends Pos {
     set_pos_profile_data() {
-      return super.set_pos_profile_data().then(this.get_xz_report.bind(this));
+      return super.set_pos_profile_data().then(this._get_xz_report.bind(this));
     }
     prepare_menu() {
       super.prepare_menu();
@@ -16,12 +16,12 @@ export default function withXzReport(Pos) {
       this.page.add_menu_item(
         'XZ Report',
         async function() {
-          const xz_report = await this.get_xz_report();
+          const xz_report = await this._get_xz_report();
           frappe.set_route('Form', 'XZ Report', xz_report);
         }.bind(this)
       );
     }
-    async get_xz_report() {
+    async _get_xz_report() {
       const { company, pos_profile } = this.frm.doc;
       const { message: xz_report } = await frappe.call({
         method: 'optic_store.api.xz_report.get_unclosed',

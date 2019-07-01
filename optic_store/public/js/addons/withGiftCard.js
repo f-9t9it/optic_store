@@ -23,7 +23,7 @@ export default function withGiftCard(Payment) {
           fieldname: 'gift_card_no',
           fieldtype: 'Data',
           label: __('Enter Gift Card No'),
-          onchange: this.set_gift_card_amounts.bind(this),
+          onchange: this._set_gift_card_amounts.bind(this),
         },
         {
           fieldtype: 'Column Break',
@@ -37,7 +37,7 @@ export default function withGiftCard(Payment) {
         ...fields.slice(slice_idx),
       ];
     }
-    async set_gift_card_amounts() {
+    async _set_gift_card_amounts() {
       this.frm.clear_table('os_gift_cards');
       const { message } = await set_gift_card(
         this.frm,

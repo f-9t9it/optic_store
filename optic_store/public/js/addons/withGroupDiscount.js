@@ -8,7 +8,7 @@ export default function withGroupDiscount(Cart) {
   return class CartWithGroupDiscount extends Cart {
     make() {
       super.make();
-      this.make_group_discount_field();
+      this._make_group_discount_field();
     }
     make_dom() {
       super.make_dom();
@@ -29,7 +29,7 @@ export default function withGroupDiscount(Cart) {
       super.reset();
       this.group_discount_field.set_value(this.frm.doc.orx_group_discount);
     }
-    make_group_discount_field() {
+    _make_group_discount_field() {
       this.group_discount_field = frappe.ui.form.make_control({
         df: {
           fieldtype: 'Link',

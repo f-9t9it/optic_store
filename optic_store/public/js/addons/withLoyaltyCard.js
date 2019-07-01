@@ -55,17 +55,17 @@ export default function withLoyaltyCard(Payment) {
           fieldtype: 'Data',
           label: __('Enter Loyalty Card No'),
           depends_on: 'redeem_loyalty_points',
-          onchange: this.set_loyalty_card_no.bind(this),
+          onchange: this._set_loyalty_card_no.bind(this),
         },
         ...fields.slice(slice_idx + 1),
       ].map((x, idx) => Object.assign(x, get_field_overrides(x, idx)));
     }
-    async set_loyalty_card_no() {
+    async _set_loyalty_card_no() {
       const loyalty_card_no = this.dialog.get_value('loyalty_card_no');
       if (loyalty_card_no) {
         try {
           // this is just to validate the loyalty card no
-          await this.validate_loyalty_card_no();
+          await this._validate_loyalty_card_no();
         } catch (e) {
           this.frm.set_value('os_loyalty_card_no', null);
           this.frm.set_value('loyalty_points', 0);
@@ -76,7 +76,7 @@ export default function withLoyaltyCard(Payment) {
       this.frm.set_value('os_loyalty_card_no', loyalty_card_no);
       this.dialog.set_df_property('loyalty_points', 'read_only', !loyalty_card_no);
     }
-    async validate_loyalty_card_no() {
+    async _validate_loyalty_card_no() {
       const { customer, posting_date: expiry_date, company } = this.frm.doc;
       const loyalty_card_no = this.dialog.get_value('loyalty_card_no');
       return frappe.call({
@@ -87,7 +87,7 @@ export default function withLoyaltyCard(Payment) {
     async validate() {
       const { redeem_loyalty_points, loyalty_points = 0 } = this.frm.doc;
       if (cint(redeem_loyalty_points)) {
-        await this.validate_loyalty_card_no();
+        await this._validate_loyalty_card_no();
         if (loyalty_points % 10 !== 0) {
           frappe.throw(__('Loyalty Points can only be redeemed in multiples of 10'));
         }
