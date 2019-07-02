@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import now, get_datetime, flt
+from frappe.utils import now, get_datetime, flt, cint
 from frappe.model.document import Document
 from functools import partial
 from toolz import merge, compose
@@ -37,6 +37,17 @@ class StockTransfer(Document):
             )
         if not self.source_warehouse or not self.target_warehouse:
             frappe.throw(_("Warehouse not found for one or both Branches"))
+
+        for item in self.items:
+            has_batch_no, has_serial_no = frappe.db.get_value(
+                "Item", item.item_code, ["has_batch_no", "has_serial_no"]
+            )
+            if has_batch_no and not item.batch_no:
+                frappe.throw(_("Batch No required in row {}".format(item.idx)))
+            if has_serial_no and len(
+                filter(lambda x: x, item.serial_no.split("\n"))
+            ) != cint(item.qty):
+                frappe.throw(_("Serial No missing for row {}".format(item.idx)))
 
     def before_save(self):
         if not self.outgoing_datetime:
