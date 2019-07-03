@@ -67,19 +67,27 @@ export async function apply_group_discount(frm) {
           item_codes: items.map(({ item_code }) => item_code),
         },
       });
-      items.forEach(({ doctype, docname, item_code }) => {
-        const { discount_rate = 0 } =
-          discounts.find(d => d.item_code === item_code) || {};
-        frappe.model.set_value(doctype, docname, 'discount_percentage', discount_rate);
-      });
+      return Promise.all(
+        items.map(({ doctype, docname, item_code }) => {
+          const { discount_rate = 0 } =
+            discounts.find(d => d.item_code === item_code) || {};
+          return frappe.model.set_value(
+            doctype,
+            docname,
+            'discount_percentage',
+            discount_rate
+          );
+        })
+      );
     } catch (e) {
       frappe.throw(__('Cannot apply Group Discount'));
     }
-  } else {
-    items.forEach(({ doctype, docname }) => {
-      frappe.model.set_value(doctype, docname, 'discount_percentage', 0);
-    });
   }
+  return Promise.all(
+    items.map(({ doctype, docname }) =>
+      frappe.model.set_value(doctype, docname, 'discount_percentage', 0)
+    )
+  );
 }
 
 function handle_order_type(frm) {
@@ -108,50 +116,58 @@ export async function set_fields(frm) {
   frm.set_value('os_branch', branch);
 }
 
-export async function handle_gift_card_entry(frm) {
-  function set_desc(description) {
-    frm.get_field('os_gift_card_entry').set_new_description(description);
+export async function set_gift_card(frm, gift_card_no) {
+  function respond(message, clear_field = false) {
+    return { clear_field, message };
   }
-  const { os_gift_card_entry: gift_card_no } = frm.doc;
+
+  if (!gift_card_no) {
+    return respond('');
+  }
+
+  const already_added = frm.doc.os_gift_cards
+    .map(({ gift_card }) => gift_card.toLowerCase())
+    .includes(gift_card_no.toLowerCase());
+  if (already_added) {
+    return respond(__('Gift Card already selected for this transaction'));
+  }
+
   const posting_date = frm.doc.posting_date || frm.doc.transaction_date;
-  if (gift_card_no) {
-    const already_added = (frm.get_field('os_gift_cards').grid.grid_rows || [])
-      .map(({ doc }) => doc.gift_card)
-      .includes(gift_card_no);
-    if (already_added) {
-      set_desc(__('Gift Card already present in Table'));
-    } else {
-      const { message: details } = await frappe.call({
-        method: 'optic_store.api.gift_card.get_details',
-        args: { gift_card_no, posting_date },
-      });
-      if (!details) {
-        set_desc(__('Unable to find Gift Card'));
-      } else {
-        const { gift_card, balance, has_expired } = details;
-        if (!balance) {
-          set_desc(__('Gift Card balance is depleted'));
-        } else if (has_expired) {
-          set_desc(__('Gift Card has expired'));
-        } else {
-          // using this instead of just frm.add_child because
-          // Sales Invoice Gift Card 'balance' can only be triggered by set_value
-          const row = frappe.model.add_child(
-            frm.doc,
-            'Sales Invoice Gift Card',
-            'os_gift_cards'
-          );
-          frappe.model.set_value(row.doctype, row.name, {
-            gift_card,
-            balance,
-          });
-          set_desc('');
-          frm.refresh_field('os_gift_cards');
-        }
-        frm.set_value('os_gift_card_entry', null);
-      }
-    }
+  const { message: details } = await frappe.call({
+    method: 'optic_store.api.gift_card.get_details',
+    args: { gift_card_no, posting_date },
+  });
+  if (!details) {
+    return respond(__('Unable to find Gift Card'));
   }
+
+  const { gift_card, balance, has_expired } = details;
+  if (!balance) {
+    return respond(__('Gift Card balance is depleted'), true);
+  }
+  if (has_expired) {
+    return respond(__('Gift Card has expired'), true);
+  }
+
+  // using this instead of just frm.add_child because
+  // Sales Invoice Gift Card 'balance' can only be triggered by set_value
+  const row = frappe.model.add_child(
+    frm.doc,
+    'Sales Invoice Gift Card',
+    'os_gift_cards'
+  );
+  await frappe.model.set_value(row.doctype, row.name, { gift_card, balance });
+  frm.refresh_field('os_gift_cards');
+  return respond('', true);
+}
+
+export async function handle_gift_card_entry(frm) {
+  const { os_gift_card_entry: gift_card_no } = frm.doc;
+  const { clear_field, message } = await set_gift_card(frm, gift_card_no);
+  if (clear_field) {
+    await frm.set_value('os_gift_card_entry', null);
+  }
+  frm.get_field('os_gift_card_entry').set_new_description(message);
   return false;
 }
 
