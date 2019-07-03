@@ -1,6 +1,6 @@
 {
   "name": "optic_store",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "ERPNext App for Optical Store",
   "main": "optic_store/public/index.js",
   "scripts": {
