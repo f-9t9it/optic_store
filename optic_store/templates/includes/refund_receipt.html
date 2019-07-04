@@ -76,7 +76,7 @@
         {%- for item in doc.items -%}
         <tr>
           <td>{{ item.idx }}</td>
-          <td>{{ item.item_name }} x {{ -item.qty }}</td>
+          <td>{{ item.item_code }} {{ item.item_name }} x {{ -item.qty }}</td>
           <td>{{ item.get_formatted('amount') }}</td>
         </tr>
         {%- endfor -%}
