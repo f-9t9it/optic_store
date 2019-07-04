@@ -197,7 +197,6 @@ fixtures = [
                     "Sales Order-order_type-hidden",
                     "Sales Order-set_warehouse-read_only",
                     "Sales Order-po_no-hidden",
-                    "Sales Order-terms_section_break-hidden",
                     "Sales Order-more_info-hidden",
                     "Sales Order-printing_details-hidden",
                     "Sales Order-section_break_78-hidden",
