@@ -43,6 +43,8 @@ def _get_columns():
         make_column("customer", "Customer", type="Link", options="Customer"),
         make_column("customer_name", "Customer Name", width=150),
         make_column("branch", "Branch", type="Link", options="Branch"),
+        make_column("sales_person", "Sales Person", type="Link", options="Employee"),
+        make_column("sales_person_name", "Sales Person Name", width=150),
     ]
 
 
@@ -92,6 +94,8 @@ def _get_data(clauses, values, keys):
                 sip.amount AS paid_amount,
                 si.customer AS customer,
                 si.customer_name AS customer_name,
+                si.os_sales_person AS sales_person,
+                si.os_sales_person_name AS sales_person_name,
                 si.os_branch AS branch
             FROM `tabSales Invoice` AS si
             RIGHT JOIN `tabSales Invoice Payment` AS sip ON sip.parent = si.name
@@ -106,8 +110,19 @@ def _get_data(clauses, values, keys):
                 pe.paid_amount AS paid_amount,
                 pe.party AS customer,
                 pe.party_name AS customer_name,
+                per.sales_person AS sales_person,
+                per.sales_person_name AS sales_person_name,
                 pe.os_branch AS branch
             FROM `tabPayment Entry` AS pe
+            RIGHT JOIN (
+                SELECT
+                    rjper.parent AS parent,
+                    rjsi.os_sales_person AS sales_person,
+                    rjsi.os_sales_person_name AS sales_person_name
+                FROM `tabPayment Entry Reference` AS rjper
+                LEFT JOIN `tabSales Invoice` AS rjsi ON rjsi.name = rjper.reference_name
+                WHERE rjper.reference_doctype = 'Sales Invoice'
+            ) AS per ON per.parent = pe.name
             WHERE {pe_clauses}
             ORDER BY posting_date, posting_time
         """.format(
