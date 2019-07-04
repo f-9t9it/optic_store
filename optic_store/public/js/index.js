@@ -2,6 +2,7 @@ import scripts, {
   payment_entry,
   sales_invoice,
   sales_invoice_item,
+  sales_invoice_list,
   sales_invoice_gift_card,
   delivery_note,
   delivery_note_item,
@@ -52,4 +53,5 @@ optic_store = {
   addons,
   extend_pos,
   extend_batch_selector,
+  listview: { sales_invoice: sales_invoice_list },
 };

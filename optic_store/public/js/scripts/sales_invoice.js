@@ -147,6 +147,17 @@ export const sales_invoice_gift_card = {
   os_gift_cards_remove: set_gift_card_payment,
 };
 
+export const sales_invoice_list = {
+  onload: function(lv) {
+    if (
+      frappe.user_roles.includes('Branch User') &&
+      !frappe.user_roles.includes('Accounts Manager')
+    ) {
+      lv.page.btn_primary.hide();
+    }
+  },
+};
+
 export default {
   setup: async function(frm) {
     const { invoice_pfs = [], invoice_mops = [] } = await frappe.db.get_doc(
