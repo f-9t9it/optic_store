@@ -5,9 +5,10 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from functools import partial, reduce
-from toolz import compose, pluck, merge, concatv, valmap
+from toolz import compose, pluck, merge, concatv, valmap, unique, groupby, get, reduceby
 
 from optic_store.utils import pick
+from optic_store.api.sales_invoice import get_payments_against
 
 
 def execute(filters=None):
@@ -143,6 +144,7 @@ def _get_data(clauses, values, keys):
         """
             SELECT
                 si.name AS invoice_name,
+                sii.sales_order AS order_name,
                 si.posting_date AS invoice_date,
                 sii.brand AS brand,
                 sii.item_code AS item_code,
@@ -199,21 +201,68 @@ def _get_data(clauses, values, keys):
     )
 
     def add_collection_date(row):
-        def get_collection_date():
-            if row.sales_status == "Achieved":
+        def get_collection_date(x):
+            if x.sales_status == "Achieved":
                 return None
-            if row.own_delivery:
-                return row.invoice_date
-            return row.delivery_date
+            if x.own_delivery:
+                return x.invoice_date
+            return x.delivery_date
 
-        return merge(row, {"collection_date": get_collection_date()})
+        return merge(row, {"collection_date": get_collection_date(row)})
+
+    def add_payment_remarks(items):
+        payments = _get_payments(items)
+
+        def fn(row):
+            make_remark = compose(
+                lambda x: ", ".join(x),
+                partial(map, lambda x: "{mop}: {amount}".format(mop=x[0], amount=x[1])),
+                lambda x: x.items(),
+                lambda lines: reduceby(
+                    "mode_of_payment",
+                    lambda a, x: a + get("paid_amount", x, 0),
+                    lines,
+                    0,
+                ),
+                lambda x: concatv(
+                    get(x.invoice_name, payments, []), get(x.order_name, payments, [])
+                ),
+                frappe._dict,
+            )
+
+            return merge(row, {"remarks": make_remark(row)})
+
+        return fn
 
     template = reduce(lambda a, x: merge(a, {x: None}), keys, {})
     make_row = compose(
         partial(pick, keys),
         partial(valmap, lambda x: x or None),
         partial(merge, template),
+        add_payment_remarks(items),
         add_collection_date,
     )
 
     return map(make_row, items)
+
+
+def _get_payments(items):
+    def get_names(key):
+        return compose(list, unique, partial(pluck, key))(items)
+
+    invoices = get_names("invoice_name")
+
+    si_payments = frappe.db.sql(
+        """
+            SELECT parent AS reference_name, mode_of_payment, amount AS paid_amount
+            FROM `tabSales Invoice Payment` WHERE parent IN %(invoices)s
+        """,
+        values={"invoices": invoices},
+        as_dict=1,
+    )
+    payments_against_si = get_payments_against("Sales Invoice", invoices)
+    payments_against_so = get_payments_against("Sales Order", get_names("order_name"))
+
+    return groupby(
+        "reference_name", concatv(si_payments, payments_against_si, payments_against_so)
+    )
