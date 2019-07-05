@@ -1,4 +1,4 @@
-import { make_date, make_data, make_multiselect, make_check } from './fields';
+import { make_date, make_multiselect, make_check } from './fields';
 
 export default {
   onload: async function(rep) {
