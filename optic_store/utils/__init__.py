@@ -1,5 +1,6 @@
 from functools import partial
 from toolz import keyfilter, compose, reduceby, merge, excepts
+from pymysql.err import ProgrammingError
 
 
 def pick(whitelist, d):
@@ -23,3 +24,13 @@ split_to_list = excepts(
     ),
     lambda x: None,
 )
+
+
+def with_report_error_check(data_fn):
+    def fn(*args, **kwargs):
+        try:
+            return data_fn(*args, **kwargs)
+        except ProgrammingError:
+            return []
+
+    return fn
