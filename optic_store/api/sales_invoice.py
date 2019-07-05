@@ -139,14 +139,14 @@ def search_serial_or_batch_or_barcode_number(search_value):
 def get_payments(doc):
     if doc.doctype == "Sales Invoice":
         sales_orders = _get_sales_orders(doc.name)
-        so_payments = _get_payments_against("Sales Order", sales_orders)
-        si_payments = _get_payments_against("Sales Invoice", [doc.name])
+        so_payments = get_payments_against("Sales Order", sales_orders)
+        si_payments = get_payments_against("Sales Invoice", [doc.name])
         self_payments = _get_si_self_payments(doc)
         return so_payments + si_payments + self_payments
     if doc.doctype == "Sales Order":
-        so_payments = _get_payments_against("Sales Order", [doc.name])
+        so_payments = get_payments_against("Sales Order", [doc.name])
         sales_invoices = _get_sales_invoices(doc.name)
-        si_payments = _get_payments_against("Sales Invoice", sales_invoices)
+        si_payments = get_payments_against("Sales Invoice", sales_invoices)
 
         get_si_self_payment = compose(
             _get_si_self_payments, partial(frappe.get_doc, "Sales Invoice")
@@ -184,7 +184,7 @@ def _get_sales_invoices(sales_order):
     return get_si_names(q)
 
 
-def _get_payments_against(doctype, names):
+def get_payments_against(doctype, names):
     if not names:
         return []
     return frappe.db.sql(
