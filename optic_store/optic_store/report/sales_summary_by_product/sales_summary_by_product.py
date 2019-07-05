@@ -7,7 +7,7 @@ from frappe import _
 from functools import partial, reduce
 from toolz import compose, pluck, merge, concatv, valmap, unique, groupby, get, reduceby
 
-from optic_store.utils import pick
+from optic_store.utils import pick, split_to_list, with_report_error_check
 from optic_store.api.sales_invoice import get_payments_against
 
 
@@ -15,7 +15,7 @@ def execute(filters=None):
     columns = _get_columns(filters)
     keys = compose(list, partial(pluck, "fieldname"))(columns)
     clauses, values = _get_filters(filters)
-    data = _get_data(clauses, values, keys)
+    data = with_report_error_check(_get_data)(clauses, values, keys)
     return columns, data
 
 
@@ -88,8 +88,11 @@ def _get_columns(filters):
 
 
 def _get_filters(filters):
+    branches = split_to_list(filters.branches)
+
     clauses = concatv(
         ["si.docstatus = 1"],
+        ["si.os_branch IN %(branches)s"] if branches else [],
         [
             "(si.update_stock = 1 OR sii.delivered_qty = sii.qty)",
             """
@@ -115,6 +118,7 @@ def _get_filters(filters):
     )
     values = merge(
         filters,
+        {"branches": branches} if branches else {},
         {
             "selling_pl": "Standard Selling",
             "min_selling_pl1": "Minimum Selling",
