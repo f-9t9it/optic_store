@@ -59,7 +59,6 @@ def _get_columns(filters):
             type="Currency",
             width=90,
         ),
-        make_column("tax_amount", type="Currency", width=90),
         make_column("ms1", "Minimum Selling Rate 1", type="Currency", width=90),
         make_column(
             "below_ms1",
@@ -157,7 +156,6 @@ def _get_data(clauses, values, keys):
                 sii.discount_amount AS discount_amount,
                 sii.discount_percentage AS discount_percentage,
                 sii.amount AS amount_after_discount,
-                '' AS tax_amount,
                 ms1.price_list_rate AS ms1,
                 IF (sii.amount < ms1.price_list_rate, 'Yes', 'No') AS below_ms1,
                 ms2.price_list_rate AS ms2,
