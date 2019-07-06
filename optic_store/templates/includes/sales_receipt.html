@@ -7,10 +7,10 @@
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
     {%- endif -%}
   </div>
-  <div class="os-sr-header">
+  <div class="os-header">
     <h1>{{ _('Sales Receipt') }}</h1>
-    <div class="os-sr-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
-    <div class="os-sr-header-content">
+    <div class="os-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
+    <div class="os-header-content">
       <dl>
         <dt>{{ _('Sales No')}}</dt>
         <dd>{{ doc.name }}</dd>
@@ -46,7 +46,7 @@
         <dd>{{ customer.os_address or '' }}</dd>
       </dl>
     </div>
-    <div class="os-sr-header-content">
+    <div class="os-header-content">
       <dl>
         <dt>{{ _('Office No') }}</dt>
         <dd>{{ customer.os_office_number or '' }}</dd>

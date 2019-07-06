@@ -43,8 +43,7 @@
     padding-right: 2pt;
     margin-right: 2pt;
   }
-  .os-lof-header h1,
-  .os-sr-header h1 {
+  .os-lof-header h1 {
     margin: 0.2em 0 0.3em 0;
     font-size: 1.3em;
     font-weight: bold;
@@ -68,7 +67,6 @@
     display: inline;
   }
   .os-lof-header dt,
-  .os-sr-header dt,
   .os-lof-details-items dt,
   .os-lof-details-others dt,
   .os-lof-delivery_date dt,
@@ -83,8 +81,7 @@
     margin-right: 0.3em;
     min-width: 8.5em;
   }
-  .os-lof-header dt,
-  .os-sr-header dt {
+  .os-lof-header dt {
     min-width: 6.5em;
   }
   .os-sof-main-subline dt {
@@ -210,30 +207,6 @@
     font-size: 0.75em;
   }
 
-  .os-sr-header {
-    border-top: 1px solid {{ style.border_color }};
-  }
-  .os-sr-header h1 {
-    text-align: center;
-  }
-  .os-sr-header-subtitle {
-    font-size: 0.8em;
-    margin-bottom: 0.3em;
-  }
-  .os-sr-header-content {
-    display: flex;
-    flex-flow: row wrap;
-    padding-bottom: 0.2em;
-    border-bottom: 1px solid {{ style.border_color }};
-    margin-bottom: 0.2em;
-  }
-  .os-sr-header-content > * {
-    width: 50%;
-  }
-  .os-sr-header-content dd.text-right {
-    flex: 1 1 auto;
-  }
-
   .os-sr-totals {
     flex: 1 1 auto;
   }
@@ -295,6 +268,43 @@
     margin-top: 0.3em;
     border-top: 1px solid {{ style.border_color }};
     padding-top: 0.3em;
+  }
+
+
+
+  .os-header {
+    border-top: 1px solid {{ style.border_color }};
+  }
+
+  .os-header h1 {
+    margin: 0.2em 0 0.3em 0;
+    font-size: 1.3em;
+    font-weight: bold;
+    text-align: center;
+  }
+  .os-header-subtitle {
+    font-size: 0.8em;
+    margin-bottom: 0.3em;
+  }
+  .os-header-content {
+    display: flex;
+    flex-flow: row wrap;
+    padding-bottom: 0.2em;
+    border-bottom: 1px solid {{ style.border_color }};
+    margin-bottom: 0.2em;
+  }
+  .os-header-content > * {
+    width: 50%;
+  }
+  .os-header-content dt {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    margin-right: 0.3em;
+    min-width: 6.5em;
+  }
+  .os-header-content dd.text-right {
+    flex: 1 1 auto;
   }
 
   .os-summary {
