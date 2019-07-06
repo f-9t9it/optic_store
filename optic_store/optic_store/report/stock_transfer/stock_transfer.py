@@ -21,9 +21,9 @@ def execute(filters=None):
 
 
 def _get_columns():
-    def make_column(key, label, type="Data", options=None, width=90):
+    def make_column(key, label=None, type="Data", options=None, width=90):
         return {
-            "label": _(label),
+            "label": _(label or key.replace("_", " ").title()),
             "fieldname": key,
             "fieldtype": type,
             "options": options,
@@ -33,13 +33,13 @@ def _get_columns():
     return list(
         concatv(
             [
-                make_column("outgoing_date", "Outgoing Date", type="Date"),
-                make_column("incoming_date", "Incoming Date", type="Date"),
+                make_column("outgoing_date", type="Date"),
+                make_column("incoming_date", type="Date"),
                 make_column(
                     "name", "Doc Name", type="Link", options="Stock Transfer", width=150
                 ),
                 make_column("workflow_state", "Status"),
-                make_column("total_qty", "Total Qty", type="Float"),
+                make_column("total_qty", type="Float"),
             ],
             [
                 make_column(
