@@ -295,6 +295,7 @@
   }
   .os-header-content > * {
     width: 50%;
+    padding-right: 0.5em;
   }
   .os-header-content dt {
     display: flex;
@@ -330,7 +331,18 @@
     padding: 0.3em;
     margin: 0.3em 0;
   }
+  .os-bordered-bottom {
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid {{ style.border_color }};
+    margin-bottom: 0.3em 0;
+  }
   .os-bordered-no-left {
     border-left: none;
+  }
+  .os-warning-message {
+    font-size: 1.2em;
+    color: orange;
+    padding: 0.3em;
+    border: 1px solid orange;
   }
 </style>
