@@ -68,10 +68,13 @@ def _get_filters(filters):
         if any(role in ["Accounts Manager"] for role in frappe.get_roles()):
             return split_to_list(filters.branches)
         user_branch = get_user_branch()
-        if any(role in ["Branch User"] for role in frappe.get_roles()) and user_branch:
+        if (
+            any(role in ["Branch User", "Branch Stock"] for role in frappe.get_roles())
+            and user_branch
+        ):
             return [user_branch]
 
-        frappe.throw(_("Manager privilege or Branch User role required"))
+        frappe.throw(_("Manager privilege or Branch User / Branch Stock role required"))
 
     branches = get_branches()
 
