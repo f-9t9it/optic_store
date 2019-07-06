@@ -39,7 +39,9 @@ def _get_columns():
                     "name", "Doc Name", type="Link", options="Stock Transfer", width=150
                 ),
                 make_column("workflow_state", "Status"),
-                make_column("total_qty", type="Float"),
+                make_column("item_code", type="Link", options="Item", width=150),
+                make_column("item_name", width=180),
+                make_column("qty", type="Float", width=90),
             ],
             [
                 make_column(
@@ -80,11 +82,11 @@ def _get_filters(filters):
 
     clauses = concatv(
         [
-            "outgoing_datetime <= %(to_date)s",
-            "IFNULL(incoming_datetime, CURRENT_DATE) >= %(from_date)s",
+            "st.outgoing_datetime <= %(to_date)s",
+            "IFNULL(st.incoming_datetime, CURRENT_DATE) >= %(from_date)s",
         ],
-        ["docstatus = 1"] if not cint(filters.show_all) else [],
-        ["(source_branch IN %(branches)s OR target_branch IN %(branches)s)"]
+        ["st.docstatus = 1"] if not cint(filters.show_all) else [],
+        ["(st.source_branch IN %(branches)s OR st.target_branch IN %(branches)s)"]
         if branches
         else [],
     )
@@ -99,16 +101,20 @@ def _get_data(clauses, values, keys):
     docs = frappe.db.sql(
         """
             SELECT
-                name,
-                outgoing_datetime,
-                incoming_datetime,
-                source_branch,
-                target_branch,
-                total_qty,
-                outgoing_stock_entry,
-                incoming_stock_entry,
-                workflow_state
-            FROM `tabStock Transfer`
+                st.name AS name,
+                st.outgoing_datetime AS outgoing_datetime,
+                st.incoming_datetime AS incoming_datetime,
+                st.source_branch AS source_branch,
+                st.target_branch AS target_branch,
+                sti.item_code AS item_code,
+                sti.item_name AS item_name,
+                sti.qty AS qty,
+                st.outgoing_stock_entry AS outgoing_stock_entry,
+                st.incoming_stock_entry AS incoming_stock_entry,
+                st.workflow_state AS workflow_state
+            FROM `tabStock Transfer` AS st
+            RIGHT JOIN `tabStock Transfer Item` AS sti ON
+                sti.parent = st.name
             WHERE {clauses}
         """.format(
             clauses=clauses
