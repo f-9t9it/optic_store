@@ -7,10 +7,10 @@
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
     {%- endif -%}
   </div>
-  <div class="os-sr-header">
+  <div class="os-header">
     <h1>{{ _('Sales Receipt') }}</h1>
-    <div class="os-sr-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
-    <div class="os-sr-header-content">
+    <div class="os-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
+    <div class="os-header-content">
       <dl>
         <dt>{{ _('Sales No')}}</dt>
         <dd>{{ doc.name }}</dd>
@@ -46,7 +46,7 @@
         <dd>{{ customer.os_address or '' }}</dd>
       </dl>
     </div>
-    <div class="os-sr-header-content">
+    <div class="os-header-content">
       <dl>
         <dt>{{ _('Office No') }}</dt>
         <dd>{{ customer.os_office_number or '' }}</dd>
@@ -67,7 +67,7 @@
   </div>
 
   <div class="os-sof-items os-fill">
-    {%- set items = get_optical_items(doc.items, frame_ig, lens_ig) -%}
+    {%- set items = get_optical_items(doc.items) -%}
     <table class="table table-condensed os-items">
       <thead>
         <tr>
@@ -98,7 +98,7 @@
         <tr>
           <td>{{ _('Lens (L)') }}</td>
           <td>
-            {%- if items.lens -%} {{ items.lens_left.item_name }} x {{
+            {%- if items.lens_left -%} {{ items.lens_left.item_name }} x {{
             items.lens_left.qty }} {%- endif -%}
           </td>
           <td>

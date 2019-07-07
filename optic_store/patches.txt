@@ -1,2 +1,3 @@
 optic_store.patches.v0_5.rename_crp_field_in_customer
 optic_store.patches.v0_6.add_sales_person_name_to_invoice
+optic_store.patches.v0_6.set_spec_parts

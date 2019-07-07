@@ -21,9 +21,9 @@ def execute(filters=None):
 
 
 def _get_columns():
-    def make_column(key, label, type="Data", options=None, width=90):
+    def make_column(key, label=None, type="Data", options=None, width=90):
         return {
-            "label": _(label),
+            "label": _(label or key.replace("_", " ").title()),
             "fieldname": key,
             "fieldtype": type,
             "options": options,
@@ -33,13 +33,15 @@ def _get_columns():
     return list(
         concatv(
             [
-                make_column("outgoing_date", "Outgoing Date", type="Date"),
-                make_column("incoming_date", "Incoming Date", type="Date"),
+                make_column("outgoing_date", type="Date"),
+                make_column("incoming_date", type="Date"),
                 make_column(
                     "name", "Doc Name", type="Link", options="Stock Transfer", width=150
                 ),
                 make_column("workflow_state", "Status"),
-                make_column("total_qty", "Total Qty", type="Float"),
+                make_column("item_code", type="Link", options="Item", width=150),
+                make_column("item_name", width=180),
+                make_column("qty", type="Float", width=90),
             ],
             [
                 make_column(
@@ -68,20 +70,23 @@ def _get_filters(filters):
         if any(role in ["Accounts Manager"] for role in frappe.get_roles()):
             return split_to_list(filters.branches)
         user_branch = get_user_branch()
-        if any(role in ["Branch User"] for role in frappe.get_roles()) and user_branch:
+        if (
+            any(role in ["Branch User", "Branch Stock"] for role in frappe.get_roles())
+            and user_branch
+        ):
             return [user_branch]
 
-        frappe.throw(_("Manager privilege or Branch User role required"))
+        frappe.throw(_("Manager privilege or Branch User / Branch Stock role required"))
 
     branches = get_branches()
 
     clauses = concatv(
         [
-            "outgoing_datetime <= %(to_date)s",
-            "IFNULL(incoming_datetime, CURRENT_DATE) >= %(from_date)s",
+            "st.outgoing_datetime <= %(to_date)s",
+            "IFNULL(st.incoming_datetime, CURRENT_DATE) >= %(from_date)s",
         ],
-        ["docstatus = 1"] if not cint(filters.show_all) else [],
-        ["(source_branch IN %(branches)s OR target_branch IN %(branches)s)"]
+        ["st.docstatus = 1"] if not cint(filters.show_all) else [],
+        ["(st.source_branch IN %(branches)s OR st.target_branch IN %(branches)s)"]
         if branches
         else [],
     )
@@ -96,16 +101,20 @@ def _get_data(clauses, values, keys):
     docs = frappe.db.sql(
         """
             SELECT
-                name,
-                outgoing_datetime,
-                incoming_datetime,
-                source_branch,
-                target_branch,
-                total_qty,
-                outgoing_stock_entry,
-                incoming_stock_entry,
-                workflow_state
-            FROM `tabStock Transfer`
+                st.name AS name,
+                st.outgoing_datetime AS outgoing_datetime,
+                st.incoming_datetime AS incoming_datetime,
+                st.source_branch AS source_branch,
+                st.target_branch AS target_branch,
+                sti.item_code AS item_code,
+                sti.item_name AS item_name,
+                sti.qty AS qty,
+                st.outgoing_stock_entry AS outgoing_stock_entry,
+                st.incoming_stock_entry AS incoming_stock_entry,
+                st.workflow_state AS workflow_state
+            FROM `tabStock Transfer` AS st
+            RIGHT JOIN `tabStock Transfer Item` AS sti ON
+                sti.parent = st.name
             WHERE {clauses}
         """.format(
             clauses=clauses

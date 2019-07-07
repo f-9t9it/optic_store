@@ -1,3 +1,6 @@
+{%- if not doc.orx_name -%}
+<div class="os-warning-message">WARNING: Required Prescription in document</div>
+{%- endif -%} {%- set rx = frappe.get_doc('Optical Prescription', doc.orx_name) -%}
 <main class="os-lof">
   <div class="os-lof-preheader">
     {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch,
@@ -7,37 +10,43 @@
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
     {%- endif -%}
   </div>
-  <div class="os-lof-header">
-    <div class="os-lof-header-content">
-      <h1>{{ _('Lab Order Form') }}</h1>
+  <div class="os-header">
+    <h1>{{ _('Optical Prescription Form') }}</h1>
+    <div class="os-header-content">
       <dl>
-        <dt>{{ _('Branch')}}</dt>
-        <dd>{{ doc.os_branch or '' }}</dd>
+        <dt>{{ _('Order No')}}</dt>
+        <dd>{{ doc.name }}</dd>
       </dl>
       <dl>
-        <dt>{{ _('Order Date')}}</dt>
-        <dd>{{ doc.get_formatted('transaction_date') }}</dd>
+        <dt>{{ _('Dispensor')}}</dt>
+        <dd>
+          {{ frappe.db.get_value('Employee', doc.orx_dispensor, 'employee_name') if
+          doc.orx_dispensor else '' }}
+        </dd>
       </dl>
       <dl>
-        <dt>{{ _('Lab')}}</dt>
-        <dd>{{ doc.orx_lab or '' }}</dd>
+        <dt>{{ _('Prescription Date')}}</dt>
+        <dd>{{ rx.get_formatted('test_date') }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Optometrist')}}</dt>
+        <dd>
+          {{ frappe.db.get_value('Employee', doc.os_lab_tech, 'employee_name') if
+          doc.os_lab_tech else '' }}
+        </dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Collection Date')}}</dt>
+        <dd>{{ doc.get_formatted('delivery_date') }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Expiry Date')}}</dt>
+        <dd>{{ rx.get_formatted('expiry') }}</dd>
       </dl>
     </div>
-    <svg
-      class="barcode"
-      jsbarcode-format="CODE128"
-      jsbarcode-value="{{ doc.name }}"
-      jsbarcode-textmargin="2"
-      jsbarcode-textposition="top"
-      jsbarcode-fontoptions="bold"
-      jsbarcode-height="40"
-      jsbarcode-width="1"
-      jsbarcode-margin="4"
-    />
   </div>
+
   <div class="os-lof-details">
-    {%- if doc.orx_name -%} {%- set rx = frappe.get_doc('Optical Prescription',
-    doc.orx_name) -%}
     <table class="table table-condensed table-bordered os-prescription">
       <thead>
         <tr>
@@ -76,35 +85,15 @@
         </tr>
       </tbody>
     </table>
-    <div class="os-lof-details-items">
-      {%- set items = get_optical_items(doc.items) -%}
+    <div class="os-lof-details-others">
       <dl>
-        <dt>{{ _('Frame / Model') }}</dt>
-        <dd>
-          {%- if items.frame -%} {{ items.frame.item_name }} x {{ items.frame.qty }} {%-
-          endif -%}
-        </dd>
+        <dt>{{ _('Frame Size')}}</dt>
+        <dd>{{ doc.orx_frame_size or '' }}</dd>
       </dl>
       <dl>
-        <dt>{{ _('Lens (R)') }}</dt>
-        <dd>
-          {%- if items.lens_right -%} {{ items.lens_right.item_name }} x {{
-          items.lens_right.qty }} {%- endif -%}
-        </dd>
+        <dt>{{ _('Height')}}</dt>
+        <dd>{{ doc.orx_height or '' }}</dd>
       </dl>
-      <dl>
-        <dt>{{ _('Lens (L)') }}</dt>
-        <dd>
-          {%- if items.lens_left -%} {{ items.lens_left.item_name }} x {{
-          items.lens_left.qty }} {%- endif -%}
-        </dd>
-      </dl>
-      {%- for item in items.others -%}
-      <dl>
-        <dt>{{ item.item_group }}</dt>
-        <dd>{{ item.item_name }} x {{ item.qty }}</dd>
-      </dl>
-      {%- endfor -%}
     </div>
     <div class="os-lof-details-others">
       <dl>
@@ -130,50 +119,48 @@
         <dd>{{ rx.prism_left or '' }}</dd>
       </dl>
     </div>
-    <div class="os-lof-details-others">
-      <dl>
-        <dt>{{ _('Frame Size')}}</dt>
-        <dd>{{ doc.orx_frame_size or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Height')}}</dt>
-        <dd>{{ doc.orx_height or '' }}</dd>
-      </dl>
-    </div>
-    {%- endif -%}
   </div>
-  <div class="os-lof-main">
-    <div class="os-lof-main-subline">
-      <dl>
-        <dt>{{ _('Delivery Date') }}</dt>
-        <dd>{{ doc.get_formatted('delivery_date') }}</dd>
-      </dl>
-    </div>
-    <div class="os-lof-main-headline">
+  <div class="os-header">
+    {%- set customer = frappe.get_doc('Customer', doc.customer) -%}
+    <div>
       <dl>
         <dt>{{ _('Name / ID') }}</dt>
         <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
       </dl>
+      <dl>
+        <dt>{{ _('IC No') }}</dt>
+        <dd>{{ customer.os_loyalty_card_no or ''}}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Address') }}</dt>
+        <dd>{{ customer.os_address or '' }}</dd>
+      </dl>
+    </div>
+    <div class="os-header-content">
+      <dl>
+        <dt>{{ _('Office No') }}</dt>
+        <dd>{{ customer.os_office_number or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Mobile No') }}</dt>
+        <dd>{{ customer.os_mobile_number or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Home No') }}</dt>
+        <dd>{{ customer.os_home_number or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Other No') }}</dt>
+        <dd>{{ customer.os_other_number or '' }}</dd>
+      </dl>
     </div>
   </div>
-  <div class="os-summary">
-    <div class="os-bordered">
-      <dl>
-        <dt>{{ _('Storage Location')}}</dt>
-        <dd>{{ doc.set_warehouse or ''}}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Remarks')}}</dt>
-        <dd>{{ doc.os_orx_notes or '' }}</dd>
-      </dl>
-    </div>
-    <div class="os-bordered os-bordered-no-left">
-      <dl>
-        <dt>{{ _('Lab Remarks')}}</dt>
-        <dd>{{ doc.os_notes or '' }}</dd>
-      </dl>
-    </div>
+  {%- if doc.terms -%}
+  <div class="os-sr-terms os-bordered-bottom">
+    <div>{{ _('Notes')}}</div>
+    <div>{{ doc.terms }}</div>
   </div>
+  {%- endif -%}
   <div class="os-lof-footer">
     {%- set sales_person_name = frappe.db.get_value('Employee', doc.os_sales_person,
     'employee_name') if doc.os_sales_person else '' -%}
@@ -194,11 +181,3 @@
     </div>
   </div>
 </main>
-
-<script
-  type="text/javascript"
-  src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/barcodes/JsBarcode.code128.min.js"
-></script>
-<script type="text/javascript">
-  JsBarcode('.barcode').init();
-</script>

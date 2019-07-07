@@ -7,7 +7,7 @@
  "doctype": "Report", 
  "idx": 0, 
  "is_standard": "Yes", 
- "modified": "2019-07-03 17:41:35.135887", 
+ "modified": "2019-07-06 12:35:26.367533", 
  "modified_by": "Administrator", 
  "module": "Optic Store", 
  "name": "Stock Transfer", 
@@ -19,6 +19,9 @@
  "roles": [
   {
    "role": "Branch User"
+  }, 
+  {
+   "role": "Branch Stock"
   }, 
   {
    "role": "Stock User"
