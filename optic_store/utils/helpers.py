@@ -57,27 +57,18 @@ def generate_intervals(interval, start_date, end_date):
     return []
 
 
-def get_optical_items(items, frames=[], lenses=[]):
+def get_parts(items):
     def get_by_part(part):
         return compose(
             excepts(StopIteration, first, lambda x: None),
             partial(filter, lambda x: x.os_spec_part == part),
-        )
+        )(items)
 
-    get_frame = compose(
-        excepts(StopIteration, first, lambda x: None),
-        partial(filter, lambda x: x.item_group in frames),
-    )
+    return map(get_by_part, ("Frame", "Lens Right", "Lens Left"))
 
-    def get_lens(idx):
-        return compose(
-            excepts(IndexError, lambda x: x[idx], lambda x: None),
-            partial(filter, lambda x: x.item_group in lenses),
-        )
 
-    frame = get_by_part("Frame")(items) or get_frame(items)
-    lens_right = get_by_part("Lens Right")(items) or get_lens(0)(items)
-    lens_left = get_by_part("Lens Left")(items) or get_lens(1)(items)
+def get_optical_items(items):
+    frame, lens_right, lens_left = get_parts(items)
     return {
         "frame": frame,
         "lens_right": lens_right,
