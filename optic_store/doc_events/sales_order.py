@@ -9,6 +9,7 @@ from functools import partial
 from toolz import compose
 
 from optic_store.api.customer import get_user_branch
+from optic_store.utils.helpers import get_parts
 
 
 def before_naming(doc, method):
@@ -56,27 +57,20 @@ def before_save(doc, method):
         lenses = map(lambda x: x.item_group, settings.lens)
 
         validate_item_group = _validate_item_group(frames, lenses)
-        no_of_frames = 0
-        no_of_lenses = 0
-
+        frame, lens_right, lens_left = get_parts(doc.items)
         for item in doc.items:
             if item.os_spec_part:
                 validate_item_group(item)
-                if item.item_group in frames:
-                    no_of_frames += 1
-                elif item.item_group in lenses:
-                    no_of_lenses += 1
             else:
-                if item.item_group in frames:
-                    if no_of_frames == 0:
-                        item.os_spec_part = "Frame"
-                    no_of_frames += 1
-                elif item.item_group in lenses:
-                    if no_of_lenses == 0:
-                        item.os_spec_part = "Lens Right"
-                    elif no_of_lenses == 1:
-                        item.os_spec_part = "Lens Left"
-                    no_of_lenses += 1
+                if not frame and item.item_group in frames:
+                    item.os_spec_part = "Frame"
+                    frame = item
+                elif not lens_right and item.item_group in lenses:
+                    item.os_spec_part = "Lens Right"
+                    lens_right = item
+                elif not lens_left and item.item_group in lenses:
+                    item.os_spec_part = "Lens Left"
+                    lens_left = item
 
         _validate_spec_parts(doc.items)
 
