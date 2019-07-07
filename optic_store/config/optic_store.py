@@ -60,6 +60,18 @@ def get_data():
                     "name": "Simple Stock Balance",
                     "label": _("Simple Stock Balance"),
                 },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Payment Summary",
+                    "label": _("Payment Summary"),
+                },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Sales Summary by Product",
+                    "label": _("Sales Summary by Product"),
+                },
             ],
         },
         {

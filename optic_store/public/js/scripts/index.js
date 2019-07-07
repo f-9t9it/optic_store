@@ -10,6 +10,7 @@ export { default as payment_entry } from './payment_entry';
 export {
   sales_invoice_item,
   sales_invoice_gift_card,
+  sales_invoice_list,
   default as sales_invoice,
 } from './sales_invoice';
 export { delivery_note_item, default as delivery_note } from './delivery_note';

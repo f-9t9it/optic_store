@@ -27,6 +27,10 @@ export function make_link(args) {
   return make_base('Link', args);
 }
 
+export function make_select(args) {
+  return make_base('Select', args);
+}
+
 export function make_multiselect(args) {
   const { fieldname, options } = args;
   return make_base(

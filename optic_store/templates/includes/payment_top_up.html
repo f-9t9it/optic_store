@@ -7,27 +7,32 @@
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
     {%- endif -%}
   </div>
-  <div class="os-sr-header">
-    <h1>{{ _('Refund / Credit Note') }}</h1>
-    <div class="os-sr-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
-    <div class="os-sr-header-content">
-      <dl>
-        <dt>{{ _('Sales No')}}</dt>
-        <dd>{{ doc.name }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Date')}}</dt>
-        <dd class="text-right">{{ doc.get_formatted('posting_date') }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Ref No')}}</dt>
-        <dd>{{ doc.return_against or '' }}</dd>
-      </dl>
+  <div class="os-lof-header">
+    <div class="os-lof-header-content">
+      <h1>{{ _('Payment Top Up') }}</h1>
+      <div class="os-sr-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
       <dl>
         <dt>{{ _('Branch')}}</dt>
         <dd>{{ doc.os_branch or '' }}</dd>
       </dl>
+      <dl>
+        <dt>{{ _('Order Date')}}</dt>
+        <dd>{{ doc.get_formatted('posting_date') }}</dd>
+      </dl>
     </div>
+    <svg
+      class="barcode"
+      jsbarcode-format="CODE128"
+      jsbarcode-value="{{ doc.name }}"
+      jsbarcode-textmargin="2"
+      jsbarcode-textposition="top"
+      jsbarcode-fontoptions="bold"
+      jsbarcode-height="40"
+      jsbarcode-width="1"
+      jsbarcode-margin="4"
+    />
+  </div>
+  <div class="os-cs-header">
     {%- set customer = frappe.get_doc('Customer', doc.customer) -%}
     <div>
       <dl>
@@ -62,22 +67,26 @@
       </dl>
     </div>
   </div>
-
-  <div class="os-sof-items os-fill">
+  {%- set payments = get_payments(doc) -%}
+  <div class="os-sof-items os-cs-items">
     <table class="table table-condensed os-items">
       <thead>
         <tr>
-          <th>{{ _('Sr No') }}</th>
-          <th>{{ _('Description') }}</th>
+          <th>{{ _('No') }}</th>
+          <th>{{ _('Date') }}</th>
+          <th>{{ _('Mode of Payment') }}</th>
           <th>{{ _('Amount') }}</th>
         </tr>
       </thead>
       <tbody>
-        {%- for item in doc.items -%}
+        {%- for payment in payments -%}
         <tr>
-          <td>{{ item.idx }}</td>
-          <td>{{ item.item_code }} {{ item.item_name }} x {{ -item.qty }}</td>
-          <td>{{ item.get_formatted('amount') }}</td>
+          <td>{{ loop.index }}</td>
+          <td>{{ frappe.utils.formatdate(payment.posting_date) }}</td>
+          <td>{{ payment.mode_of_payment }}</td>
+          <td>
+            {{ frappe.utils.fmt_money(payment.paid_amount, currency=doc.currency) }}
+          </td>
         </tr>
         {%- endfor -%}
       </tbody>
@@ -96,23 +105,27 @@
         <dt>{{ _('Rounding Adjustment') }}</dt>
         <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
       </dl>
+      {%- endif -%}
+      <dl class="os-sr-totals-divide">
+        <dt>{{ _('Total Amount') }}</dt>
+        <dd>{{ doc.get_formatted('total') }}</dd>
+      </dl>
+      {%- if doc.discount_amount -%}
+      <dl>
+        <dt>{{ _('Discount') }} (-)</dt>
+        <dd>{{ doc.get_formatted('discount_amount') }}</dd>
+      </dl>
       {%- endif -%} {%- if doc.taxes|len -%} {%- for tax in doc.taxes -%}
       <dl>
         <dt>{{ _(tax.description) }}</dt>
         <dd>{{ tax.get_formatted('tax_amount', doc) }}</dd>
       </dl>
-      {%- endfor -%} {%- endif-%} {%- if doc.discount_amount -%}
-      <dl>
-        <dt>{{ _('Discount') }} (-)</dt>
-        <dd>{{ doc.get_formatted('discount_amount') }}</dd>
-      </dl>
-      {%- endif -%}
+      {%- endfor -%} {%- endif-%} {%- if doc.total != doc.grand_total -%}
       <dl class="os-sr-totals-divide">
         <dt>{{ _('Grand Total') }}</dt>
         <dd>{{ doc.get_formatted('grand_total') }}</dd>
       </dl>
-      {%- set payments = get_payments(doc) -%} {%- set total_received =
-      payments|sum(attribute='paid_amount') -%}
+      {%- endif -%} {%- set total_received = payments|sum(attribute='paid_amount') -%}
       <dl>
         <dt>{{ _('Total Received') }}</dt>
         <dd>{{ frappe.utils.fmt_money(total_received, currency=doc.currency) }}</dd>
@@ -146,3 +159,11 @@
     </div>
   </div>
 </main>
+
+<script
+  type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/barcodes/JsBarcode.code128.min.js"
+></script>
+<script type="text/javascript">
+  JsBarcode('.barcode').init();
+</script>

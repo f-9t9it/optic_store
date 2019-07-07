@@ -109,6 +109,7 @@ fixtures = [
                     "Sales Order-os_branch",
                     "Sales Order-os_item_type",
                     "Sales Order-os_sales_person",
+                    "Sales Order-os_sales_person_name",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
                     "Sales Order-orx_col",
@@ -144,6 +145,7 @@ fixtures = [
                     "Sales Invoice-os_gift_cards",
                     "Sales Invoice-os_branch",
                     "Sales Invoice-os_sales_person",
+                    "Sales Invoice-os_sales_person_name",
                     "Sales Invoice-orx_sec",
                     "Sales Invoice-orx_type",
                     "Sales Invoice-orx_col",
@@ -197,7 +199,6 @@ fixtures = [
                     "Sales Order-order_type-hidden",
                     "Sales Order-set_warehouse-read_only",
                     "Sales Order-po_no-hidden",
-                    "Sales Order-terms_section_break-hidden",
                     "Sales Order-more_info-hidden",
                     "Sales Order-printing_details-hidden",
                     "Sales Order-section_break_78-hidden",
@@ -233,7 +234,7 @@ page_js = {"pos": "public/js/pos.js", "point-of-sale": "public/js/point_of_sale.
 
 # include js in doctype views
 doctype_js = {"Stock Entry": "public/js/stock_entry.js"}
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_list_js = {"Sales Invoice": "public/js/sales_invoice_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 

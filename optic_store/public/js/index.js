@@ -2,6 +2,7 @@ import scripts, {
   payment_entry,
   sales_invoice,
   sales_invoice_item,
+  sales_invoice_list,
   sales_invoice_gift_card,
   delivery_note,
   delivery_note_item,
@@ -42,7 +43,7 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
 );
 frappe.ui.form.BatchQuickEntryForm = frappe.ui.form.QuickEntryForm.extend(batch_qe);
 
-const __version__ = '0.6.3';
+const __version__ = '0.6.5';
 
 frappe.provide('optic_store');
 optic_store = {
@@ -52,4 +53,5 @@ optic_store = {
   addons,
   extend_pos,
   extend_batch_selector,
+  listview: { sales_invoice: sales_invoice_list },
 };
