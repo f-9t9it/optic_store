@@ -19,9 +19,9 @@ def execute(filters=None):
 
 
 def _get_columns(filters):
-    def make_column(key, label, type="Float", options=None, width=90):
+    def make_column(key, label=None, type="Float", options=None, width=90):
         return {
-            "label": _(label),
+            "label": _(label or key.replace("_", " ").title()),
             "fieldname": key,
             "fieldtype": type,
             "options": options,
@@ -29,12 +29,12 @@ def _get_columns(filters):
         }
 
     return [
-        make_column("item_code", "Item Code", type="Link", options="Item"),
-        make_column("item_name", "Item Name", type="Data", width=180),
-        make_column("actual_qty", "Actual Qty"),
-        make_column("reserved_qty", "Reserved Qty"),
-        make_column("ordered_qty", "Ordered Qty"),
-        make_column("projected_qty", "Projected Qty"),
+        make_column("item_code", type="Link", options="Item", width=120),
+        make_column("item_name", type="Data", width=180),
+        make_column("actual_qty"),
+        make_column("reserved_qty"),
+        make_column("ordered_qty"),
+        make_column("projected_qty"),
     ]
 
 
