@@ -35,6 +35,7 @@ def _get_columns(filters):
         make_column("reserved_qty"),
         make_column("ordered_qty"),
         make_column("projected_qty"),
+        make_column("warehouse", type="Link", options="Warehouse", width=120),
     ]
 
 
@@ -42,43 +43,31 @@ def _get_filters(filters):
     scrap_warehouse = frappe.db.get_single_value(
         "Optical Store Settings", "scrap_warehouse"
     )
-    clauses = ["i.disabled = 0"]
-    bin_clauses = concatv(
-        ["TRUE"],
+    clauses = concatv(
+        ["i.disabled = 0"],
         ["warehouse = %(warehouse)s"] if filters.warehouse else [],
         ["warehouse != '{}'".format(scrap_warehouse)] if scrap_warehouse else [],
     )
-    return (
-        {"clauses": " AND ".join(clauses), "bin_clauses": " AND ".join(bin_clauses)},
-        filters,
-    )
+    return " AND ".join(clauses), filters
 
 
 def _get_data(clauses, values, keys):
     items = frappe.db.sql(
         """
             SELECT
-                i.item_code AS item_code,
+                b.item_code AS item_code,
                 i.item_name AS item_name,
                 b.actual_qty AS actual_qty,
                 b.reserved_qty AS reserved_qty,
                 b.ordered_qty AS ordered_qty,
-                b.projected_qty AS projected_qty
-            FROM `tabItem` AS i
-            LEFT JOIN (
-                SELECT
-                    item_code,
-                    SUM(actual_qty) AS actual_qty,
-                    SUM(reserved_qty) AS reserved_qty,
-                    SUM(ordered_qty) AS ordered_qty,
-                    SUM(projected_qty) AS projected_qty
-                FROM `tabBin`
-                WHERE {bin_clauses}
-                GROUP BY item_code
-            ) AS b ON b.item_code = i.item_code
+                b.projected_qty AS projected_qty,
+                b.warehouse
+            FROM `tabBin` AS b
+            LEFT JOIN `tabItem` AS i  ON i.item_code = b.item_code
             WHERE {clauses}
+            ORDER BY b.item_code
         """.format(
-            **clauses
+            clauses=clauses
         ),
         values=values,
         as_dict=1,
