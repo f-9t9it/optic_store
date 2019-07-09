@@ -72,6 +72,12 @@ def get_data():
                     "name": "Sales Summary by Product",
                     "label": _("Sales Summary by Product"),
                 },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Item Sell Out History",
+                    "label": _("Item Sell Out History"),
+                },
             ],
         },
         {
