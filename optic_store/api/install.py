@@ -69,6 +69,9 @@ def _update_settings():
         "Selling Settings": {"cust_master_name": "Naming Series", "territory": None},
         "Stock Settings": {"item_naming_by": "Naming Series", "show_barcode_field": 1},
         "POS Settings": {"use_pos_in_offline_mode": 1},
+        "Optical Store Settings": {
+            "loyalty_validation": "loyalty_points % 10 == 0 and loyalty_points >= 250"
+        },
     }
 
     map(lambda x: update(*x), settings.items())
