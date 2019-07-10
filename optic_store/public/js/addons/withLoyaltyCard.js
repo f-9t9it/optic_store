@@ -84,13 +84,17 @@ export default function withLoyaltyCard(Payment) {
         args: { customer, loyalty_card_no, expiry_date, company },
       });
     }
+    async _validate_loyalty() {
+      const { loyalty_points = 0 } = this.frm.doc;
+      return frappe.call({
+        method: 'optic_store.api.sales_invoice.validate_loyalty',
+        args: { doc: { loyalty_points } },
+      });
+    }
     async validate() {
       const { redeem_loyalty_points, loyalty_points = 0 } = this.frm.doc;
       if (cint(redeem_loyalty_points)) {
-        await this._validate_loyalty_card_no();
-        if (loyalty_points % 10 !== 0) {
-          frappe.throw(__('Loyalty Points can only be redeemed in multiples of 10'));
-        }
+        await Promise.all([this._validate_loyalty_card_no(), this._validate_loyalty()]);
       }
       return super.validate();
     }

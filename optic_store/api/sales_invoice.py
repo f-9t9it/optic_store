@@ -11,10 +11,11 @@ from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_n
 from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
 )
+from six import string_types
 from functools import partial, reduce
 from toolz import compose, unique, pluck, concat, merge, excepts
 
-from optic_store.utils import sum_by
+from optic_store.utils import sum_by, pick
 
 
 @frappe.whitelist()
@@ -242,3 +243,25 @@ def get_ref_so_statuses(sales_invoice):
         _get_sales_orders,
     )
     return get_statuses(sales_invoice)
+
+
+@frappe.whitelist()
+def validate_loyalty(doc):
+    def get_dict(obj):
+        if isinstance(obj, frappe.model.document.Document):
+            return obj.as_dict()
+        if isinstance(obj, string_types):
+            return json.loads(obj)
+        if isinstance(obj, dict):
+            return obj
+        return {}
+
+    code = frappe.db.get_single_value("Optical Store Settings", "loyalty_validation")
+    locals = frappe._dict(pick(["loyalty_points"], get_dict(doc)))
+    if code and not frappe.safe_eval(code, eval_locals=locals):
+        frappe.throw(
+            _(
+                "Loyalty validation failed."
+                "Please correct loyalty fields or contact System Manager."
+            )
+        )
