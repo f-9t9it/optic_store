@@ -1,0 +1,33 @@
+{
+ "add_total_row": 0, 
+ "creation": "2019-07-09 00:26:00.460390", 
+ "disable_prepared_report": 0, 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "modified": "2019-07-09 18:40:52.158155", 
+ "modified_by": "Administrator", 
+ "module": "Optic Store", 
+ "name": "Item Sell Out History", 
+ "owner": "Administrator", 
+ "prepared_report": 0, 
+ "ref_doctype": "Sales Invoice", 
+ "report_name": "Item Sell Out History", 
+ "report_type": "Script Report", 
+ "roles": [
+  {
+   "role": "Accounts Manager"
+  }, 
+  {
+   "role": "Sales Manager"
+  }, 
+  {
+   "role": "Accounts User"
+  }, 
+  {
+   "role": "Sales User"
+  }
+ ]
+}

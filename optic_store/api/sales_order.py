@@ -49,9 +49,9 @@ def invoice_qol(name, payments, loyalty_card_no, loyalty_program, loyalty_points
 
 
 @frappe.whitelist()
-def get_warehouse():
-    branch = get_user_branch()
-    return frappe.db.get_value("Branch", branch, "warehouse") if branch else None
+def get_warehouse(branch=None):
+    name = branch or get_user_branch()
+    return frappe.db.get_value("Branch", name, "warehouse") if name else None
 
 
 @frappe.whitelist()

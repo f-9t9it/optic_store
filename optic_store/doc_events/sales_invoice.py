@@ -13,6 +13,7 @@ from optic_store.doc_events.sales_order import (
     before_insert as so_before_insert,
     before_save as so_before_save,
 )
+from optic_store.api.sales_invoice import validate_loyalty
 
 
 def before_naming(doc, method):
@@ -41,7 +42,7 @@ def validate(doc, method):
         _validate_gift_card_balance(doc.payments, gift_cards)
     if cint(doc.redeem_loyalty_points):
         _validate_loyalty_card_no(doc.customer, doc.os_loyalty_card_no)
-        _validate_loyalty_points(doc.loyalty_points)
+        validate_loyalty(doc)
 
 
 def _validate_gift_card_expiry(posting_date, giftcard):
@@ -66,11 +67,6 @@ def _validate_loyalty_card_no(customer, loyalty_card_no):
                 )
             )
         )
-
-
-def _validate_loyalty_points(points):
-    if points % 10 != 0:
-        frappe.throw(_("Loyalty Points can only be redeemed in multiples of 10"))
 
 
 def before_insert(doc, method):

@@ -2,4 +2,5 @@
 // For license information, please see license.txt
 /* eslint-disable */
 
-frappe.query_reports['Daily Sales Summary'] = optic_store.reports.daily_sales_summary;
+frappe.query_reports['Item Sell Out History'] =
+  optic_store.reports.item_sell_out_history;

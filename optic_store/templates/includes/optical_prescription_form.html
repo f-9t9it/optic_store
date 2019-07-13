@@ -1,7 +1,9 @@
-{%- if not doc.orx_name -%}
+{%- set is_prescription = doc.doctype == 'Optical Prescription' -%} {%- if not
+is_prescription and not doc.orx_name -%}
 <div class="os-warning-message">WARNING: Required Prescription in document</div>
 {%- endif -%} {%- set rx = frappe.get_doc('Optical Prescription', doc.orx_name) -%}
 <main class="os-lof">
+  {%- if not is_prescription -%}
   <div class="os-lof-preheader">
     {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch,
     ['branch_phone', 'os_cr_no']) or (None, None) -%}
@@ -10,13 +12,15 @@
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
     {%- endif -%}
   </div>
+  {%- endif -%}
   <div class="os-header">
     <h1>{{ _('Optical Prescription Form') }}</h1>
     <div class="os-header-content">
       <dl>
-        <dt>{{ _('Order No')}}</dt>
+        <dt>{{ '{} No'.format(doc.doctype.split(' ')[-1]) }}</dt>
         <dd>{{ doc.name }}</dd>
       </dl>
+      {%- if not is_prescription -%}
       <dl>
         <dt>{{ _('Dispensor')}}</dt>
         <dd>
@@ -24,10 +28,12 @@
           doc.orx_dispensor else '' }}
         </dd>
       </dl>
+      {%- endif -%}
       <dl>
         <dt>{{ _('Prescription Date')}}</dt>
         <dd>{{ rx.get_formatted('test_date') }}</dd>
       </dl>
+      {%- if not is_prescription -%}
       <dl>
         <dt>{{ _('Optometrist')}}</dt>
         <dd>
@@ -39,6 +45,9 @@
         <dt>{{ _('Collection Date')}}</dt>
         <dd>{{ doc.get_formatted('delivery_date') }}</dd>
       </dl>
+      {%- else -%}
+      <div></div>
+      {%- endif -%}
       <dl>
         <dt>{{ _('Expiry Date')}}</dt>
         <dd>{{ rx.get_formatted('expiry') }}</dd>
@@ -85,6 +94,7 @@
         </tr>
       </tbody>
     </table>
+    {%- if not is_prescription -%}
     <div class="os-lof-details-others">
       <dl>
         <dt>{{ _('Frame Size')}}</dt>
@@ -95,6 +105,7 @@
         <dd>{{ doc.orx_height or '' }}</dd>
       </dl>
     </div>
+    {%- endif -%}
     <div class="os-lof-details-others">
       <dl>
         <dt>{{ _('PD (right) mm')}}</dt>
@@ -155,15 +166,16 @@
       </dl>
     </div>
   </div>
-  {%- if doc.terms -%}
+  {%- if not is_prescription and doc.terms -%}
   <div class="os-sr-terms os-bordered-bottom">
     <div>{{ _('Notes')}}</div>
     <div>{{ doc.terms }}</div>
   </div>
   {%- endif -%}
   <div class="os-lof-footer">
-    {%- set sales_person_name = frappe.db.get_value('Employee', doc.os_sales_person,
-    'employee_name') if doc.os_sales_person else '' -%}
+    {%- if not is_prescription -%} {%- set sales_person_name =
+    frappe.db.get_value('Employee', doc.os_sales_person, 'employee_name') if
+    doc.os_sales_person else '' -%}
     <dl>
       <dt>{{ _('Issued By') }}</dt>
       <dd>{{ sales_person_name }}</dd>
@@ -172,6 +184,7 @@
       <dt>{{ _('Sales Person') }}</dt>
       <dd>{{ sales_person_name }}</dd>
     </dl>
+    {%- endif -%}
     <dl>
       <dt>{{ _('Printed On') }}</dt>
       <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>

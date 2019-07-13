@@ -1,3 +1,9 @@
+import pick from 'lodash/pick';
+import groupBy from 'lodash/groupBy';
+import mapValues from 'lodash/mapValues';
+import sumBy from 'lodash/sumBy';
+import isEqual from 'lodash/isEqual';
+
 import { print_doc, set_amount } from './InvoiceDialog';
 
 export default class DeliverDialog {
@@ -6,6 +12,8 @@ export default class DeliverDialog {
       mode_of_payment,
     }));
     this.print_formats = print_formats;
+    this.batches = [];
+    this.warehouse = null;
     this.dialog = new frappe.ui.Dialog({
       title: 'Deliver & Print',
       fields: [
@@ -56,6 +64,51 @@ export default class DeliverDialog {
           get_data: () => this.mode_of_payments,
         },
         {
+          fieldname: 'batch_sec',
+          fieldtype: 'Section Break',
+          label: __('Batches'),
+        },
+        {
+          fieldname: 'batches',
+          fieldtype: 'Table',
+          fields: [
+            {
+              fieldname: 'item_code',
+              fieldtype: 'Link',
+              options: 'Item',
+              label: __('Item Code'),
+              read_only: 1,
+              in_list_view: 1,
+            },
+            {
+              fieldname: 'batch_no',
+              fieldtype: 'Link',
+              options: 'Batch',
+              label: __('Batch No'),
+              in_list_view: 1,
+              get_query: function({ item_code }) {
+                return { filters: { item: item_code } };
+              },
+            },
+            {
+              fieldname: 'available_qty',
+              fieldtype: 'Float',
+              label: __('Available Qty'),
+              read_only: 1,
+              in_list_view: 1,
+            },
+            {
+              fieldname: 'qty',
+              fieldtype: 'Float',
+              label: __('Invoice Qty'),
+              in_list_view: 1,
+            },
+          ],
+          in_place_edit: true,
+          data: this.batches,
+          get_data: () => this.batches,
+        },
+        {
           fieldname: 'print_sec',
           fieldtype: 'Section Break',
           label: __('Print Formats'),
@@ -75,6 +128,27 @@ export default class DeliverDialog {
       await this.handle_gift_card(frm, gift_card_no);
       this.set_payments(frm);
     }.bind(this);
+
+    const { message: warehouse } = await frappe.call({
+      method: 'optic_store.api.sales_order.get_warehouse',
+      args: { branch: frm.doc.os_branch },
+    });
+    this.dialog.fields_dict.batches.grid.fields_map.batch_no.change = async function() {
+      const { item_code, batch_no } = this.doc;
+      const set_value = qty =>
+        this.grid_row.on_grid_fields_dict.available_qty.set_value(qty);
+      if (!warehouse || !batch_no) {
+        return set_value(0);
+      }
+      const { message: available_qty } = await frappe.call({
+        method: 'erpnext.stock.doctype.batch.batch.get_batch_qty',
+        args: { batch_no, item_code, warehouse },
+      });
+      if (typeof available_qty !== 'number') {
+        return set_value(0);
+      }
+      return set_value(available_qty);
+    };
 
     this.dialog.get_primary_btn().off('click');
     this.dialog.set_primary_action(
@@ -105,20 +179,29 @@ export default class DeliverDialog {
         if (deliver && total_paid !== frm.doc.outstanding_amount) {
           return frappe.throw(__('Paid amount must be equal to outstanding'));
         }
-        this.dialog.hide();
         try {
           await frappe.call({
             method: 'optic_store.api.sales_invoice.deliver_qol',
             freeze: true,
             freeze_message: __('Creating Payment Entry / Delivery Note'),
-            args: { name, payments, deliver: deliver ? 1 : 0 },
+            args: {
+              name,
+              payments,
+              deliver: deliver ? 1 : 0,
+              batches: deliver
+                ? values.batches
+                    .filter(({ batch_no, qty }) => batch_no && qty)
+                    .map(batch => pick(batch, ['item_code', 'batch_no', 'qty']))
+                : null,
+            },
+          });
+          this.dialog.hide();
+          enabled_print_formats.forEach(pf => {
+            print_doc('Sales Invoice', name, pf, 0);
           });
         } finally {
           frm.reload_doc();
         }
-        enabled_print_formats.forEach(pf => {
-          print_doc('Sales Invoice', name, pf, 0);
-        });
       }.bind(this)
     );
 
@@ -134,7 +217,13 @@ export default class DeliverDialog {
     );
     this.dialog.fields_dict.gift_card_no.bind_change_event();
 
-    this.set_payments(frm);
+    await this.set_batches(frm, warehouse); // this will set this.batches
+    this.dialog.set_df_property(
+      'batch_sec',
+      'hidden',
+      deliver && this.batches.length > 0 ? 0 : 1
+    );
+
     await this.dialog.set_values({ gift_card_no: null, gift_card_balance: null });
     this.dialog.show();
   }
@@ -177,6 +266,38 @@ export default class DeliverDialog {
     if (first_payment_gr) {
       set_amount(first_payment_gr, amount_to_set);
     }
+  }
+  async _get_batch_items(items, warehouse) {
+    const has_batch_results = await Promise.all(
+      items.map(({ item_code }) =>
+        frappe.db.get_value('Item', item_code, ['item_code', 'has_batch_no'])
+      )
+    );
+    const batch_items = has_batch_results
+      .map(({ message = {} }) => message)
+      .filter(({ has_batch_no }) => has_batch_no)
+      .map(({ item_code }) => item_code);
+    const rows = items
+      .filter(({ item_code }) => batch_items.includes(item_code))
+      .map(item => pick(item, ['item_code', 'batch_no', 'qty']));
+    const qty_results = await Promise.all(
+      rows.map(({ item_code, batch_no }) =>
+        batch_no
+          ? frappe.call({
+              method: 'erpnext.stock.doctype.batch.batch.get_batch_qty',
+              args: { batch_no, item_code, warehouse },
+            })
+          : {}
+      )
+    );
+    const qtys = qty_results.map(({ message = {} }) =>
+      typeof message === 'number' ? message : null
+    );
+    return rows.map((item, idx) => Object.assign(item, { available_qty: qtys[idx] }));
+  }
+  async set_batches(frm, warehouse) {
+    this.batches = await this._get_batch_items(frm.doc.items, warehouse);
+    this.dialog.fields_dict.batches.refresh();
   }
   async print(frm) {
     const print_formats = this.print_formats;

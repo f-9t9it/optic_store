@@ -11,16 +11,25 @@ from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_n
 from erpnext.selling.page.point_of_sale.point_of_sale import (
     search_serial_or_batch_or_barcode_number as search_item,
 )
+from six import string_types
 from functools import partial, reduce
-from toolz import compose, unique, pluck, concat, merge, excepts
+from toolz import compose, unique, pluck, concat, merge, excepts, groupby, valmap, first
 
-from optic_store.utils import sum_by
+from optic_store.utils import sum_by, pick
+
+_filter_batch_items = partial(
+    filter, lambda x: frappe.db.get_value("Item", x.item_code, "has_batch_no")
+)
 
 
 @frappe.whitelist()
-def deliver_qol(name, payments=[], deliver=0):
+def deliver_qol(name, payments=[], batches=None, deliver=0):
+
     is_delivery = cint(deliver)
+
     si = frappe.get_doc("Sales Invoice", name)
+    if is_delivery:
+        _validate_qol(batches, si)
 
     def make_payment(payment):
         pe = _make_payment_entry(
@@ -37,24 +46,7 @@ def deliver_qol(name, payments=[], deliver=0):
     pe_names = make_payments(payments) if payments else []
 
     result = {"payment_entries": pe_names}
-
-    def si_deliverable(items):
-        return sum_by("qty")(items) > sum_by("delivered_qty")(items)
-
-    sos_deliverable = compose(
-        lambda states: reduce(lambda a, x: a and x == "Ready to Deliver", states, True),
-        partial(map, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")),
-        unique,
-        partial(filter, lambda x: x),
-        partial(map, lambda x: x.sales_order),
-    )
     if is_delivery:
-        if si.update_stock or not si_deliverable(si.items):
-            return frappe.throw(_("Delivery has already been processed"))
-        if not sos_deliverable(si.items):
-            return frappe.throw(
-                _("Cannot make delivery until Sales Order status is 'Ready to Deliver'")
-            )
         dn = make_delivery_note(name)
         dn.os_branch = si.os_branch
         warehouse = (
@@ -62,6 +54,23 @@ def deliver_qol(name, payments=[], deliver=0):
             if si.os_branch
             else None
         )
+        if batches:
+            get_batches = compose(unique, partial(pluck, "item_code"), json.loads)
+            batch_items = filter(
+                lambda x: x.item_code in get_batches(batches), dn.items
+            )
+
+            def get_item(item_code):
+                return compose(
+                    lambda x: x.as_dict(),
+                    excepts(StopIteration, first, lambda x: frappe._dict()),
+                    partial(filter, lambda x: x.item_code == item_code),
+                )(batch_items)
+
+            dn.items = filter(lambda x: x not in batch_items, dn.items)
+            for batch in json.loads(batches):
+                item = get_item(batch.get("item_code"))
+                dn.append("items", merge(item, batch))
         if warehouse:
             for item in dn.items:
                 item.warehouse = warehouse
@@ -70,6 +79,38 @@ def deliver_qol(name, payments=[], deliver=0):
         result = merge(result, {"delivery_note": dn.name})
 
     return result
+
+
+def _validate_qol(batches, si):
+    def si_deliverable(items):
+        return sum_by("qty")(items) > sum_by("delivered_qty")(items)
+
+    def invalid_batch_qtys(items):
+        get_qtys = compose(
+            partial(valmap, sum_by("qty")), partial(groupby, "item_code")
+        )
+        get_si_items = compose(
+            get_qtys, partial(map, lambda x: x.as_dict()), _filter_batch_items
+        )
+        get_batch_items = compose(get_qtys, json.loads)
+        return get_si_items(items) != get_batch_items(batches)
+
+    sos_deliverable = compose(
+        lambda states: reduce(lambda a, x: a and x == "Ready to Deliver", states, True),
+        partial(map, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")),
+        unique,
+        partial(filter, lambda x: x),
+        partial(map, lambda x: x.sales_order),
+    )
+
+    if si.update_stock or not si_deliverable(si.items):
+        frappe.throw(_("Delivery has already been processed"))
+    if not sos_deliverable(si.items):
+        frappe.throw(
+            _("Cannot make delivery until Sales Order status is 'Ready to Deliver'")
+        )
+    if batches and invalid_batch_qtys(si.items):
+        frappe.throw(_("Mismatched Items and Batches"))
 
 
 def _make_payment_entry(name, mode_of_payment, paid_amount, gift_card_no):
@@ -242,3 +283,25 @@ def get_ref_so_statuses(sales_invoice):
         _get_sales_orders,
     )
     return get_statuses(sales_invoice)
+
+
+@frappe.whitelist()
+def validate_loyalty(doc):
+    def get_dict(obj):
+        if isinstance(obj, frappe.model.document.Document):
+            return obj.as_dict()
+        if isinstance(obj, string_types):
+            return json.loads(obj)
+        if isinstance(obj, dict):
+            return obj
+        return {}
+
+    code = frappe.db.get_single_value("Optical Store Settings", "loyalty_validation")
+    locals = frappe._dict(pick(["loyalty_points"], get_dict(doc)))
+    if code and not frappe.safe_eval(code, eval_locals=locals):
+        frappe.throw(
+            _(
+                "Loyalty validation failed."
+                "Please correct loyalty fields or contact System Manager."
+            )
+        )
