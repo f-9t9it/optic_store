@@ -41,6 +41,7 @@ def _get_columns(filters):
 
 def _get_filters(filters):
     clauses = concatv(
+        ["si.docstatus = 1"],
         ["si.posting_date BETWEEN %(from_date)s AND %(to_date)s"],
         ["si.os_branch = %(branch)s"] if filters.branch else [],
         ["sii.brand = %(brand)s"] if filters.brand else [],
