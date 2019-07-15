@@ -79,7 +79,6 @@ def _get_data(clauses, values, keys):
         values=values,
         as_dict=1,
     )
-    print(items)
 
     template = reduce(lambda a, x: merge(a, {x: None}), keys, {})
     make_row = compose(

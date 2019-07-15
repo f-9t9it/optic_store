@@ -181,7 +181,7 @@ def _get_data(clauses, values, keys):
                 ms2.price_list_rate AS ms2,
                 IF(sii.amount < ms2.price_list_rate, 'Yes', 'No') AS below_ms2,
                 si.os_sales_person AS sales_person,
-                e.employee_name AS sales_person_name,
+                si.os_sales_person_name AS sales_person_name,
                 '' AS remarks,
                 si.customer AS customer,
                 si.customer_name AS customer_name,
@@ -205,8 +205,6 @@ def _get_data(clauses, values, keys):
             LEFT JOIN `tabBin` AS bp ON
                 bp.item_code = sii.item_code AND
                 bp.warehouse = sii.warehouse
-            LEFT JOIN `tabEmployee` AS e ON
-                e.name = si.os_sales_person
             LEFT JOIN {selling_pl}
             LEFT JOIN {min_selling_pl1}
             LEFT JOIN {min_selling_pl2}
