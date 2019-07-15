@@ -84,8 +84,10 @@ def _get_columns(filters):
                 width=60,
             ),
             make_column("sales_person", type="Link", options="Employee"),
+            make_column("sales_person_name", width="150"),
             make_column("remarks", type="Small Text", width=150),
             make_column("customer", type="Link", options="Customer"),
+            make_column("customer_name", width="150"),
             make_column("notes", type="Small Text", width=150),
             make_column("dispensor", type="Link", options="Employee"),
             make_column("branch", type="Link", options="Branch"),
@@ -179,8 +181,10 @@ def _get_data(clauses, values, keys):
                 ms2.price_list_rate AS ms2,
                 IF(sii.amount < ms2.price_list_rate, 'Yes', 'No') AS below_ms2,
                 si.os_sales_person AS sales_person,
+                e.employee_name AS sales_person_name,
                 '' AS remarks,
                 si.customer AS customer,
+                si.customer_name AS customer_name,
                 si.os_notes AS notes,
                 si.orx_dispensor AS dispensor,
                 si.os_branch AS branch,
@@ -201,6 +205,8 @@ def _get_data(clauses, values, keys):
             LEFT JOIN `tabBin` AS bp ON
                 bp.item_code = sii.item_code AND
                 bp.warehouse = sii.warehouse
+            LEFT JOIN `tabEmployee` AS e ON
+                e.name = si.os_sales_person
             LEFT JOIN {selling_pl}
             LEFT JOIN {min_selling_pl1}
             LEFT JOIN {min_selling_pl2}
