@@ -29,62 +29,74 @@ def _get_columns(filters):
             "width": width,
         }
 
-    return [
-        make_column(
-            "invoice_name",
-            "Sales Invoice",
-            type="Link",
-            options="Sales Invoice",
-            width=150,
-        ),
-        make_column("invoice_date", type="Date", width=90),
-        make_column("brand", type="Link", options="Brand"),
-        make_column("item_code", type="Link", options="Item"),
-        make_column("item_group", type="Link", options="Item Group"),
-        make_column("description"),
-        make_column("valuation_rate", "Cost Price", type="Currency", width=90),
-        make_column("selling_rate", "Standard Selling Rate", type="Currency", width=90),
-        make_column("rate", "Sale Unit Rate", type="Currency", width=90),
-        make_column("qty", type="Float", width=90),
-        make_column(
-            "amount_before_discount",
-            "Sale Amount Before Discount",
-            type="Currency",
-            width=90,
-        ),
-        make_column("discount_amount", type="Currency", width=90),
-        make_column("discount_percentage", type="Percent", width=90),
-        make_column(
-            "amount_after_discount",
-            "Sale Amount After Discount",
-            type="Currency",
-            width=90,
-        ),
-        make_column("ms1", "Minimum Selling Rate 1", type="Currency", width=90),
-        make_column(
-            "below_ms1",
-            "Sold Below Mimimum Selling Rate 1",
-            type="Select",
-            options=["No", "Yes"],
-            width=60,
-        ),
-        make_column("ms2", "Minimum Selling Rate 2", type="Currency", width=90),
-        make_column(
-            "below_ms2",
-            "Sold Below Mimimum Selling Rate 2",
-            type="Select",
-            options=["No", "Yes"],
-            width=60,
-        ),
-        make_column("sales_person", type="Link", options="Employee"),
-        make_column("remarks", type="Small Text", width=150),
-        make_column("customer", type="Link", options="Customer"),
-        make_column("notes", type="Small Text", width=150),
-        make_column("dispensor", type="Link", options="Employee"),
-        make_column("branch", type="Link", options="Branch"),
-        make_column("sales_status", type="Select", options=["Achieved", "Collected"]),
-        make_column("collection_date", type="Date", width=90),
-    ]
+    columns = concatv(
+        [
+            make_column(
+                "invoice_name",
+                "Sales Invoice",
+                type="Link",
+                options="Sales Invoice",
+                width=150,
+            ),
+            make_column("invoice_date", type="Date", width=90),
+            make_column("brand", type="Link", options="Brand"),
+            make_column("item_code", type="Link", options="Item"),
+            make_column("item_group", type="Link", options="Item Group"),
+            make_column("description"),
+        ],
+        [make_column("valuation_rate", "Cost Price", type="Currency", width=90)]
+        if "Accounts Manager" in frappe.get_roles()
+        else [],
+        [
+            make_column(
+                "selling_rate", "Standard Selling Rate", type="Currency", width=90
+            ),
+            make_column("rate", "Sale Unit Rate", type="Currency", width=90),
+            make_column("qty", type="Float", width=90),
+            make_column(
+                "amount_before_discount",
+                "Sale Amount Before Discount",
+                type="Currency",
+                width=90,
+            ),
+            make_column("discount_amount", type="Currency", width=90),
+            make_column("discount_percentage", type="Percent", width=90),
+            make_column(
+                "amount_after_discount",
+                "Sale Amount After Discount",
+                type="Currency",
+                width=90,
+            ),
+            make_column("ms1", "Minimum Selling Rate 1", type="Currency", width=90),
+            make_column(
+                "below_ms1",
+                "Sold Below Mimimum Selling Rate 1",
+                type="Select",
+                options=["No", "Yes"],
+                width=60,
+            ),
+            make_column("ms2", "Minimum Selling Rate 2", type="Currency", width=90),
+            make_column(
+                "below_ms2",
+                "Sold Below Mimimum Selling Rate 2",
+                type="Select",
+                options=["No", "Yes"],
+                width=60,
+            ),
+            make_column("sales_person", type="Link", options="Employee"),
+            make_column("remarks", type="Small Text", width=150),
+            make_column("customer", type="Link", options="Customer"),
+            make_column("notes", type="Small Text", width=150),
+            make_column("dispensor", type="Link", options="Employee"),
+            make_column("branch", type="Link", options="Branch"),
+            make_column(
+                "sales_status", type="Select", options=["Achieved", "Collected"]
+            ),
+            make_column("collection_date", type="Date", width=90),
+        ],
+    )
+
+    return list(columns)
 
 
 def _get_filters(filters):
