@@ -7,7 +7,7 @@ from frappe import _
 from functools import partial, reduce
 from toolz import compose, pluck, merge, concatv, valmap
 
-from optic_store.utils import pick, with_report_error_check
+from optic_store.utils import pick, with_report_error_check, split_to_list
 
 
 def execute(filters=None):
@@ -40,16 +40,18 @@ def _get_columns(filters):
 
 
 def _get_filters(filters):
+    branches = split_to_list(filters.branches)
     clauses = concatv(
         ["si.docstatus = 1"],
         ["si.posting_date BETWEEN %(from_date)s AND %(to_date)s"],
-        ["si.os_branch = %(branch)s"] if filters.branch else [],
+        ["si.os_branch IN %(branches)s"] if branches else [],
         ["sii.brand = %(brand)s"] if filters.brand else [],
         ["sii.item_code = %(item_code)s"] if filters.item_code else [],
         ["sii.item_group = %(item_group)s"] if filters.item_group else [],
         ["INSTR(sii.item_name, %(item_name)s) > 0"] if filters.item_name else [],
     )
-    return " AND ".join(clauses), filters
+    values = merge(filters, {"branches": branches} if branches else {})
+    return " AND ".join(clauses), values
 
 
 @with_report_error_check

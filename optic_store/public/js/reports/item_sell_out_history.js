@@ -1,4 +1,4 @@
-import { make_date, make_link, make_data } from './fields';
+import { make_date, make_link, make_data, make_multiselect } from './fields';
 
 export default {
   onload: async function(rep) {
@@ -10,7 +10,7 @@ export default {
   filters: [
     make_date({ fieldname: 'from_date', reqd: 1 }),
     make_date({ fieldname: 'to_date', reqd: 1 }),
-    make_link({ fieldname: 'branch', options: 'Branch' }),
+    make_multiselect({ fieldname: 'branches', options: 'Branch' }),
     make_link({ fieldname: 'brand', options: 'Brand' }),
     make_link({ fieldname: 'item_code', options: 'Item' }),
     make_data({ fieldname: 'item_name' }),
