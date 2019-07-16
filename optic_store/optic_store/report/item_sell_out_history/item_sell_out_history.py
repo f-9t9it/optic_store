@@ -4,10 +4,10 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from functools import partial, reduce
-from toolz import compose, pluck, merge, concatv, valmap
+from functools import partial
+from toolz import compose, pluck, merge, concatv
 
-from optic_store.utils import pick, with_report_error_check
+from optic_store.utils import pick, with_report_error_check, split_to_list
 
 
 def execute(filters=None):
@@ -28,28 +28,45 @@ def _get_columns(filters):
             "width": width,
         }
 
-    return [
-        make_column("branch", type="Link", options="Branch"),
-        make_column("item_group", type="Link", options="Item Group"),
-        make_column("brand", type="Link", options="Brand"),
-        make_column("item_code", type="Link", options="Item"),
-        make_column("item_name", width=180),
-        make_column("qty_sold", type="Float", width=90),
-        make_column("qty_balance", "Balance Qty", type="Float", width=90),
-    ]
+    columns = concatv(
+        [make_column("branch", type="Link", options="Branch")]
+        if filters.branches
+        else [],
+        [
+            make_column("item_group", type="Link", options="Item Group"),
+            make_column("brand", type="Link", options="Brand"),
+            make_column("item_code", type="Link", options="Item"),
+            make_column("item_name", width=180),
+            make_column("qty_sold", "Sold Qty", type="Float", width=90),
+            make_column("qty_balance", "Balance Qty", type="Float", width=90),
+        ],
+    )
+    return list(columns)
 
 
 def _get_filters(filters):
+    branches = split_to_list(filters.branches)
     clauses = concatv(
-        ["si.docstatus = 1"],
-        ["si.posting_date BETWEEN %(from_date)s AND %(to_date)s"],
-        ["si.os_branch = %(branch)s"] if filters.branch else [],
-        ["sii.brand = %(brand)s"] if filters.brand else [],
-        ["sii.item_code = %(item_code)s"] if filters.item_code else [],
-        ["sii.item_group = %(item_group)s"] if filters.item_group else [],
-        ["INSTR(sii.item_name, %(item_name)s) > 0"] if filters.item_name else [],
+        ["TRUE"],
+        ["branch.name IN %(branches)s"] if branches else [],
+        ["i.brand = %(brand)s"] if filters.brand else [],
+        ["i.item_code = %(item_code)s"] if filters.item_code else [],
+        ["i.item_group = %(item_group)s"] if filters.item_group else [],
+        ["INSTR(i.item_name, %(item_name)s) > 0"] if filters.item_name else [],
     )
-    return " AND ".join(clauses), filters
+    si_clauses = concatv(
+        ["si.docstatus = 1", "si.posting_date BETWEEN %(from_date)s AND %(to_date)s"],
+        ["si.os_branch IN %(branches)s"] if branches else [],
+    )
+    values = merge(filters, {"branches": branches} if branches else {})
+    return (
+        {
+            "clauses": " AND ".join(clauses),
+            "si_clauses": " AND ".join(si_clauses),
+            "group_by": "bin.item_code, branch.name" if branches else "bin.item_code",
+        },
+        values,
+    )
 
 
 @with_report_error_check
@@ -57,35 +74,42 @@ def _get_data(clauses, values, keys):
     items = frappe.db.sql(
         """
             SELECT
-                si.os_branch AS branch,
-                sii.item_group AS item_group,
-                sii.brand AS brand,
-                sii.item_code AS item_code,
-                sii.item_name AS item_name,
+                branch.name AS branch,
+                i.item_group AS item_group,
+                i.brand AS brand,
+                bin.item_code AS item_code,
+                i.item_name AS item_name,
                 SUM(sii.qty) AS qty_sold,
-                bin.projected_qty AS qty_balance
-            FROM `tabSales Invoice` AS si
-            RIGHT JOIN `tabSales Invoice Item` AS sii ON
-                sii.parent = si.name
-            LEFT JOIN `tabBranch` as br ON
-                br.name = si.os_branch
-            LEFT JOIN `tabBin` AS bin ON
-                bin.item_code = sii.item_code AND
-                bin.warehouse = br.warehouse
+                SUM(bin.projected_qty) AS qty_balance
+            FROM `tabBin` AS bin
+            LEFT JOIN `tabBranch` as branch ON
+                branch.warehouse = bin.warehouse
+            LEFT JOIN `tabItem` AS i ON
+                i.name = bin.item_code
+            LEFT JOIN (
+                SELECT
+                    sii.item_code AS item_code,
+                    SUM(sii.qty) AS qty
+                FROM `tabSales Invoice Item` AS sii
+                LEFT JOIN `tabSales Invoice` AS si ON
+                    si.name = sii.parent
+                WHERE {si_clauses}
+                GROUP BY sii.item_code
+            ) AS sii ON
+                sii.item_code = bin.item_code
             WHERE {clauses}
-            GROUP BY si.os_branch, sii.item_code
+            GROUP BY {group_by}
         """.format(
-            clauses=clauses
+            **clauses
         ),
         values=values,
         as_dict=1,
+        debug=1,
     )
 
-    template = reduce(lambda a, x: merge(a, {x: None}), keys, {})
-    make_row = compose(
-        partial(pick, keys),
-        partial(valmap, lambda x: x or None),
-        partial(merge, template),
+    make_data = compose(
+        partial(map, partial(pick, keys)),
+        partial(filter, lambda x: x.qty_sold != 0 or x.qty_balance != 0),
     )
 
-    return map(make_row, items)
+    return make_data(items)
