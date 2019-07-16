@@ -179,7 +179,9 @@ export default class DeliverDialog {
         if (deliver && total_paid !== frm.doc.outstanding_amount) {
           return frappe.throw(__('Paid amount must be equal to outstanding'));
         }
+
         try {
+          const { batches = [] } = values || {};
           await frappe.call({
             method: 'optic_store.api.sales_invoice.deliver_qol',
             freeze: true,
@@ -188,11 +190,12 @@ export default class DeliverDialog {
               name,
               payments,
               deliver: deliver ? 1 : 0,
-              batches: deliver
-                ? values.batches
-                    .filter(({ batch_no, qty }) => batch_no && qty)
-                    .map(batch => pick(batch, ['item_code', 'batch_no', 'qty']))
-                : null,
+              batches:
+                deliver && batches.length > 0
+                  ? batches
+                      .filter(({ batch_no, qty }) => batch_no && qty)
+                      .map(batch => pick(batch, ['item_code', 'batch_no', 'qty']))
+                  : null,
             },
           });
           this.dialog.hide();
