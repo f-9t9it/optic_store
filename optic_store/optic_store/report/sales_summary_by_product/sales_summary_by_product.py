@@ -182,7 +182,6 @@ def _get_data(clauses, values, keys):
                 IF(sii.amount < ms2.price_list_rate, 'Yes', 'No') AS below_ms2,
                 si.os_sales_person AS sales_person,
                 si.os_sales_person_name AS sales_person_name,
-                '' AS remarks,
                 si.customer AS customer,
                 si.customer_name AS customer_name,
                 si.os_notes AS notes,
@@ -194,14 +193,20 @@ def _get_data(clauses, values, keys):
                 ) AS sales_status,
                 si.update_stock AS own_delivery,
                 dn.posting_date AS delivery_date
-            FROM `tabSales Invoice` AS si
-            RIGHT JOIN `tabSales Invoice Item` AS sii ON
-                sii.parent = si.name
-            LEFT JOIN `tabDelivery Note Item` AS dni ON
-                dni.against_sales_invoice = si.name AND
-                dni.item_code = sii.item_code
-            LEFT JOIN `tabDelivery Note` AS dn ON
-                dn.name = dni.parent
+            FROM `tabSales Invoice Item` AS sii
+            LEFT JOIN `tabSales Invoice` AS si ON
+                si.name = sii.parent
+            LEFT JOIN (
+                SELECT
+                    idni.si_detail AS si_detail,
+                    idn.is_return AS is_return,
+                    idn.posting_date AS posting_date
+                FROM `tabDelivery Note Item` AS idni
+                LEFT JOIN `tabDelivery Note` AS idn ON
+                    idn.name = idni.parent
+            ) AS dn ON
+                dn.si_detail = sii.name AND
+                dn.is_return = si.is_return
             LEFT JOIN `tabBin` AS bp ON
                 bp.item_code = sii.item_code AND
                 bp.warehouse = sii.warehouse
