@@ -60,16 +60,16 @@ def deliver_qol(name, payments=[], batches=None, deliver=0):
                 lambda x: x.item_code in get_batches(batches), dn.items
             )
 
-            def get_item(item_code):
+            def get_item(si_detail):
                 return compose(
-                    lambda x: x.as_dict(),
-                    excepts(StopIteration, first, lambda x: frappe._dict()),
-                    partial(filter, lambda x: x.item_code == item_code),
+                    lambda x: x.as_dict() if x else {},
+                    excepts(StopIteration, first, None),
+                    partial(filter, lambda x: x.si_detail == si_detail),
                 )(batch_items)
 
             dn.items = filter(lambda x: x not in batch_items, dn.items)
             for batch in json.loads(batches):
-                item = get_item(batch.get("item_code"))
+                item = get_item(batch.get("si_detail"))
                 dn.append("items", merge(item, batch))
         if warehouse:
             for item in dn.items:

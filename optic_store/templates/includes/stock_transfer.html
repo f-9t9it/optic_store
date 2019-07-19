@@ -1,7 +1,10 @@
 <main class="os-lof">
   <div class="os-lof-preheader">
     {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch',
-    doc.source_branch, ['branch_phone', 'os_cr_no']) or (None, None) -%}
+    doc.source_branch, ['branch_phone', 'os_cr_no']) or (None, None) -%} {%- set tax_id
+    = frappe.db.get_value('Company', doc.company, 'tax_id') -%} {%- if tax_id -%}
+    <div>{{ _('VAT ID') }}: {{ tax_id or '' }}</div>
+    {%- endif -%}
     <div>{{ doc.source_branch or '' }}</div>
     {%- if branch_phone -%}
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
