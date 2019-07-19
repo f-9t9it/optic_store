@@ -248,7 +248,7 @@ def _get_taxes(args):
     taxes = frappe.db.sql(
         """
             SELECT
-                stc.rate AS mode_of_payment,
+                stc.rate AS rate,
                 SUM(stc.base_tax_amount_after_discount_amount) AS tax_amount
             FROM `tabSales Taxes and Charges` AS stc
             LEFT JOIN `tabSales Invoice` AS si ON
