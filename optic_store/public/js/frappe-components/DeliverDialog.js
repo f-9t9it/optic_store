@@ -103,7 +103,13 @@ export default class DeliverDialog {
               label: __('Invoice Qty'),
               in_list_view: 1,
             },
+            {
+              fieldname: 'si_detail',
+              fieldtype: 'Data',
+              hidden: 1,
+            },
           ],
+          cannot_add_rows: true,
           in_place_edit: true,
           data: this.batches,
           get_data: () => this.batches,
@@ -194,7 +200,9 @@ export default class DeliverDialog {
                 deliver && batches.length > 0
                   ? batches
                       .filter(({ batch_no, qty }) => batch_no && qty)
-                      .map(batch => pick(batch, ['item_code', 'batch_no', 'qty']))
+                      .map(batch =>
+                        pick(batch, ['item_code', 'batch_no', 'qty', 'si_detail'])
+                      )
                   : null,
             },
           });
@@ -282,7 +290,8 @@ export default class DeliverDialog {
       .map(({ item_code }) => item_code);
     const rows = items
       .filter(({ item_code }) => batch_items.includes(item_code))
-      .map(item => pick(item, ['item_code', 'batch_no', 'qty']));
+      .map(item => pick(item, ['item_code', 'batch_no', 'qty', 'name']))
+      .map(({ name: si_detail, ...rest }) => Object.assign(rest, { si_detail }));
     const qty_results = await Promise.all(
       rows.map(({ item_code, batch_no }) =>
         batch_no
