@@ -1,0 +1,63 @@
+<div style="max-width: 640px; margin: auto; padding: 20px 0 40px 0">
+  <h1 style="{{ h1 }}">Document Expiry</h1>
+  <h2 style="{{ h2 }}">{{ company }}</h2>
+  <h4
+    style="font-weight: normal; color: {{ text_muted }}; margin-top: 7px; font-size: 16px; margin-top: 7px;"
+  >
+    <p>{{ frappe.format_date(current_date) }}</p>
+  </h4>
+  <p>{{ subtitle }}</p>
+  {%- if branch_docs -%}
+  <h4 style="{{ section_head }}">{{ _('Branch') }}</h4>
+  {%- for sec in branch_docs -%}
+  <table style="{{ table }}">
+    <caption style="{{ caption }}">
+      {{ sec.label }}
+    </caption>
+    <thead>
+      <tr>
+        <th style="{{ th }}">{{ _('Branch Code') }}</th>
+        <th style="{{ th }}">{{ _('Branch Name') }}</th>
+        <th style="{{ th }} width: 25%; text-align: right">{{ _('Expiry Date') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for doc in sec.data -%}
+      <tr>
+        <td style="{{ td }}">{{ doc.branch_code }}</td>
+        <td style="{{ td }}">{{ doc.branch_name }}</td>
+        <td style="{{ td }} width: 25%; text-align: right">
+          {{ frappe.format_date(doc.expiry_date, 'dd-MM-YYYY') }}
+        </td>
+      </tr>
+      {%- endfor -%}
+    </tbody>
+  </table>
+  {%- endfor -%} {%- endif -%} {%- if employee_docs -%}
+  <h4 style="{{ section_head }}">{{ _('Employee') }}</h4>
+  {%- for sec in employee_docs -%}
+  <table style="{{ table }}">
+    <caption style="{{ caption }}">
+      {{ sec.label }}
+    </caption>
+    <thead>
+      <tr>
+        <th style="{{ th }} text-align: left">{{ _('Employee ID') }}</th>
+        <th style="{{ th }} text-align: left">{{ _('Employee Name') }}</th>
+        <th style="{{ th }} width: 25%; text-align: right">{{ _('Expiry Date') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for doc in sec.data -%}
+      <tr>
+        <td style="{{ td }}">{{ doc.employee_id }}</td>
+        <td style="{{ td }}">{{ doc.employee_name }}</td>
+        <td style="{{ td }} width: 25%; text-align: right">
+          {{ frappe.format_date(doc.expiry_date, 'dd-MM-YYYY') }}
+        </td>
+      </tr>
+      {%- endfor -%}
+    </tbody>
+  </table>
+  {%- endfor -%} {%- endif -%}
+</div>
