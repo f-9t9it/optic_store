@@ -51,7 +51,7 @@ def before_insert(doc, method):
 
 
 def before_save(doc, method):
-    if doc.orx_type == "Spectacles":
+    if doc.orx_type in ["Spectacles", "Contact Lens"]:
         settings = frappe.get_single("Optical Store Settings")
         frames = map(lambda x: x.item_group, settings.frames)
         lenses = map(lambda x: x.item_group, settings.lens)

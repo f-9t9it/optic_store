@@ -335,7 +335,10 @@ doc_events = {
 
 scheduler_events = {
     # "all": ["optic_store.tasks.all"],
-    "daily": ["optic_store.api.gift_card.write_off_expired_gift_cards"],
+    "daily": [
+        "optic_store.api.gift_card.write_off_expired_gift_cards",
+        "optic_store.api.document_expiry_reminder.send_reminder",
+    ],
     # "hourly": ["optic_store.tasks.hourly"],
     # "weekly": ["optic_store.tasks.weekly"],
     # "monthly": ["optic_store.tasks.monthly"],
