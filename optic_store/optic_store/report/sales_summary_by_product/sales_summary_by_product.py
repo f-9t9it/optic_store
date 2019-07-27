@@ -5,7 +5,17 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from functools import partial, reduce
-from toolz import compose, pluck, merge, concatv, valmap, unique, groupby, get, reduceby
+from toolz import (
+    compose,
+    pluck,
+    merge,
+    concatv,
+    itemmap,
+    unique,
+    groupby,
+    get,
+    reduceby,
+)
 
 from optic_store.utils import pick, split_to_list, with_report_error_check
 from optic_store.api.sales_invoice import get_payments_against
@@ -274,10 +284,30 @@ def _get_data(clauses, values, keys):
 
         return fn
 
+    def set_null(k, v):
+        if v:
+            return k, v
+        if k not in [
+            "valuation_rate",
+            "selling_rate",
+            "rate",
+            "qty",
+            "valuation_amount",
+            "amount_before_discount",
+            "discount_amount",
+            "discount_percentage",
+            "amount_after_discount",
+            "ms1",
+            "ms2",
+            "commission_amount",
+        ]:
+            return k, None
+        return k, 0
+
     template = reduce(lambda a, x: merge(a, {x: None}), keys, {})
     make_row = compose(
         partial(pick, keys),
-        partial(valmap, lambda x: x or None),
+        partial(itemmap, lambda x: set_null(*x)),
         partial(merge, template),
         add_payment_remarks(items),
         add_collection_date,
