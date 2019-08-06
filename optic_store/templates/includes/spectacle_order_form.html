@@ -1,5 +1,5 @@
-<main class="os-lof">
-  <div class="os-lof-preheader">
+<main class="os-print">
+  <div class="os-preheader">
     {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch,
     ['branch_phone', 'os_cr_no']) or (None, None) -%} {%- set tax_id =
     frappe.db.get_value('Company', doc.company, 'tax_id') -%} {%- if tax_id -%}
@@ -10,8 +10,8 @@
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
     {%- endif -%}
   </div>
-  <div class="os-lof-header">
-    <div class="os-lof-header-content">
+  <div class="os-header os-header--barcode">
+    <div class="os-header-content">
       <h1>{{ _('Spectacle Order Form') }}</h1>
       <dl>
         <dt>{{ _('Branch')}}</dt>
@@ -115,7 +115,7 @@
     </div>
     {%- endif -%}
   </div>
-  <div class="os-sof-main">
+  <div class="os-main">
     {%- set customer = frappe.get_doc('Customer', doc.customer) -%}
     <div class="os-sof-main-headline">
       <dl>

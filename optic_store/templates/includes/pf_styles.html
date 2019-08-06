@@ -271,9 +271,53 @@
   }
 
 
+  .os-print {
+    margin-top: {{ header_height or '0' }};
+    font-family: Helvetica, sans-serif;
+    font-size: {{ base_font_size or '7pt' }};
+    display: flex;
+    flex-flow: column nowrap;
+    min-height: calc({{ page_height or '148mm' }} - {{ header_height or '0' }} - {{ margin_page or '5mm' }} * 2);
+  }
+  .os-print dl {
+    margin: 0;
+    display: flex;
+    font-size: 0.85em;
+  }
+  .os-print dt {
+    font-weight: normal;
+  }
+  .os-print dd {
+    font-weight: bold;
+  }
+  .os-print dt:after {
+    content: ': ';
+  }
+  .os-print dl > * {
+    display: inline;
+  }
+
+
+  .os-preheader {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+  }
+  .os-preheader > * {
+    margin: 0 1em;
+  }
 
   .os-header {
     border-top: 1px solid {{ style.border_color }};
+  }
+  .os-header--barcode {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: flex-start;
+    border-bottom: 1px solid {{ style.border_color }};
+  }
+  .os-header--barcode > * {
+    width: 50%;
   }
 
   .os-header h1 {
@@ -282,6 +326,10 @@
     font-weight: bold;
     text-align: center;
   }
+  .os-header--barcode > .os-header h1 {
+    text-align: left;
+  }
+
   .os-header-subtitle {
     font-size: 0.8em;
     margin-bottom: 0.3em;
@@ -293,9 +341,21 @@
     border-bottom: 1px solid {{ style.border_color }};
     margin-bottom: 0.2em;
   }
+  .os-header--barcode > .os-header-content {
+    display: block;
+    border: none;
+    padding: 0;
+    margin: 0;
+    border-right: 1px solid {{ style.border_color }};
+    padding-right: 2pt;
+    margin-right: 2pt;
+  }
   .os-header-content > * {
     width: 50%;
     padding-right: 0.5em;
+  }
+  .os-header--barcode > .os-header-content > * {
+    width: 100%;
   }
   .os-header-content dt {
     display: flex;
@@ -306,6 +366,18 @@
   }
   .os-header-content dd.text-right {
     flex: 1 1 auto;
+  }
+
+  .os-main {
+    display: flex;
+    flex-flow: row wrap;
+  }
+  .os-main > * {
+    min-width: 25%;
+    padding-right: 0.5em;
+  }
+  .os-main > .os-fill {
+    width: 100%;
   }
 
   .os-summary {
@@ -319,7 +391,7 @@
     display: flex;
     flex-flow: column nowrap;
   }
-    .os-summary dl {
+  .os-summary dl {
     margin-bottom: 0.3em;
   }
 
