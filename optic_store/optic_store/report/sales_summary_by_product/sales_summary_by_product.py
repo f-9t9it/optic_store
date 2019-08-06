@@ -5,7 +5,17 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from functools import partial, reduce
-from toolz import compose, pluck, merge, concatv, valmap, unique, groupby, get, reduceby
+from toolz import (
+    compose,
+    pluck,
+    merge,
+    concatv,
+    itemmap,
+    unique,
+    groupby,
+    get,
+    reduceby,
+)
 
 from optic_store.utils import pick, split_to_list, with_report_error_check
 from optic_store.api.sales_invoice import get_payments_against
@@ -39,6 +49,7 @@ def _get_columns(filters):
                 width=150,
             ),
             make_column("invoice_date", type="Date", width=90),
+            make_column("invoice_time", type="Time", width=90),
             make_column("brand", type="Link", options="Brand"),
             make_column("item_code", type="Link", options="Item"),
             make_column("item_group", type="Link", options="Item Group"),
@@ -53,6 +64,11 @@ def _get_columns(filters):
             ),
             make_column("rate", "Sale Unit Rate", type="Currency", width=90),
             make_column("qty", type="Float", width=90),
+        ],
+        [make_column("valuation_amount", "Cost Amount", type="Currency", width=90)]
+        if "Accounts Manager" in frappe.get_roles()
+        else [],
+        [
             make_column(
                 "amount_before_discount",
                 "Sale Amount Before Discount",
@@ -85,6 +101,7 @@ def _get_columns(filters):
             ),
             make_column("sales_person", type="Link", options="Employee"),
             make_column("sales_person_name", width="150"),
+            make_column("commission_amount", type="Currency", width=90),
             make_column("remarks", type="Small Text", width=150),
             make_column("customer", type="Link", options="Customer"),
             make_column("customer_name", width="150"),
@@ -164,6 +181,7 @@ def _get_data(clauses, values, keys):
                 si.name AS invoice_name,
                 sii.sales_order AS order_name,
                 si.posting_date AS invoice_date,
+                si.posting_time AS invoice_time,
                 sii.brand AS brand,
                 sii.item_code AS item_code,
                 sii.item_group AS item_group,
@@ -172,6 +190,7 @@ def _get_data(clauses, values, keys):
                 sp.price_list_rate AS selling_rate,
                 sii.rate AS rate,
                 sii.qty AS qty,
+                sii.qty * IFNULL(bp.valuation_rate, 0) AS valuation_amount,
                 sii.amount - sii.discount_amount AS amount_before_discount,
                 sii.discount_amount AS discount_amount,
                 sii.discount_percentage AS discount_percentage,
@@ -182,6 +201,11 @@ def _get_data(clauses, values, keys):
                 IF(sii.amount < ms2.price_list_rate, 'Yes', 'No') AS below_ms2,
                 si.os_sales_person AS sales_person,
                 si.os_sales_person_name AS sales_person_name,
+                IF(
+                    si.total = 0,
+                    0,
+                    si.total_commission * sii.amount / si.total
+                ) AS commission_amount,
                 si.customer AS customer,
                 si.customer_name AS customer_name,
                 si.os_notes AS notes,
@@ -189,7 +213,8 @@ def _get_data(clauses, values, keys):
                 si.os_branch AS branch,
                 IF(
                     si.update_stock = 1 OR sii.qty = sii.delivered_qty,
-                    'Collected', 'Achieved'
+                    'Collected',
+                    'Achieved'
                 ) AS sales_status,
                 si.update_stock AS own_delivery,
                 dn.posting_date AS delivery_date
@@ -259,10 +284,30 @@ def _get_data(clauses, values, keys):
 
         return fn
 
+    def set_null(k, v):
+        if v:
+            return k, v
+        if k not in [
+            "valuation_rate",
+            "selling_rate",
+            "rate",
+            "qty",
+            "valuation_amount",
+            "amount_before_discount",
+            "discount_amount",
+            "discount_percentage",
+            "amount_after_discount",
+            "ms1",
+            "ms2",
+            "commission_amount",
+        ]:
+            return k, None
+        return k, 0
+
     template = reduce(lambda a, x: merge(a, {x: None}), keys, {})
     make_row = compose(
         partial(pick, keys),
-        partial(valmap, lambda x: x or None),
+        partial(itemmap, lambda x: set_null(*x)),
         partial(merge, template),
         add_payment_remarks(items),
         add_collection_date,
