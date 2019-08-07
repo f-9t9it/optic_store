@@ -1,5 +1,5 @@
-<main class="os-lof">
-  <div class="os-lof-preheader">
+<main class="os-print">
+  <div class="os-preheader">
     {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch,
     ['branch_phone', 'os_cr_no']) or (None, None) -%} {%- set tax_id =
     frappe.db.get_value('Company', doc.company, 'tax_id') -%} {%- if tax_id -%}
@@ -10,8 +10,8 @@
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
     {%- endif -%}
   </div>
-  <div class="os-lof-header">
-    <div class="os-lof-header-content">
+  <div class="os-header os-header--barcode">
+    <div class="os-header-content">
       <h1>{{ _('Spectacle Order Form') }}</h1>
       <dl>
         <dt>{{ _('Branch')}}</dt>
@@ -32,8 +32,9 @@
       jsbarcode-value="{{ doc.name }}"
       jsbarcode-textmargin="2"
       jsbarcode-textposition="top"
+      jsbarcode-fontsize="12"
       jsbarcode-fontoptions="bold"
-      jsbarcode-height="40"
+      jsbarcode-height="30"
       jsbarcode-width="1"
       jsbarcode-margin="4"
     />
@@ -115,49 +116,24 @@
     </div>
     {%- endif -%}
   </div>
-  <div class="os-sof-main">
+  <div class="os-main">
     {%- set customer = frappe.get_doc('Customer', doc.customer) -%}
-    <div class="os-sof-main-headline">
-      <dl>
-        <dt>{{ _('Name / ID') }}</dt>
-        <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('IC No') }}</dt>
-        <dd>{{ customer.os_loyalty_card_no or ''}}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Address') }}</dt>
-        <dd>{{ customer.os_address or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Age / Gender') }}</dt>
-        <dd>
-          {{ '{} yrs'.format(
-          frappe.utils.cint((frappe.utils.getdate(doc.transaction_date) -
-          frappe.utils.getdate(customer.os_date_of_birth)).days / 365)) if
-          customer.os_date_of_birth else '-' }} / {{ customer.gender or '-' }}
-        </dd>
-      </dl>
-    </div>
-    <div class="os-sof-main-subline">
-      <dl>
-        <dt>{{ _('Office No') }}</dt>
-        <dd>{{ customer.os_office_number or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Mobile No') }}</dt>
-        <dd>{{ customer.os_mobile_number or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Home No') }}</dt>
-        <dd>{{ customer.os_home_number or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Other No') }}</dt>
-        <dd>{{ customer.os_other_number or '' }}</dd>
-      </dl>
-    </div>
+    <dl class="os-fill">
+      <dt>{{ _('Name / ID') }}</dt>
+      <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('IC No') }}</dt>
+      <dd>{{ customer.os_loyalty_card_no or ''}}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Office No') }}</dt>
+      <dd>{{ customer.os_office_number or '' }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Mobile No') }}</dt>
+      <dd>{{ customer.os_mobile_number or '' }}</dd>
+    </dl>
   </div>
   <div class="os-sof-items">
     {%- set items = get_optical_items(doc.items) -%}

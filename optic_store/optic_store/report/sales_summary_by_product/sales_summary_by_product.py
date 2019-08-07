@@ -25,7 +25,7 @@ def execute(filters=None):
     columns = _get_columns(filters)
     keys = compose(list, partial(pluck, "fieldname"))(columns)
     clauses, values = _get_filters(filters)
-    data = with_report_error_check(_get_data)(clauses, values, keys)
+    data = _get_data(clauses, values, keys)
     return columns, data
 
 
@@ -159,6 +159,7 @@ def _get_filters(filters):
     return " AND ".join(clauses), values
 
 
+@with_report_error_check
 def _get_data(clauses, values, keys):
     def make_price_query(alias, pl):
         return """
