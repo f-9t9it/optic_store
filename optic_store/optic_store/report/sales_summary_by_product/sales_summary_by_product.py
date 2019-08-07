@@ -161,21 +161,6 @@ def _get_filters(filters):
 
 @with_report_error_check
 def _get_data(clauses, values, keys):
-    def make_price_query(alias, pl):
-        return """
-            `tabItem Price` AS {alias} ON
-                {alias}.item_code = sii.item_code AND
-                IFNULL({alias}.uom, '') IN (sii.stock_uom, '') AND
-                IFNULL({alias}.customer, '') IN (si.customer, '') AND
-                IFNULL({alias}.min_qty, 0) <= sii.qty AND
-                {alias}.price_list = %({pl})s AND
-                si.posting_date BETWEEN
-                    IFNULL({alias}.valid_from, '2000-01-01') AND
-                    IFNULL({alias}.valid_upto, '2500-12-31')
-        """.format(
-            alias=alias, pl=pl
-        )
-
     items = frappe.db.sql(
         """
             SELECT
@@ -188,7 +173,7 @@ def _get_data(clauses, values, keys):
                 sii.item_group AS item_group,
                 sii.description AS description,
                 bp.valuation_rate AS valuation_rate,
-                sp.price_list_rate AS selling_rate,
+                sii.price_list_rate AS selling_rate,
                 sii.rate AS rate,
                 sii.qty AS qty,
                 sii.qty * IFNULL(bp.valuation_rate, 0) AS valuation_amount,
@@ -196,10 +181,18 @@ def _get_data(clauses, values, keys):
                 sii.discount_amount AS discount_amount,
                 sii.discount_percentage AS discount_percentage,
                 sii.amount AS amount_after_discount,
-                ms1.price_list_rate AS ms1,
-                IF (sii.amount < ms1.price_list_rate, 'Yes', 'No') AS below_ms1,
-                ms2.price_list_rate AS ms2,
-                IF(sii.amount < ms2.price_list_rate, 'Yes', 'No') AS below_ms2,
+                sii.os_minimum_selling_rate AS ms1,
+                IF(
+                    sii.amount < sii.os_minimum_selling_rate * sii.qty,
+                    'Yes',
+                    'No'
+                ) AS below_ms1,
+                sii.os_minimum_selling_rate_2 AS ms2,
+                IF(
+                    sii.amount < sii.os_minimum_selling_rate_2,
+                    'Yes',
+                    'No'
+                ) AS below_ms2,
                 si.os_sales_person AS sales_person,
                 si.os_sales_person_name AS sales_person_name,
                 IF(
@@ -236,16 +229,10 @@ def _get_data(clauses, values, keys):
             LEFT JOIN `tabBin` AS bp ON
                 bp.item_code = sii.item_code AND
                 bp.warehouse = sii.warehouse
-            LEFT JOIN {selling_pl}
-            LEFT JOIN {min_selling_pl1}
-            LEFT JOIN {min_selling_pl2}
             WHERE {clauses}
             ORDER BY invoice_date
         """.format(
-            clauses=clauses,
-            selling_pl=make_price_query("sp", "selling_pl"),
-            min_selling_pl1=make_price_query("ms1", "min_selling_pl1"),
-            min_selling_pl2=make_price_query("ms2", "min_selling_pl2"),
+            clauses=clauses
         ),
         values=values,
         as_dict=1,
