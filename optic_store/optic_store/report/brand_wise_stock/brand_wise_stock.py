@@ -55,7 +55,7 @@ def _get_data(clauses, values, keys):
         """
             SELECT
                 i.brand AS brand,
-                SUM(b.actual_qty) AS qty
+                SUM(b.projected_qty) AS qty
             FROM `tabItem` AS i
             LEFT JOIN `tabBin` AS b ON {bin_clauses}
             WHERE {clauses}
