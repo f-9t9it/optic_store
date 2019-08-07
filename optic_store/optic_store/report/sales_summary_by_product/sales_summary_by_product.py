@@ -178,7 +178,11 @@ def _get_data(clauses, values, keys):
                 sii.qty AS qty,
                 sii.qty * IFNULL(bp.valuation_rate, 0) AS valuation_amount,
                 sii.amount - sii.discount_amount AS amount_before_discount,
-                sii.discount_amount AS discount_amount,
+                IF(
+                    sii.discount_percentage = 100,
+                    sii.price_list_rate * sii.qty,
+                    sii.amount * (100 / (100 - sii.discount_percentage) - 1)
+                ) AS discount_amount,
                 sii.discount_percentage AS discount_percentage,
                 sii.amount AS amount_after_discount,
                 sii.os_minimum_selling_rate AS ms1,
