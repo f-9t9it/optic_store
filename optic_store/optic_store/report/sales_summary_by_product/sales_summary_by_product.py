@@ -177,7 +177,11 @@ def _get_data(clauses, values, keys):
                 sii.rate AS rate,
                 sii.qty AS qty,
                 sii.qty * IFNULL(bp.valuation_rate, 0) AS valuation_amount,
-                sii.amount - sii.discount_amount AS amount_before_discount,
+                IF(
+                    sii.discount_percentage = 100,
+                    sii.price_list_rate * sii.qty,
+                    sii.amount * 100 / (100 - sii.discount_percentage)
+                ) AS amount_before_discount,
                 IF(
                     sii.discount_percentage = 100,
                     sii.price_list_rate * sii.qty,
