@@ -6,13 +6,31 @@ from __future__ import unicode_literals
 import json
 import frappe
 from frappe import _
-from frappe.utils import today
+from frappe.utils import today, cint
+from frappe.utils.nestedset import get_root_of
 from erpnext.stock.get_item_details import get_pos_profile
+from erpnext.accounts.doctype.pos_profile.pos_profile import get_item_groups
+from erpnext.selling.page.point_of_sale.point_of_sale import (
+    search_serial_or_batch_or_barcode_number,
+)
 from erpnext.accounts.doctype.sales_invoice.pos import get_customers_list
 from erpnext.accounts.doctype.sales_invoice.pos import get_customer_id
 from erpnext.accounts.doctype.loyalty_program.loyalty_program import get_loyalty_details
 from functools import partial
-from toolz import pluck, compose, valfilter, valmap, merge, get, groupby, flip
+from toolz import (
+    pluck,
+    compose,
+    valfilter,
+    valmap,
+    merge,
+    get,
+    groupby,
+    flip,
+    concatv,
+    unique,
+    excepts,
+    first,
+)
 
 from optic_store.api.group_discount import get_brand_discounts
 from optic_store.api.customer import CUSTOMER_DETAILS_FIELDS, get_user_branch
@@ -219,25 +237,208 @@ def _update_customer_details(customers_list):
 
 @frappe.whitelist()
 def get_items(
-    start, page_length, price_list, item_group, search_value="", pos_profile=None
+    start,
+    page_length,
+    price_list,
+    item_group,
+    search_value="",
+    pos_profile=None,
+    customer=None,
 ):
-    from erpnext.selling.page.point_of_sale.point_of_sale import get_items
-
-    result = get_items(
-        start, page_length, price_list, item_group, search_value, pos_profile
+    search_data = (
+        search_serial_or_batch_or_barcode_number(search_value) if search_value else {}
+    )
+    clauses, values = _get_conditions(
+        merge(
+            {
+                "start": cint(start),
+                "page_length": cint(page_length),
+                "price_list": price_list,
+                "item_group": item_group or get_root_of("Item Group"),
+                "search_value": search_value,
+                "pos_profile": pos_profile,
+                "customer": customer,
+            },
+            search_data,
+        )
     )
 
-    get_prices = compose(_get_item_prices, list, partial(pluck, "item_code"))
+    items = frappe.db.sql(
+        """
+            SELECT
+                i.name AS item_code,
+                i.item_name AS item_name,
+                i.image AS item_image,
+                i.idx AS idx,
+                i.is_stock_item AS is_stock_item,
+                i.variant_of AS variant_of
+            FROM `tabItem` AS i
+            LEFT JOIN `tabItem Group` AS ig ON ig.name = i.item_group
+            {stock_clause}
+            WHERE {clauses}
+            ORDER BY i.idx
+            LIMIT %(start)s, %(page_length)s
+        """.format(
+            **clauses
+        ),
+        values=values,
+        as_dict=1,
+        debug=1,
+    )
 
-    items = get("items", result, [])
-    prices = get_prices(items)
+    def list_items(items):
+        make_list = compose(partial(filter, lambda x: x), unique, concatv)
+        return make_list(pluck("item_code", items), pluck("variant_of", items))
 
-    def add_price(item):
-        item_code = get("item_code", item)
-        rates = get(item_code, prices)
-        return merge(item, rates) if rates else item
+    make_prices = compose(
+        partial(valmap, partial(groupby, "item_code")), partial(groupby, "price_list")
+    )
 
-    return merge(result, {"items": map(add_price, items)})
+    # better to use a second query to fetch prices because combining with items query
+    # takes considerably longer
+    prices = (
+        make_prices(
+            frappe.db.sql(
+                """
+                SELECT
+                    i.name AS item_code,
+                    ip.price_list AS price_list,
+                    ip.price_list_rate AS price_list_rate,
+                    ip.currency AS currency
+                FROM `tabItem Price` AS ip
+                LEFT JOIN `tabItem` AS i ON i.name = ip.item_code
+                WHERE
+                    ip.selling = 1 AND
+                    ip.item_code IN %(items)s AND
+                    IFNULL(ip.uom, '') IN (i.stock_uom, '') AND
+                    IFNULL(ip.min_qty, 0) <= 1 AND
+                    IFNULL(ip.customer, '') IN (%(customer)s, '') AND
+                    CURDATE() BETWEEN
+                        IFNULL(ip.valid_from, '2000-01-01') AND
+                        IFNULL(ip.valid_upto, '2500-12-31')
+            """,
+                values={"items": list_items(items), "customer": customer},
+                as_dict=1,
+                debug=1,
+            )
+        )
+        if items
+        else []
+    )
+
+    def add_price(prices):
+        def make_price(item_code):
+            return compose(
+                excepts(StopIteration, first, lambda x: {}),
+                partial(get, item_code, default=[]),
+                lambda x: get(x, prices, {}),
+            )
+
+        def fn(item):
+            item_price = make_price(item.item_code)
+            template_price = make_price(item.variant_of)
+            sp = item_price(price_list) or template_price(price_list)
+            ms1 = item_price("Minimum Selling") or template_price("Minimum Selling")
+            ms2 = item_price("Minimum Selling 2") or template_price("Minimum Selling 2")
+            return merge(
+                item,
+                {
+                    "price_list_rate": get("price_list_rate", sp, 0),
+                    "currency": get("currency", sp, 0),
+                    "os_minimum_selling_rate": get("price_list_rate", ms1, 0),
+                    "os_minimum_selling_2_rate": get("price_list_rate", ms2, 0),
+                },
+            )
+
+        return fn
+
+    make_item = compose(
+        partial(
+            pick,
+            [
+                "item_code",
+                "item_name",
+                "idx",
+                "is_stock_item",
+                "price_list_rate",
+                "currency",
+            ],
+        ),
+        add_price(prices),
+    )
+
+    return merge(
+        {"items": map(make_item, items)},
+        pick(["barcode", "serial_no", "batch_no"], search_data),
+    )
+
+
+def _get_conditions(args_dict):
+    args = frappe._dict(args_dict)
+    join_clauses = compose(lambda x: " AND ".join(x), concatv)
+
+    lft, rgt = frappe.db.get_value("Item Group", args.item_group, ["lft", "rgt"])
+    warehouse, display_items_in_stock = (
+        frappe.db.get_value(
+            "POS Profile", args.pos_profile, ["warehouse", "display_items_in_stock"]
+        )
+        if args.pos_profile
+        else ("", 0)
+    )
+    profile_item_groups = get_item_groups(args.pos_profile)
+
+    def make_stock_clause():
+        if display_items_in_stock:
+            sub_query = (
+                """
+                    SELECT
+                        item_code,
+                        actual_qty
+                    FROM `tabBin`
+                    WHERE
+                        warehouse = %(warehouse)s AND
+                        actual_qty > 0
+                """
+                if warehouse
+                else """
+                    SELECT
+                        item_code,
+                        SUM(actual_qty) AS actual_qty
+                    FROM `tabBin`
+                    GROUP BY item_code
+                """
+            )
+            return """
+                INNER JOIN ({sub_query}) AS b ON
+                    b.item_code = i.name AND
+                    b.actual_qty > 0
+            """.format(
+                sub_query=sub_query
+            )
+        return ""
+
+    clauses = join_clauses(
+        [
+            "i.disabled = 0",
+            "i.has_variants = 0",
+            "i.is_sales_item = 1",
+            "ig.lft >= {lft} AND ig.rgt <= {rgt}".format(lft=lft, rgt=rgt),
+        ],
+        ["i.name = %(item_code)s"] if args.item_code else [],
+        ["(i.name LIKE %(free_text)s OR i.item_name LIKE %(free_text)s)"]
+        if not args.item_code and args.search_value
+        else [],
+        ["i.item_group IN %(profile_item_groups)s"] if profile_item_groups else [],
+    )
+    values = merge(
+        args,
+        {
+            "warehouse": warehouse,
+            "profile_item_groups": profile_item_groups,
+            "free_text": "%{}%".format(args.search_value),
+        },
+    )
+    return {"clauses": clauses, "stock_clause": make_stock_clause()}, values
 
 
 # TODO: when PR #18111 is merged

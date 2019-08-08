@@ -12,12 +12,13 @@ import withGroupDiscount from './withGroupDiscount';
 import withGiftCard from './withGiftCard';
 import withLoyaltyCard from './withLoyaltyCard';
 import withBranch from './withBranch';
+import withItemListOverride from './withItemListOverride';
 
 export const extend_pos = flowRight([withKeyboardShortcuts, withXzReport, withBranch]);
 
 export const extend_cart = flowRight([withGroupDiscount, withSalesPerson]);
 
-export const extend_items = flowRight([withItemRates]);
+export const extend_items = flowRight([withItemRates, withItemListOverride]);
 
 export const extend_payment = flowRight([
   withLoyaltyCard,
