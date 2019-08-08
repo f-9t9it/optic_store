@@ -7,7 +7,7 @@
  "doctype": "Report", 
  "idx": 0, 
  "is_standard": "Yes", 
- "modified": "2019-05-21 14:59:40.826680", 
+ "modified": "2019-08-07 22:25:49.864465", 
  "modified_by": "Administrator", 
  "module": "Optic Store", 
  "name": "Daily Sales Summary", 
@@ -21,10 +21,7 @@
    "role": "Accounts Manager"
   }, 
   {
-   "role": "Accounts User"
-  }, 
-  {
-   "role": "Sales User"
+   "role": "System Manager"
   }
  ]
 }

@@ -51,28 +51,27 @@ def before_insert(doc, method):
 
 
 def before_save(doc, method):
-    if doc.orx_type in ["Spectacles", "Contact Lens"]:
-        settings = frappe.get_single("Optical Store Settings")
-        frames = map(lambda x: x.item_group, settings.frames)
-        lenses = map(lambda x: x.item_group, settings.lens)
+    settings = frappe.get_single("Optical Store Settings")
+    frames = map(lambda x: x.item_group, settings.frames)
+    lenses = map(lambda x: x.item_group, settings.lens)
 
-        validate_item_group = _validate_item_group(frames, lenses)
-        frame, lens_right, lens_left = get_parts(doc.items)
-        for item in doc.items:
-            if item.os_spec_part:
-                validate_item_group(item)
-            else:
-                if not frame and item.item_group in frames:
-                    item.os_spec_part = "Frame"
-                    frame = item
-                elif not lens_right and item.item_group in lenses:
-                    item.os_spec_part = "Lens Right"
-                    lens_right = item
-                elif not lens_left and item.item_group in lenses:
-                    item.os_spec_part = "Lens Left"
-                    lens_left = item
+    validate_item_group = _validate_item_group(frames, lenses)
+    frame, lens_right, lens_left = get_parts(doc.items)
+    for item in doc.items:
+        if item.os_spec_part:
+            validate_item_group(item)
+        else:
+            if not frame and item.item_group in frames:
+                item.os_spec_part = "Frame"
+                frame = item
+            elif not lens_right and item.item_group in lenses:
+                item.os_spec_part = "Lens Right"
+                lens_right = item
+            elif not lens_left and item.item_group in lenses:
+                item.os_spec_part = "Lens Left"
+                lens_left = item
 
-        _validate_spec_parts(doc.items)
+    _validate_spec_parts(doc.items)
 
 
 def _validate_item_group(frames, lenses):
