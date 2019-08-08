@@ -245,6 +245,7 @@ def get_items(
     pos_profile=None,
     customer=None,
 ):
+    debug = frappe.db.get_single_value("Optical Store Settings", "debug_query")
     search_data = (
         search_serial_or_batch_or_barcode_number(search_value) if search_value else {}
     )
@@ -283,7 +284,7 @@ def get_items(
         ),
         values=values,
         as_dict=1,
-        debug=1,
+        debug=debug,
     )
 
     def list_items(items):
@@ -319,7 +320,7 @@ def get_items(
             """,
                 values={"items": list_items(items), "customer": customer},
                 as_dict=1,
-                debug=1,
+                debug=debug,
             )
         )
         if items
