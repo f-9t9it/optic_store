@@ -19,6 +19,10 @@ export function make_date(args) {
   return make_base('Date', args);
 }
 
+export function make_date_range(args) {
+  return make_base('DateRange', args);
+}
+
 export function make_check(args) {
   return make_base('Check', args);
 }
