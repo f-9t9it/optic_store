@@ -78,6 +78,12 @@ def get_data():
                     "name": "Item Sell Out History",
                     "label": _("Item Sell Out History"),
                 },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Customer-wise Invoice",
+                    "label": _("Customer-wise Invoice"),
+                },
             ],
         },
         {
