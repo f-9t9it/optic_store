@@ -127,7 +127,7 @@
       <dd>{{ customer.os_mobile_number or '' }}</dd>
     </dl>
   </div>
-  <div class="os-sof-items">
+  <div class="os-sof-items os-fill">
     {%- set items = get_optical_items(doc.items) -%}
     <table class="table table-condensed os-items">
       {% macro item_row(item, label=None) -%}
