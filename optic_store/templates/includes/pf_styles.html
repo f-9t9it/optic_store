@@ -177,19 +177,6 @@
     width: 30%;
   }
 
-  .os-items {
-    max-width: 100%;
-    table-layout: fixed;
-  }
-  .os-items th:first-of-type,
-  .os-items td:first-of-type {
-    width: 20%;
-  }
-  .os-items th:last-of-type,
-  .os-items td:last-of-type {
-    width: 25%;
-    text-align: right;
-  }
   .os-sof-totals {
     padding-left: 0.6em;
   }
@@ -380,6 +367,25 @@
     width: 100%;
   }
 
+  .os-items {
+    max-width: 100%;
+    table-layout: fixed;
+  }
+  .os-items th:first-of-type,
+  .os-items td:first-of-type {
+    width: 20%;
+  }
+  .os-items th:last-of-type,
+  .os-items td:last-of-type {
+    width: 25%;
+    text-align: right;
+  }
+  .os-items th.os-fit-content,
+  .os-items td.os-fit-content {
+    width: 5%;
+    white-space: nowrap;
+  }
+
   .os-summary {
     display: flex;
     flex-flow: row nowrap;
@@ -416,5 +422,10 @@
     color: orange;
     padding: 0.3em;
     border: 1px solid orange;
+  }
+  .os-single-line {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 </style>
