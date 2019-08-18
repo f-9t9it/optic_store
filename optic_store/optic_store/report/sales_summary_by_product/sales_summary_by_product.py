@@ -195,9 +195,9 @@ def _get_data(clauses, values, keys):
                     'Yes',
                     'No'
                 ) AS below_ms1,
-                sii.os_minimum_selling_rate_2 AS ms2,
+                sii.os_minimum_selling_2_rate AS ms2,
                 IF(
-                    sii.amount < sii.os_minimum_selling_rate_2,
+                    sii.amount < sii.os_minimum_selling_2_rate,
                     'Yes',
                     'No'
                 ) AS below_ms2,
