@@ -29,6 +29,18 @@ def get_prices(item_code):
 
 
 @frappe.whitelist()
+def get_min_prices(item_code):
+    def get_price(price_list):
+        return frappe.db.get_value(
+            "Item Price",
+            {"item_code": item_code, "price_list": price_list},
+            "price_list_rate",
+        )
+
+    return {"ms1": get_price("Minimum Selling"), "ms2": get_price("Minimum Selling 2")}
+
+
+@frappe.whitelist()
 def update_prices(item_code, prices):
     price_list_rates = json.loads(prices)
     map(lambda x: _update_price(item_code, **x), price_list_rates)

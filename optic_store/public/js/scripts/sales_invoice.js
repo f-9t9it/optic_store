@@ -9,6 +9,7 @@ import {
   setup_employee_queries,
   set_spec_types_options,
   hide_actions,
+  handle_min_item_prices,
 } from './sales_order';
 import DeliverDialog from '../frappe-components/DeliverDialog';
 
@@ -140,6 +141,7 @@ async function set_naming_series(frm) {
 
 export const sales_invoice_item = {
   items_add: handle_items_cost_center,
+  item_code: handle_min_item_prices,
 };
 
 export const sales_invoice_gift_card = {

@@ -1,4 +1,5 @@
 import Vue from 'vue/dist/vue.js';
+import pickBy from 'lodash/pickBy';
 
 import PrescriptionForm from '../components/PrescriptionForm.vue';
 import InvoiceDialog from '../frappe-components/InvoiceDialog';
@@ -217,6 +218,25 @@ export function hide_actions(frm) {
     }, 60);
   }
 }
+
+export async function handle_min_item_prices(frm, cdt, cdn) {
+  const { item_code } = frappe.get_doc(cdt, cdn);
+  const {
+    message: { ms1: os_minimum_selling_rate, ms2: os_minimum_selling_2_rate } = {},
+  } = await frappe.call({
+    method: 'optic_store.api.item.get_min_prices',
+    args: { item_code },
+  });
+  frappe.model.set_value(
+    cdt,
+    cdn,
+    pickBy({ os_minimum_selling_rate, os_minimum_selling_2_rate })
+  );
+}
+
+export const sales_order_item = {
+  item_code: handle_min_item_prices,
+};
 
 export default {
   setup: async function(frm) {
