@@ -13,7 +13,10 @@ from optic_store.optic_store.report.item_wise_stock.item_wise_stock import price
 
 
 def execute(filters=None):
-    if cint(filters.hqm_view) and "Sales Manager" not in frappe.get_roles():
+    if cint(filters.hqm_view) and not any(
+        role in ["Sales Manager", "Stock Manager", "Account Manager"]
+        for role in frappe.get_roles()
+    ):
         return frappe.throw(_("Insufficient permission for HQM View"))
     columns = _get_columns(filters)
     keys = compose(list, partial(pluck, "fieldname"))(columns)
