@@ -106,6 +106,12 @@
     </div>
     <div class="os-lof-details-others">
       <dl>
+        <dt>{{ _('Type')}}</dt>
+        <dd>{{ doc.os_type_of_spectacle or '' }}</dd>
+      </dl>
+    </div>
+    <div class="os-lof-details-others">
+      <dl>
         <dt>{{ _('Frame Size')}}</dt>
         <dd>{{ doc.orx_frame_size or '' }}</dd>
       </dl>
@@ -123,72 +129,47 @@
       <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
     </dl>
     <dl>
-      <dt>{{ _('IC No') }}</dt>
-      <dd>{{ customer.os_loyalty_card_no or ''}}</dd>
-    </dl>
-    <dl>
-      <dt>{{ _('Office No') }}</dt>
-      <dd>{{ customer.os_office_number or '' }}</dd>
-    </dl>
-    <dl>
       <dt>{{ _('Mobile No') }}</dt>
       <dd>{{ customer.os_mobile_number or '' }}</dd>
     </dl>
   </div>
-  <div class="os-sof-items">
+  <div class="os-sof-items os-fill">
     {%- set items = get_optical_items(doc.items) -%}
     <table class="table table-condensed os-items">
+      {% macro item_row(item, label=None) -%}
+      <td>{{ label or (item.item_group if item else '') }}</td>
+      <td class="os-single-line">
+        {%- if item -%} {{ item.item_code }} {{ item.item_name }} {%- endif -%}
+      </td>
+      <td class="os-fit-content">
+        {%- if item -%} x {{ item.qty }} {%- endif -%}
+      </td>
+      <td>
+        {{ frappe.utils.fmt_money(item.qty * item.price_list_rate,
+        currency=doc.currency) if item else '-' }}
+      </td>
+      {%- endmacro %}
       <thead>
         <tr>
           <th>{{ _('Type') }}</th>
           <th>{{ _('Description') }}</th>
+          <th class="os-fit-content"></th>
           <th>{{ _('Amount') }}</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>{{ _('Frame') }}</td>
-          <td>
-            {%- if items.frame -%} {{ items.frame.item_name }} x {{ items.frame.qty }}
-            {%- endif -%}
-          </td>
-          <td>
-            {{ frappe.utils.fmt_money(items.frame.qty * items.frame.price_list_rate,
-            currency=doc.currency) if items.frame else '-' }}
-          </td>
+          {{ item_row(items.frame, _('Frame')) }}
         </tr>
         <tr>
-          <td>{{ _('Lens (R)') }}</td>
-          <td>
-            {%- if items.lens_right -%} {{ items.lens_right.item_name }} x {{
-            items.lens_right.qty }} {%- endif -%}
-          </td>
-          <td>
-            {{ frappe.utils.fmt_money(items.lens_right.qty *
-            items.lens_right.price_list_rate, currency=doc.currency) if items.lens_right
-            else '-' }}
-          </td>
+          {{ item_row(items.lens_right, _('Lens (R)')) }}
         </tr>
         <tr>
-          <td>{{ _('Lens (L)') }}</td>
-          <td>
-            {%- if items.lens_left -%} {{ items.lens_left.item_name }} x {{
-            items.lens_left.qty }} {%- endif -%}
-          </td>
-          <td>
-            {{ frappe.utils.fmt_money(items.lens_left.qty *
-            items.lens_left.price_list_rate, currency=doc.currency) if items.lens_left
-            else '-' }}
-          </td>
+          {{ item_row(items.lens_left, _('Lens (L)')) }}
         </tr>
         {%- for item in items.others -%}
         <tr>
-          <td>{{ item.item_group }}</td>
-          <td>{{ item.item_name }} x {{ item.qty }}</td>
-          <td>
-            {{ frappe.utils.fmt_money(item.qty * item.price_list_rate,
-            currency=doc.currency) }}
-          </td>
+          {{ item_row(item) }}
         </tr>
         {%- endfor -%}
       </tbody>

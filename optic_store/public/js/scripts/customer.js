@@ -45,6 +45,16 @@ function add_prescription_link(frm) {
   }
 }
 
+function add_actions(frm) {
+  if (!frm.doc.__islocal) {
+    frm.add_custom_button(__('Customer-wise Invoice'), function() {
+      frappe.set_route('query-report', 'Customer-wise Invoice', {
+        customer: frm.doc.name,
+      });
+    });
+  }
+}
+
 export default {
   onload: function(frm) {
     set_branch(frm);
@@ -53,5 +63,6 @@ export default {
   refresh: function(frm) {
     add_prescription_link(frm);
     render_prescription_data(frm);
+    add_actions(frm);
   },
 };

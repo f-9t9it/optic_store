@@ -363,6 +363,8 @@ def get_items(
                 "is_stock_item",
                 "price_list_rate",
                 "currency",
+                "os_minimum_selling_rate",
+                "os_minimum_selling_2_rate",
             ],
         ),
         add_price(prices),
