@@ -4,7 +4,12 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
+
 class SMSTemplate(Document):
-	pass
+    def validate(self):
+        meta = frappe.get_meta(self.ref_doctype)
+        if meta.istable or meta.issingle:
+            frappe.throw(_("Cannot create template for this Doctype"))
