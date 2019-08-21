@@ -328,6 +328,13 @@ doc_events = {
         "on_cancel": "optic_store.doc_events.payment_entry.on_cancel",
     },
     "Journal Entry": {"on_cancel": "optic_store.doc_events.journal_entry.on_cancel"},
+    "*": {
+        "after_insert": "optic_store.api.sms.process",
+        "on_update": "optic_store.api.sms.process",
+        "on_submit": "optic_store.api.sms.process",
+        "on_update_after_submit": "optic_store.api.sms.process",
+        "on_cancel": "optic_store.api.sms.process",
+    },
 }
 
 # Scheduled Tasks
