@@ -4,8 +4,8 @@ export default {
   onload: async function(rep) {
     const hqm_view = rep.filters.find(({ fieldname }) => fieldname === 'hqm_view');
     if (hqm_view) {
-      const has_role = ['Sales Manager', 'Stock Manager'].some(role =>
-        frappe.user_roles.includes(role)
+      const has_role = ['Sales Manager', 'Stock Manager', 'Account Manager'].some(
+        role => frappe.user_roles.includes(role)
       );
       hqm_view.df.hidden = !has_role;
       hqm_view.refresh();
