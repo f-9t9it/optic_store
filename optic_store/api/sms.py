@@ -45,7 +45,18 @@ def process(doc, method):
 def _allowed(condition, doc):
     if not condition:
         return True
-    return frappe.safe_eval(condition, eval_locals=doc.as_dict())
+    return frappe.safe_eval(
+        condition,
+        eval_globals=dict(
+            frappe=frappe._dict(
+                db=frappe._dict(
+                    get_value=frappe.db.get_value, get_list=frappe.db.get_list
+                ),
+                session=frappe.session,
+            )
+        ),
+        eval_locals=doc.as_dict(),
+    )
 
 
 def _get_number(field, doc):
