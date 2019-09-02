@@ -21,10 +21,12 @@ export default async function scan_barcode_handler(frm) {
       return;
     }
     const row =
-      items.find(
-        ({ item_code, batch_no }) =>
-          item_code == data.item_code && batch_no == data.batch_no
-      ) ||
+      items.find(({ item_code, batch_no }) => {
+        if (batch_no) {
+          return item_code == data.item_code && batch_no == data.batch_no;
+        }
+        return item_code === data.item_code;
+      }) ||
       items.find(({ item_code }) => !item_code) ||
       frappe.model.add_child(frm.doc, frm.fields_dict['items'].grid.doctype, 'items');
 
