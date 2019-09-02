@@ -6,6 +6,7 @@ import stock_transfer, { stock_transfer_item } from './stock_transfer';
 import sales_order_bulk_update, { bulk_update_order } from './sales_order_bulk_update';
 import xz_report from './xz_report';
 import sms_template from './sms_template';
+import * as extensions from './extensions';
 
 export { default as payment_entry } from './payment_entry';
 export {
@@ -35,4 +36,5 @@ export default {
   bulk_update_order,
   xz_report,
   sms_template,
+  extensions,
 };

@@ -233,7 +233,10 @@ app_include_js = "/assets/js/optic_store.min.js"
 page_js = {"pos": "public/js/pos.js", "point-of-sale": "public/js/point_of_sale.js"}
 
 # include js in doctype views
-doctype_js = {"Stock Entry": "public/js/stock_entry.js"}
+doctype_js = {
+    "Stock Entry": "public/js/stock_entry.js",
+    "Sales Order": "public/js/transaction_controller.js",
+}
 doctype_list_js = {"Sales Invoice": "public/js/sales_invoice_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
