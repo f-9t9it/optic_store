@@ -236,6 +236,7 @@ page_js = {"pos": "public/js/pos.js", "point-of-sale": "public/js/point_of_sale.
 doctype_js = {
     "Stock Entry": "public/js/stock_entry.js",
     "Sales Order": "public/js/transaction_controller.js",
+    "Sales Invoice": "public/js/transaction_controller.js",
 }
 doctype_list_js = {"Sales Invoice": "public/js/sales_invoice_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
