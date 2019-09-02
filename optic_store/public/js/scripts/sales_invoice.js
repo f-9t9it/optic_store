@@ -140,7 +140,6 @@ async function set_naming_series(frm) {
 }
 
 export const sales_invoice_item = {
-  items_add: handle_items_cost_center,
   item_code: handle_min_item_prices,
 };
 
