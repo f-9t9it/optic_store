@@ -2,6 +2,7 @@ import Vue from 'vue/dist/vue.js';
 import sumBy from 'lodash/sumBy';
 
 import StockTransferDashboard from '../components/StockTransferDashboard.vue';
+import { scan_barcode } from './extensions';
 
 function set_queries(frm) {
   ['source_warehouse', 'target_warehouse'].forEach(field => {
@@ -163,11 +164,10 @@ export default {
   },
   company: set_queries,
   scan_barcode: function(frm) {
-    const transaction_controller = new erpnext.TransactionController({ frm });
     if (!frm.doc.items) {
       frappe.model.add_child(frm.doc, 'Stock Transfer Item', 'items');
       frm.refresh_field('items');
     }
-    transaction_controller.scan_barcode();
+    scan_barcode(frm);
   },
 };
