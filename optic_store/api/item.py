@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 import json
+from toolz import dissoc, merge
 
 
 @frappe.whitelist()
@@ -68,3 +69,11 @@ def _update_price(item_code, price_list, price_list_rate=0):
                 doc.save()
         else:
             doc.delete()
+
+
+@frappe.whitelist()
+def get_item_details(args):
+    from erpnext.stock.get_item_details import get_item_details
+
+    result = get_item_details(args)
+    return dissoc(result, "batch_no")

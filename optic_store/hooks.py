@@ -233,7 +233,12 @@ app_include_js = "/assets/js/optic_store.min.js"
 page_js = {"pos": "public/js/pos.js", "point-of-sale": "public/js/point_of_sale.js"}
 
 # include js in doctype views
-doctype_js = {"Stock Entry": "public/js/stock_entry.js"}
+doctype_js = {
+    "Stock Entry": "public/js/stock_entry.js",
+    "Sales Order": "public/js/transaction_controller.js",
+    "Sales Invoice": "public/js/transaction_controller.js",
+    "Delivery Note": "public/js/transaction_controller.js",
+}
 doctype_list_js = {"Sales Invoice": "public/js/sales_invoice_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -366,6 +371,7 @@ override_whitelisted_methods = {
     "erpnext.selling.page.point_of_sale.point_of_sale.get_items": "optic_store.api.pos.get_items",  # noqa
     # TODO: when PR #18111 is merged
     "erpnext.accounts.doctype.loyalty_program.loyalty_program.get_loyalty_program_details": "optic_store.api.pos.get_loyalty_program_details",  # noqa
+    "erpnext.stock.get_item_details.get_item_details": "optic_store.api.item.get_item_details",  # noqa
 }
 
 # Jinja Environment Customizations
