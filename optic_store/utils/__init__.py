@@ -34,3 +34,6 @@ def with_report_error_check(data_fn):
             return []
 
     return fn
+
+
+map_resolved = compose(list, map)
