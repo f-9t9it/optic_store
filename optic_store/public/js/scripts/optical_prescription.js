@@ -10,21 +10,23 @@ import { format } from '../utils/format';
 
 function handle_reading(side) {
   const params = ['sph', 'cyl', 'axis', 'va', 'bc', 'dia'];
-  return function(frm) {
-    params.forEach(param => {
-      const dval = frm.doc[`${param}_${side}`];
-      const field = `${param}_reading_${side}`;
-      if (dval) {
-        const rval =
-          param === 'sph'
-            ? format(
-                field,
-                parseFloat(dval || 0) + parseFloat(frm.doc[`add_${side}`] || 0)
-              )
-            : dval;
-        frm.set_value(field, rval);
-      }
-    });
+  return async function(frm) {
+    return Promise.all(
+      params.map(param => {
+        const dval = frm.doc[`${param}_${side}`];
+        const field = `${param}_reading_${side}`;
+        if (dval) {
+          const rval =
+            param === 'sph'
+              ? format(
+                  field,
+                  parseFloat(dval || 0) + parseFloat(frm.doc[`add_${side}`] || 0)
+                )
+              : dval;
+          return frm.set_value(field, rval);
+        }
+      })
+    );
   };
 }
 
@@ -36,7 +38,7 @@ function toggle_detail_entry(frm, state) {
 function calc_total_pd(frm) {
   const { pd_right = 0, pd_left = 0 } = frm.doc;
   const fval = parseFloat(pd_right) + parseFloat(pd_left);
-  frm.set_value('pd_total', fval.toFixed(1));
+  return frm.set_value('pd_total', fval.toFixed(1));
 }
 
 function update_fields(frm) {
@@ -74,11 +76,12 @@ function update_fields(frm) {
 }
 
 function blur_fields(frm) {
-  return function(field, value) {
+  return async function(field, value) {
     if (field.includes('sph') || field.includes('add') || field.includes('cyl')) {
       // considers cases where the user might just enter '+' or '-', hence the + '.0'
       const fval = Math.round(parseFloat((value || '') + '.0') * 4) / 4;
-      frm.set_value(field, format(field, fval));
+      await frm.set_value(field, format(field, fval));
+      update_detail_vue_props(frm);
     }
   };
 }
@@ -86,17 +89,14 @@ function blur_fields(frm) {
 function render_detail_vue(frm) {
   const { $wrapper } = frm.get_field('details_html');
   $wrapper.empty();
-  if (frm.doc.__islocal) {
-    // this makes the below fields reactive in vue
-    frm.doc = Object.assign(
-      frm.doc,
-      get_all_rx_params().reduce((a, x) => Object.assign(a, { [x]: undefined }), {}),
-      { pd_total: undefined }
-    );
-  }
+  const doc = Object.assign(
+    get_all_rx_params().reduce((a, x) => Object.assign(a, { [x]: undefined }), {}),
+    { pd_total: undefined },
+    frm.doc
+  );
   return new Vue({
     el: $wrapper.html('<div />').children()[0],
-    data: { doc: frm.doc },
+    data: { doc },
     render: function(h) {
       return h(PrescriptionForm, {
         props: {
@@ -108,6 +108,12 @@ function render_detail_vue(frm) {
       });
     },
   });
+}
+
+function update_detail_vue_props(frm) {
+  if (frm.detail_vue) {
+    frm.detail_vue.doc = Object.assign(frm.detail_vue.doc, frm.doc);
+  }
 }
 
 function setup_route_back(frm) {
@@ -134,11 +140,10 @@ export default {
     toggle_detail_entry(frm, settings.prescription_entry === 'ERPNext');
   },
   onload: function(frm) {
-    frm.detail_vue = render_detail_vue(frm);
     frm.route_back = setup_route_back(frm);
   },
   refresh: function(frm) {
-    frm.detail_vue.doc = frm.doc;
+    frm.detail_vue = render_detail_vue(frm);
     if (frm.doc.__islocal) {
       set_expiry_date(frm);
     }
@@ -152,11 +157,24 @@ export default {
       }
     }
   },
-  add_right: function(frm) {
-    handle_reading('right')(frm);
-    frm.set_value('add_left', frm.doc.add_right);
+  type: update_detail_vue_props,
+  add_right: async function(frm) {
+    await Promise.all([
+      handle_reading('right')(frm),
+      frm.set_value('add_left', frm.doc.add_right),
+    ]);
+    update_detail_vue_props(frm);
   },
-  add_left: handle_reading('left'),
-  pd_right: calc_total_pd,
-  pd_left: calc_total_pd,
+  add_left: async function(frm) {
+    await handle_reading('left')(frm);
+    update_detail_vue_props(frm);
+  },
+  pd_right: async function(frm) {
+    await calc_total_pd(frm);
+    update_detail_vue_props(frm);
+  },
+  pd_left: async function(frm) {
+    await calc_total_pd(frm);
+    update_detail_vue_props(frm);
+  },
 };

@@ -121,6 +121,18 @@ class StockTransfer(Document):
         if get_datetime(self.outgoing_datetime) > get_datetime(self.incoming_datetime):
             frappe.throw(_("Outgoing Datetime cannot be after Incoming Datetime"))
 
+        # hack to resolve issue where dispatch and receive are happening back to back
+        # invalidate when receipt happens within 5 secs
+        if (
+            frappe.utils.time_diff_in_seconds(
+                self.incoming_datetime, self.outgoing_datetime
+            )
+            < 5
+        ):
+            frappe.throw(
+                _("Stock events happening back-to-back. Please try after some time.")
+            )
+
     def validate_owner(self):
         if not _is_sys_mgr() and self.owner != frappe.session.user:
             frappe.throw(_("Only document owner can perform this"))
