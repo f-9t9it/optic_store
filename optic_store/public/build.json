@@ -1,3 +1,4 @@
 {
-  "js/optic_store.min.js": ["public/js/index.js"]
+  "js/optic_store.min.js": ["public/js/index.js"],
+  "js/optic_store_print.min.js": ["public/js/print.js"]
 }
