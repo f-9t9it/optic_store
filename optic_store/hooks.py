@@ -175,6 +175,7 @@ fixtures = [
                     "Sales Invoice Item-os_spec_part",
                     "Sales Invoice Payment-os_in_alt_tab",
                     "Delivery Note-os_branch",
+                    "Purchase Receipt Item-os_expiry_date",
                     "Payment Entry-os_posting_time",
                     "Payment Entry-os_branch",
                     "Payment Entry-os_gift_card",
@@ -295,6 +296,10 @@ doc_events = {
     "Delivery Note": {
         "validate": "optic_store.doc_events.delivery_note.validate",
         "on_submit": "optic_store.doc_events.delivery_note.on_submit",
+    },
+    "Purchase Receipt": {
+        "before_save": "optic_store.doc_events.purchase_receipt.before_validate",
+        "on_submit": "optic_store.doc_events.purchase_receipt.set_batch_references",
     },
     "Sales Order": {
         "before_naming": "optic_store.doc_events.sales_order.before_naming",

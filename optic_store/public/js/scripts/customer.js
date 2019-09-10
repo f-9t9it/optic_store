@@ -36,7 +36,9 @@ export function set_nationality_options(frm) {
 
 function add_prescription_link(frm) {
   const orders =
-    frm.dashboard && frm.dashboard.data && frm.dashboard.data.transactions[1];
+    frm.dashboard &&
+    frm.dashboard.data &&
+    frm.dashboard.data.transactions.find(({ label }) => label === __('Orders'));
   if (orders && !orders.items.includes('Optical Prescription')) {
     orders.items = ['Optical Prescription', ...orders.items];
     frm.dashboard.data_rendered = false;
