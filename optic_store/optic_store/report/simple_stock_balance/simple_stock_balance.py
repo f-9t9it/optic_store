@@ -33,7 +33,6 @@ def _get_columns(filters):
         make_column("item_name", type="Data", width=180),
         make_column("actual_qty"),
         make_column("reserved_qty"),
-        make_column("ordered_qty"),
         make_column("projected_qty"),
         make_column("warehouse", type="Link", options="Warehouse", width=120),
     ]
@@ -59,7 +58,6 @@ def _get_data(clauses, values, keys):
                 i.item_name AS item_name,
                 b.actual_qty AS actual_qty,
                 b.reserved_qty AS reserved_qty,
-                b.ordered_qty AS ordered_qty,
                 b.projected_qty AS projected_qty,
                 b.warehouse
             FROM `tabBin` AS b
