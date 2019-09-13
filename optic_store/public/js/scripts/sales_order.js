@@ -234,6 +234,24 @@ export async function handle_min_item_prices(frm, cdt, cdn) {
   );
 }
 
+async function set_delivery_date(frm) {
+  const { transaction_date } = frm.doc;
+  console.log(transaction_date);
+  if (transaction_date) {
+    const days_to_delivery =
+      (await frappe.db.get_single_value(
+        'Optical Store Settings',
+        'days_to_delivery'
+      )) || 0;
+    frm.set_value(
+      'delivery_date',
+      frappe.datetime.add_days(transaction_date, days_to_delivery)
+    );
+  } else {
+    frm.set_value('delivery_date', null);
+  }
+}
+
 export const sales_order_item = {
   item_code: handle_min_item_prices,
 };
@@ -265,12 +283,14 @@ export default {
     handle_order_type(frm);
     if (frm.doc.__islocal) {
       set_fields(frm);
+      set_delivery_date(frm);
     }
     hide_actions(frm);
   },
   customer: setup_orx_name,
   os_branch: set_naming_series,
   orx_type: setup_orx_name,
+  transaction_date: set_delivery_date,
   orx_name: render_prescription,
   orx_group_discount: apply_group_discount,
   os_gift_card_entry: handle_gift_card_entry,
