@@ -46,6 +46,7 @@ fixtures = [
                     "Branch-os_sales_invoice_naming_series",
                     "Branch-os_sales_col",
                     "Branch-os_cost_center",
+                    "Branch-os_target",
                     "Branch-os_details_sec",
                     "Branch-warehouse",
                     "Branch-location",
