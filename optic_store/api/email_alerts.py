@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, add_days
 from functools import partial
-from toolz import curry
+from toolz import curry, unique, compose
 
 
 def process():
@@ -15,8 +15,11 @@ def process():
     _document_expiry_reminder(alerts)
 
 
+_get_recipients = compose(unique, partial(map, lambda x: x.user))
+
+
 def _document_expiry_reminder(dx):
-    if dx.document_expiry_disabled:
+    if not dx.document_expiry_enabled:
         return
 
     end_date = add_days(getdate(), dx.document_expiry_days_till_expiry or 0)
@@ -45,7 +48,7 @@ def _document_expiry_reminder(dx):
     )
     msg = frappe.render_template("templates/includes/document_expiry.html", context)
 
-    for recipient in map(lambda x: x.user, dx.document_expiry_recipients):
+    for recipient in _get_recipients(dx.document_expiry_recipients):
         frappe.sendmail(
             recipients=recipient,
             subject=_("Document Expiry Reminder"),
