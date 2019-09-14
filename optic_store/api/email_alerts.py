@@ -53,7 +53,7 @@ def _document_expiry_reminder(dx):
             recipients=recipient,
             subject=_("Document Expiry Reminder"),
             message=msg,
-            reference_doctype="Document Expiry Reminder",
+            reference_doctype="Email Alerts",
             unsubscribe_message=_("Unsubscribe from this Reminder"),
         )
 
@@ -67,13 +67,17 @@ def _make_document_expiry_context(branch_docs, employee_docs, days_till_expiry):
         subtitle=subtitle,
     )
     frappe.new_doc("Email Digest").set_style(context)
+    _set_other_styles(context)
+    return context
+
+
+def _set_other_styles(context):
     context.table = "width: 100%; margin-bottom: 1em;"
     context.caption = (
         "text-align: left; font-size: 1.2em; margin-bottom: 1em; line-height: 1;"
     )
     context.th = "color: #8D99A6; font-variant: all-small-caps;"
     context.td = "border-top: 1px solid #d1d8dd; padding: 5px 0;"
-    return context
 
 
 @curry
