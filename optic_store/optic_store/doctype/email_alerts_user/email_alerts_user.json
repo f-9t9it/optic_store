@@ -45,7 +45,7 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "translatable": 0, 
-   "unique": 1
+   "unique": 0
   }
  ], 
  "has_web_view": 0, 
@@ -58,10 +58,10 @@
  "issingle": 0, 
  "istable": 1, 
  "max_attachments": 0, 
- "modified": "2019-07-24 17:45:36.392813", 
+ "modified": "2019-09-14 09:05:08.241622", 
  "modified_by": "Administrator", 
  "module": "Optic Store", 
- "name": "Document Expiry Reminder User", 
+ "name": "Email Alerts User", 
  "name_case": "", 
  "owner": "Administrator", 
  "permissions": [], 

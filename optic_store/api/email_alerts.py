@@ -10,13 +10,16 @@ from functools import partial
 from toolz import curry
 
 
-def send_reminder():
-    dx = frappe.get_single("Document Expiry Reminder")
+def process():
+    alerts = frappe.get_single("Email Alerts")
+    _document_expiry_reminder(alerts)
 
-    if dx.disabled:
+
+def _document_expiry_reminder(dx):
+    if dx.document_expiry_disabled:
         return
 
-    end_date = add_days(getdate(), dx.days_till_expiry or 0)
+    end_date = add_days(getdate(), dx.document_expiry_days_till_expiry or 0)
 
     get_branch_records = _get_branch_records(end_date)
     get_emp_records = _get_emp_records(end_date)
@@ -35,14 +38,14 @@ def send_reminder():
     if not len(filter_empty(branch_docs + employee_docs)):
         return
 
-    context = _make_context(
+    context = _make_document_expiry_context(
         branch_docs=filter_empty(branch_docs),
         employee_docs=filter_empty(employee_docs),
-        days_till_expiry=dx.days_till_expiry or 0,
+        days_till_expiry=dx.document_expiry_days_till_expiry or 0,
     )
     msg = frappe.render_template("templates/includes/document_expiry.html", context)
 
-    for recipient in map(lambda x: x.user, dx.recipients):
+    for recipient in map(lambda x: x.user, dx.document_expiry_recipients):
         frappe.sendmail(
             recipients=recipient,
             subject=_("Document Expiry Reminder"),
@@ -52,7 +55,7 @@ def send_reminder():
         )
 
 
-def _make_context(branch_docs, employee_docs, days_till_expiry):
+def _make_document_expiry_context(branch_docs, employee_docs, days_till_expiry):
     subtitle = "Documents expiring in {} days or less".format(days_till_expiry)
     context = frappe._dict(
         branch_docs=branch_docs,
