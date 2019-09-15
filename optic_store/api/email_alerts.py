@@ -219,8 +219,7 @@ def _get_branch_collections(payments, end_date):
             "Branch",
             fields=["name AS branch", "os_target AS monthly_target"],
             filters={"disabled": 0},
-        )
-        + [{"branch": None, "monthly_target": 0}],
+        ),
     )
 
 
