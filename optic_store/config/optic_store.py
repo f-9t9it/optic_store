@@ -106,11 +106,7 @@ def get_data():
                     "name": "Optical Store Settings",
                     "label": _("Optical Store Settings"),
                 },
-                {
-                    "type": "doctype",
-                    "name": "Document Expiry Reminder",
-                    "label": _("Document Expiry Reminder"),
-                },
+                {"type": "doctype", "name": "Email Alerts", "label": _("Email Alerts")},
             ],
         },
     ]

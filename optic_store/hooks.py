@@ -46,6 +46,7 @@ fixtures = [
                     "Branch-os_sales_invoice_naming_series",
                     "Branch-os_sales_col",
                     "Branch-os_cost_center",
+                    "Branch-os_target",
                     "Branch-os_details_sec",
                     "Branch-warehouse",
                     "Branch-location",
@@ -354,7 +355,7 @@ scheduler_events = {
     # "all": ["optic_store.tasks.all"],
     "daily": [
         "optic_store.api.gift_card.write_off_expired_gift_cards",
-        "optic_store.api.document_expiry_reminder.send_reminder",
+        "optic_store.api.email_alerts.process",
     ],
     # "hourly": ["optic_store.tasks.hourly"],
     # "weekly": ["optic_store.tasks.weekly"],
