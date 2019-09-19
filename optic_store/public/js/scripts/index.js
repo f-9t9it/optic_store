@@ -24,6 +24,7 @@ export { default as branch } from './branch';
 export { default as item } from './item';
 export { default as optical_prescription_qe } from './optical_prescription_qe';
 export { default as batch_qe } from './batch_qe';
+export { default as stock_entry } from './stock_entry';
 
 export default {
   optical_prescription,
