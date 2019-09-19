@@ -56,6 +56,8 @@ def _get_columns(filters):
             make_column("brand", type="Link", options="Brand"),
             make_column("item_code", type="Link", options="Item"),
             make_column("item_name", type="Data", width=200),
+            make_column("item_group", type="Link", options="Item Group"),
+            make_column("warehouse", type="Link", options="Warehouse"),
             make_column("batch_no", "Batch", type="Link", options="Batch"),
             make_column("expiry_date", type="Date", width=90),
             make_column("expiry_in_days", "Expiry in Days", type="Int", width=90),
@@ -100,7 +102,9 @@ def _get_data(clauses, values, keys):
                 sle.batch_no AS batch_no,
                 sle.item_code AS item_code,
                 SUM(sle.actual_qty) AS qty,
+                sle.warehouse AS warehouse,
                 i.item_name AS item_name,
+                i.item_group AS item_group,
                 i.brand AS brand,
                 id.default_supplier AS supplier,
                 b.expiry_date AS expiry_date,
@@ -121,8 +125,8 @@ def _get_data(clauses, values, keys):
                 id.parent = sle.item_code AND
                 id.company = sle.company
             WHERE {clauses}
-            GROUP BY sle.batch_no
-            ORDER BY sle.item_code
+            GROUP BY sle.batch_no, sle.warehouse
+            ORDER BY sle.item_code, sle.warehouse
         """.format(
             clauses=clauses
         ),
