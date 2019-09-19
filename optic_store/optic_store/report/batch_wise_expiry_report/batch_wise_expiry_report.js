@@ -2,21 +2,6 @@
 // For license information, please see license.txt
 /* eslint-disable */
 
-frappe.query_reports['Batch-wise Expiry Report'] = {
-  filters: [
-    {
-      fieldname: 'company',
-      label: __('Company'),
-      fieldtype: 'Link',
-      options: 'Company',
-      reqd: 1,
-      default: frappe.defaults.get_user_default('company'),
-    },
-    {
-      fieldname: 'query_date',
-      label: __('Query Date'),
-      fieldtype: 'Date',
-      default: frappe.datetime.get_today(),
-    },
-  ],
-};
+frappe.query_reports[
+  'Batch-wise Expiry Report'
+] = optic_store.reports.batch_wise_expiry();

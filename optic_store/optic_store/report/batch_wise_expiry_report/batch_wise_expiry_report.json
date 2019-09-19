@@ -7,7 +7,7 @@
  "doctype": "Report", 
  "idx": 0, 
  "is_standard": "Yes", 
- "modified": "2019-05-09 21:45:05.697434", 
+ "modified": "2019-09-19 18:07:20.598851", 
  "modified_by": "Administrator", 
  "module": "Optic Store", 
  "name": "Batch-wise Expiry Report", 
@@ -40,6 +40,9 @@
   }, 
   {
    "role": "Manufacturing User"
+  }, 
+  {
+   "role": "Branch User"
   }
  ]
 }

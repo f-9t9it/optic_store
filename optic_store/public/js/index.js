@@ -14,6 +14,7 @@ import scripts, {
   customer_qe,
   optical_prescription_qe,
   batch_qe,
+  stock_entry,
 } from './scripts';
 import extend_pos from './pages/pos';
 import extend_batch_selector from './pages/serial_no_and_batch_selector';
@@ -26,6 +27,7 @@ frappe.ui.form.on('Sales Invoice Item', sales_invoice_item);
 frappe.ui.form.on('Sales Invoice Gift Card', sales_invoice_gift_card);
 frappe.ui.form.on('Delivery Note', delivery_note);
 frappe.ui.form.on('Delivery Note Item', delivery_note_item);
+frappe.ui.form.on('Stock Entry', stock_entry);
 frappe.ui.form.on('Sales Order', sales_order);
 frappe.ui.form.on('Customer', customer);
 frappe.ui.form.on('Employee', employee);
@@ -43,7 +45,7 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
 );
 frappe.ui.form.BatchQuickEntryForm = frappe.ui.form.QuickEntryForm.extend(batch_qe);
 
-const __version__ = '0.7.15';
+const __version__ = '0.7.16';
 
 frappe.provide('optic_store');
 optic_store = {

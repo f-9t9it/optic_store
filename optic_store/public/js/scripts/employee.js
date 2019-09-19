@@ -9,6 +9,7 @@ export default {
       )
     ) {
       frm.$wrapper.find('.form-sidebar > .form-attachments').hide();
+      frm.$wrapper.find('.form-footer  .form-comments').hide();
     }
   },
 };
