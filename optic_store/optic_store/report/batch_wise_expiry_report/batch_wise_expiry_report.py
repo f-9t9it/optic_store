@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils import getdate
 from functools import partial
-from toolz import merge, pluck, keyfilter, compose
+from toolz import merge, pluck, compose, concatv
 
 from optic_store.utils import pick
 
@@ -58,13 +58,28 @@ def _get_columns(filters):
 
 
 def _get_filters(filters):
-    clauses = [
-        "sle.docstatus = 1",
-        "sle.company = %(company)s",
-        "sle.posting_date <= %(query_date)s",
-        "IFNULL(sle.batch_no, '') != ''",
-    ]
-    return " AND ".join(clauses), filters
+    clauses = concatv(
+        [
+            "sle.docstatus = 1",
+            "sle.company = %(company)s",
+            "sle.posting_date <= %(query_date)s",
+            "IFNULL(sle.batch_no, '') != ''",
+        ],
+        ["sle.warehouse = %(warehouse)s"] if filters.get("warehouse") else [],
+        ["i.item_group = %(item_group)s"] if filters.get("item_group") else [],
+    )
+    values = pick(
+        [
+            "company",
+            "query_date",
+            "warehouse",
+            "item_group",
+            "buying_price_list",
+            "selling_price_list",
+        ],
+        filters,
+    )
+    return " AND ".join(clauses), values
 
 
 def _get_data(clauses, values, keys):
