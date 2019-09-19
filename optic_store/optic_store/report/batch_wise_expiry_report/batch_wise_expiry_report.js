@@ -16,6 +16,7 @@ frappe.query_reports['Batch-wise Expiry Report'] = {
       fieldname: 'query_date',
       label: __('Query Date'),
       fieldtype: 'Date',
+      reqd: 1,
       default: frappe.datetime.get_today(),
     },
   ],
