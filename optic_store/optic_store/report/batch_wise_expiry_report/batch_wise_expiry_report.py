@@ -15,6 +15,9 @@ def execute(filters=None):
     filters_extended = merge(
         filters,
         {
+            "is_manager": any(
+                role in ["Item Manager", "Stock Manager"] for role in frappe.get_roles()
+            ),
             "buying_price_list": frappe.db.get_value(
                 "Buying Settings", None, "buying_price_list"
             )
@@ -43,18 +46,26 @@ def _get_columns(filters):
             "width": width,
         }
 
-    return [
-        make_column("supplier", type="Link", options="Supplier"),
-        make_column("brand", type="Link", options="Brand"),
-        make_column("item_code", type="Link", options="Item"),
-        make_column("item_name", type="Data", width=200),
-        make_column("batch_no", "Batch", type="Link", options="Batch"),
-        make_column("expiry_date", type="Date", width=90),
-        make_column("expiry_in_days", "Expiry in Days", type="Int", width=90),
-        make_column("qty", "Quantity", type="Float", width=90),
-        make_column("buying_price", filters.get("buying_price_list")),
-        make_column("selling_price", filters.get("selling_price_list")),
-    ]
+    join_columns = compose(list, concatv)
+
+    return join_columns(
+        [make_column("supplier", type="Link", options="Supplier")]
+        if filters.get("is_manager")
+        else [],
+        [
+            make_column("brand", type="Link", options="Brand"),
+            make_column("item_code", type="Link", options="Item"),
+            make_column("item_name", type="Data", width=200),
+            make_column("batch_no", "Batch", type="Link", options="Batch"),
+            make_column("expiry_date", type="Date", width=90),
+            make_column("expiry_in_days", "Expiry in Days", type="Int", width=90),
+            make_column("qty", "Quantity", type="Float", width=90),
+        ],
+        [make_column("buying_price", filters.get("buying_price_list"))]
+        if filters.get("is_manager")
+        else [],
+        [make_column("selling_price", filters.get("selling_price_list"))],
+    )
 
 
 def _get_filters(filters):
