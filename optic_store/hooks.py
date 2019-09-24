@@ -77,6 +77,7 @@ fixtures = [
                     "Customer-os_email",
                     "Customer-os_address",
                     "Customer-os_loyalty_col",
+                    "Customer-os_loyalty_activation_date",
                     "Customer-os_loyalty_card_no",
                     "Item Group-item_group_abbr",
                     "Item-manual_item_code",
@@ -337,7 +338,10 @@ doc_events = {
         "on_update": "optic_store.doc_events.sales_order.on_update",
         "before_cancel": "optic_store.doc_events.sales_order.before_cancel",
     },
-    "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
+    "Customer": {
+        "before_insert": "optic_store.doc_events.customer.before_insert",
+        "before_save": "optic_store.doc_events.customer.before_save",
+    },
     "Item": {
         "before_naming": "optic_store.doc_events.item.before_naming",
         "autoname": "optic_store.doc_events.item.autoname",
