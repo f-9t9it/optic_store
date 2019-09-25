@@ -253,15 +253,31 @@ def get_payments_against(doctype, names):
 
 
 def _get_si_self_payments(doc):
-    return map(
-        lambda x: {
-            "payment_name": doc.name,
-            "payment_doctype": doc.doctype,
-            "posting_date": doc.posting_date,
-            "mode_of_payment": x.mode_of_payment,
-            "paid_amount": x.amount,
-        },
-        doc.payments,
+    return filter(
+        lambda x: x.get("paid_amount"),
+        concat(
+            [
+                [
+                    {
+                        "payment_name": doc.name,
+                        "payment_doctype": doc.doctype,
+                        "posting_date": doc.posting_date,
+                        "mode_of_payment": "Loyalty Program",
+                        "paid_amount": doc.loyalty_amount,
+                    }
+                ],
+                map(
+                    lambda x: {
+                        "payment_name": doc.name,
+                        "payment_doctype": doc.doctype,
+                        "posting_date": doc.posting_date,
+                        "mode_of_payment": x.mode_of_payment,
+                        "paid_amount": x.amount,
+                    },
+                    doc.payments,
+                ),
+            ]
+        ),
     )
 
 
