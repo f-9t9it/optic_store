@@ -7,6 +7,7 @@ export { default as sales_summary_by_product } from './sales_summary_by_product'
 export { default as item_sell_out_history } from './item_sell_out_history';
 export { default as daily_sales_summary } from './daily_sales_summary';
 export { default as batch_wise_expiry } from './batch_wise_expiry';
+export { default as loyalty_card_activation } from './loyalty_card_activation';
 
 import * as utils from './fields';
 export { utils };

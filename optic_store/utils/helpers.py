@@ -10,6 +10,21 @@ from frappe.utils import get_first_day, get_last_day, getdate, add_months, add_d
 
 
 def generate_intervals(interval, start_date, end_date):
+    if interval == "Daily":
+        periods = []
+        start = getdate(start_date)
+        cur_start = start
+        while cur_start <= getdate(end_date):
+            periods.append(
+                {
+                    "key": cur_start.strftime("%Y-%m-%d"),
+                    "label": cur_start.strftime("%Y-%m-%d"),
+                    "start_date": cur_start,
+                    "end_date": cur_start,
+                }
+            )
+            cur_start = add_days(cur_start, 1)
+        return periods
     if interval == "Weekly":
         periods = []
         start = getdate(start_date)

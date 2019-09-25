@@ -84,6 +84,12 @@ def get_data():
                     "name": "Customer-wise Invoice",
                     "label": _("Customer-wise Invoice"),
                 },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Loyalty Card Activation",
+                    "label": _("Loyalty Card Activation"),
+                },
             ],
         },
         {
