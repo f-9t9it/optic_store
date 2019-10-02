@@ -149,7 +149,7 @@ export default class InvoiceDialog {
         loyalty_points_redeem * flt(this.state.conversion_factor);
       const min_amount = Math.min(
         this.state.loyalty_points * flt(this.state.conversion_factor),
-        frm.doc.rounded_total
+        frm.doc.rounded_total || frm.doc.grand_total
       );
       if (loyalty_amount_redeem > min_amount) {
         frappe.throw(
