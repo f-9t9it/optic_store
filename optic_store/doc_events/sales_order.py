@@ -10,6 +10,7 @@ from toolz import compose
 
 from optic_store.api.customer import get_user_branch
 from optic_store.utils.helpers import get_parts
+from optic_store.utils import mapf
 
 
 def before_naming(doc, method):
@@ -52,8 +53,8 @@ def before_insert(doc, method):
 
 def before_save(doc, method):
     settings = frappe.get_single("Optical Store Settings")
-    frames = map(lambda x: x.item_group, settings.frames)
-    lenses = map(lambda x: x.item_group, settings.lens)
+    frames = mapf(lambda x: x.item_group, settings.frames)
+    lenses = mapf(lambda x: x.item_group, settings.lens)
 
     validate_item_group = _validate_item_group(frames, lenses)
     frame, lens_right, lens_left = get_parts(doc.items)
@@ -94,10 +95,10 @@ def _validate_item_group(frames, lenses):
 
 
 def _validate_spec_parts(items):
-    parts = map(lambda x: x.os_spec_part, items)
+    parts = mapf(lambda x: x.os_spec_part, items)
 
     def count(part):
-        return compose(len, partial(filter, lambda x: x == part))
+        return compose(len, list, partial(filter, lambda x: x == part))
 
     for part in ["Frame", "Lens Right", "Lens Left"]:
         if count(part)(parts) > 1:
@@ -110,7 +111,7 @@ def on_update(doc, method):
 
 
 def _get_item_type(items, settings):
-    groups = map(lambda x: x.item_group, items)
+    groups = mapf(lambda x: x.item_group, items)
     if settings.special_order_item_group in groups:
         return "Special"
     if settings.standard_item_group in groups:

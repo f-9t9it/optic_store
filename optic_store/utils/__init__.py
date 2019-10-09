@@ -36,4 +36,6 @@ def with_report_error_check(data_fn):
     return fn
 
 
-map_resolved = compose(list, map)
+mapf = compose(list, map)
+map_resolved = mapf
+filterf = compose(list, filter)

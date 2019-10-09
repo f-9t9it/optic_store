@@ -12,6 +12,7 @@ from functools import partial
 from toolz import compose, keyfilter, cons, identity
 
 from optic_store.api.customer import get_user_branch
+from optic_store.utils import mapf, filterf
 
 
 @frappe.whitelist()
@@ -26,23 +27,22 @@ def invoice_qol(name, payments, loyalty_card_no, loyalty_program, loyalty_points
         if doc.os_branch
         else None
     )
-    map(set_cost_center, doc.items)
+    mapf(set_cost_center, doc.items)
     if loyalty_program and cint(loyalty_points):
         doc.redeem_loyalty_points = 1
         doc.os_loyalty_card_no = loyalty_card_no
         doc.loyalty_program = loyalty_program
         doc.loyalty_points = cint(loyalty_points)
         doc.loyalty_redemption_cost_center = cost_center
-    if payments:
+    get_payments = compose(
+        partial(filterf, lambda x: x.get("amount") != 0),
+        partial(map, partial(keyfilter, lambda x: x in ["mode_of_payment", "amount"])),
+        json.loads,
+    )
+    payments_proc = get_payments(payments)
+    if payments_proc:
         doc.is_pos = 1
-        add_payments = compose(
-            partial(map, lambda x: doc.append("payments", x)),
-            partial(
-                map, partial(keyfilter, lambda x: x in ["mode_of_payment", "amount"])
-            ),
-            json.loads,
-        )
-        add_payments(payments)
+        mapf(lambda x: doc.append("payments", x), payments_proc)
     doc.insert(ignore_permissions=True)
     doc.submit()
     return doc.name
@@ -57,7 +57,7 @@ def get_warehouse(branch=None):
 @frappe.whitelist()
 def get_workflow_states():
     workflow = get_workflow("Sales Order")
-    states = partial(map, lambda x: x.state)
+    states = partial(mapf, lambda x: x.state)
     return states(workflow.states)
 
 
@@ -65,7 +65,7 @@ def get_workflow_states():
 def get_next_workflow_actions(state):
     workflow = get_workflow("Sales Order")
     nexts = compose(
-        partial(map, lambda x: x.action), partial(filter, lambda x: x.state == state)
+        partial(mapf, lambda x: x.action), partial(filter, lambda x: x.state == state)
     )
     return nexts(workflow.transitions)
 
@@ -105,12 +105,12 @@ def update_sales_orders(sales_orders, action, lab_tech=None):
     transition = compose(
         lambda doc: apply_workflow(doc, action), partial(frappe.get_doc, "Sales Order")
     )
-    map(transition, json.loads(sales_orders))
+    mapf(transition, json.loads(sales_orders))
     if lab_tech and action == "Proceed to Deliver":
         update = compose(
             lambda x: frappe.db.set_value("Sales Order", x, "os_lab_tech", lab_tech)
         )
-        map(update, json.loads(sales_orders))
+        mapf(update, json.loads(sales_orders))
 
 
 workflow = {
