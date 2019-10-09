@@ -34,7 +34,7 @@ from toolz import (
 
 from optic_store.api.group_discount import get_brand_discounts
 from optic_store.api.customer import CUSTOMER_DETAILS_FIELDS, get_user_branch
-from optic_store.utils import pick, key_by
+from optic_store.utils import pick, key_by, mapf, filterf
 
 
 @frappe.whitelist()
@@ -94,7 +94,7 @@ def _get_customers_details(pos_profile, query_date):
         )
         return merge(customer, pick(["loyalty_points"], loyalty_points))
 
-    return map(compose(add_loyalty_points, partial(valfilter, lambda x: x)), details)
+    return mapf(compose(add_loyalty_points, partial(valfilter, lambda x: x)), details)
 
 
 def _get_loyalty_programs(company):
@@ -151,7 +151,7 @@ def get_pos_data():
         return merge(item, get_price(item))
 
     trans_items = compose(
-        partial(map, set_prices),
+        partial(mapf, set_prices),
         partial(filter, lambda x: x.get("name") in allowed_items),
         partial(get, "items", default=[]),
     )
@@ -226,7 +226,7 @@ def _update_customer_details(customers_list):
         doc.save(ignore_permissions=True)
 
     updater = compose(
-        partial(map, lambda x: update_details(*x)),
+        partial(mapf, lambda x: update_details(*x)),
         lambda x: x.items(),
         partial(valmap, json.loads),
         json.loads,
@@ -288,7 +288,7 @@ def get_items(
     )
 
     def list_items(items):
-        make_list = compose(partial(filter, lambda x: x), unique, concatv)
+        make_list = compose(partial(filterf, lambda x: x), unique, concatv)
         return make_list(pluck("item_code", items), pluck("variant_of", items))
 
     make_prices = compose(
@@ -371,7 +371,7 @@ def get_items(
     )
 
     return merge(
-        {"items": map(make_item, items)},
+        {"items": mapf(make_item, items)},
         pick(["barcode", "serial_no", "batch_no"], search_data),
     )
 

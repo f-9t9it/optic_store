@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import json
 from functools import partial
-from toolz import get, compose
+from toolz import get, compose, excepts
 
 
 def execute():
@@ -27,7 +27,7 @@ def execute():
 
     got_activated = compose(
         partial(filter, lambda x: x[0] == "loyalty_program" and not x[1] and x[2]),
-        partial(get, "changed"),
+        excepts(KeyError, partial(get, "changed"), lambda __: []),
         json.loads,
     )
 

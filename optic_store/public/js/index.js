@@ -29,6 +29,7 @@ frappe.ui.form.on('Delivery Note', delivery_note);
 frappe.ui.form.on('Delivery Note Item', delivery_note_item);
 frappe.ui.form.on('Stock Entry', stock_entry);
 frappe.ui.form.on('Sales Order', sales_order);
+frappe.ui.form.on('Sales Order Item', sales_order.sales_order_item);
 frappe.ui.form.on('Customer', customer);
 frappe.ui.form.on('Employee', employee);
 frappe.ui.form.on('Branch', branch);
@@ -45,7 +46,7 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
 );
 frappe.ui.form.BatchQuickEntryForm = frappe.ui.form.QuickEntryForm.extend(batch_qe);
 
-const __version__ = '0.7.17';
+const __version__ = '0.7.18';
 
 frappe.provide('optic_store');
 optic_store = {

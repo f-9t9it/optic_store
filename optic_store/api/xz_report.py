@@ -18,7 +18,7 @@ def create_opening(
             "company": company,
             "opening_cash": opening_cash,
         }
-    ).insert(ignore_permissions=True)
+    ).insert(ignore_permissions=True, ignore_mandatory=True)
     return xzreport.name
 
 

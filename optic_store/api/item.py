@@ -5,7 +5,9 @@
 from __future__ import unicode_literals
 import frappe
 import json
-from toolz import dissoc, merge
+from toolz import dissoc
+
+from optic_store.utils import mapf
 
 
 @frappe.whitelist()
@@ -44,7 +46,7 @@ def get_min_prices(item_code):
 @frappe.whitelist()
 def update_prices(item_code, prices):
     price_list_rates = json.loads(prices)
-    map(lambda x: _update_price(item_code, **x), price_list_rates)
+    mapf(lambda x: _update_price(item_code, **x), price_list_rates)
 
 
 def _update_price(item_code, price_list, price_list_rate=0):
