@@ -50,6 +50,7 @@ export default class DeliverDialog {
               fieldtype: 'Link',
               options: 'Mode of Payment',
               label: __('Mode of Payment'),
+              reqd: 1,
               in_list_view: 1,
             },
             {
@@ -236,6 +237,7 @@ export default class DeliverDialog {
     );
 
     await this.dialog.set_values({ gift_card_no: null, gift_card_balance: null });
+    this.set_payments(frm);
     this.dialog.show();
   }
   async handle_gift_card(frm, gift_card_no) {

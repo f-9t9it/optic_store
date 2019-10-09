@@ -165,7 +165,7 @@ export default {
       'Optical Store Settings'
     );
     const print_formats = invoice_pfs.map(({ print_format }) => print_format);
-    const mode_of_payments = invoice_mops.map(({ mode_of_payment }) => mode_of_payment);
+    const mode_of_payments = [''];
     frm.deliver_dialog = new DeliverDialog(print_formats, mode_of_payments);
   },
   onload: async function(frm) {
