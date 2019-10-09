@@ -90,6 +90,12 @@ def get_data():
                     "name": "Loyalty Card Activation",
                     "label": _("Loyalty Card Activation"),
                 },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Stock Ledger 2",
+                    "label": _("Stock Ledger 2"),
+                },
             ],
         },
         {

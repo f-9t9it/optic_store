@@ -8,6 +8,7 @@ export { default as item_sell_out_history } from './item_sell_out_history';
 export { default as daily_sales_summary } from './daily_sales_summary';
 export { default as batch_wise_expiry } from './batch_wise_expiry';
 export { default as loyalty_card_activation } from './loyalty_card_activation';
+export { default as stock_ledger_2 } from './stock_ledger_2';
 
 import * as utils from './fields';
 export { utils };
