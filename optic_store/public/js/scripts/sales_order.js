@@ -236,7 +236,6 @@ export async function handle_min_item_prices(frm, cdt, cdn) {
 
 async function set_delivery_date(frm) {
   const { transaction_date } = frm.doc;
-  console.log(transaction_date);
   if (transaction_date) {
     const days_to_delivery =
       (await frappe.db.get_single_value(
@@ -257,6 +256,7 @@ export const sales_order_item = {
 };
 
 export default {
+  sales_order_item,
   setup: async function(frm) {
     const { order_pfs = [], invoice_mops = [] } = await frappe.db.get_doc(
       'Optical Store Settings'

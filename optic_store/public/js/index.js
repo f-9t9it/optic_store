@@ -29,6 +29,7 @@ frappe.ui.form.on('Delivery Note', delivery_note);
 frappe.ui.form.on('Delivery Note Item', delivery_note_item);
 frappe.ui.form.on('Stock Entry', stock_entry);
 frappe.ui.form.on('Sales Order', sales_order);
+frappe.ui.form.on('Sales Order Item', sales_order.sales_order_item);
 frappe.ui.form.on('Customer', customer);
 frappe.ui.form.on('Employee', employee);
 frappe.ui.form.on('Branch', branch);

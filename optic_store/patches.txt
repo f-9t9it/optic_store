@@ -4,3 +4,4 @@ optic_store.patches.v0_6.set_spec_parts
 optic_store.patches.v0_6.set_spec_parts_cl
 optic_store.patches.v0_7.set_spec_parts_all
 optic_store.patches.v0_7.set_loyalty_activation_date
+optic_store.patches.v0_7.set_min_prices_in_sales
