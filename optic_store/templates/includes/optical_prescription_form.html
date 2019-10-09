@@ -1,7 +1,8 @@
 {%- set is_prescription = doc.doctype == 'Optical Prescription' -%} {%- if not
 is_prescription and not doc.orx_name -%}
 <div class="os-warning-message">WARNING: Required Prescription in document</div>
-{%- endif -%} {%- set rx = frappe.get_doc('Optical Prescription', doc.orx_name) -%}
+{%- endif -%} {%- set rx = doc if is_prescription else frappe.get_doc('Optical
+Prescription', doc.orx_name) -%}
 <main class="os-lof">
   {%- if not is_prescription -%}
   <div class="os-lof-preheader">
