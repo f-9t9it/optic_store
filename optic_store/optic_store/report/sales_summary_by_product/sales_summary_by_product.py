@@ -125,7 +125,13 @@ def _get_filters(filters):
         ["si.docstatus = 1"],
         ["si.os_branch IN %(branches)s"] if branches else [],
         [
-            "(si.update_stock = 1 OR sii.delivered_qty = sii.qty)",
+            """
+                (
+                    so.workflow_state = 'Completed' OR
+                    si.update_stock = 1 OR
+                    sii.delivered_qty = sii.qty
+                )
+            """,
             """
                 (
                     (
@@ -223,6 +229,8 @@ def _get_data(clauses, values, keys):
             FROM `tabSales Invoice Item` AS sii
             LEFT JOIN `tabSales Invoice` AS si ON
                 si.name = sii.parent
+            LEFT JOIN `tabSales Order` AS so ON
+                so.name = sii.sales_order
             LEFT JOIN (
                 SELECT
                     idni.si_detail AS si_detail,
