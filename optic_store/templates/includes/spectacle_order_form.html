@@ -134,46 +134,8 @@
     </dl>
   </div>
   <div class="os-sof-items os-fill">
-    {%- set items = get_optical_items(doc.items) -%}
-    <table class="table table-condensed os-items">
-      {% macro item_row(item, label=None) -%}
-      <td>{{ label or (item.item_group if item else '') }}</td>
-      <td class="os-single-line">
-        {%- if item -%} {{ item.item_code }} {{ item.item_name }} {%- endif -%}
-      </td>
-      <td class="os-fit-content">
-        {%- if item -%} x {{ item.qty }} {%- endif -%}
-      </td>
-      <td>
-        {{ frappe.utils.fmt_money(item.qty * item.price_list_rate,
-        currency=doc.currency) if item else '-' }}
-      </td>
-      {%- endmacro %}
-      <thead>
-        <tr>
-          <th>{{ _('Type') }}</th>
-          <th>{{ _('Description') }}</th>
-          <th class="os-fit-content"></th>
-          <th>{{ _('Amount') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          {{ item_row(items.frame, _('Frame')) }}
-        </tr>
-        <tr>
-          {{ item_row(items.lens_right, _('Lens (R)')) }}
-        </tr>
-        <tr>
-          {{ item_row(items.lens_left, _('Lens (L)')) }}
-        </tr>
-        {%- for item in items.others -%}
-        <tr>
-          {{ item_row(item) }}
-        </tr>
-        {%- endfor -%}
-      </tbody>
-    </table>
+    {%- set items = get_optical_items(doc.items) -%} {{ macros.item_table_cat(items,
+    currency=doc.currency) }}
   </div>
   <div class="os-summary">
     <div class="os-bordered">

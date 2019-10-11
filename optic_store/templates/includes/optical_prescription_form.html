@@ -1,14 +1,13 @@
-{%- set is_prescription = doc.doctype == 'Optical Prescription' -%} {%- if not
-is_prescription and not doc.orx_name -%}
+{%- set is_prescription = doc.doctype == 'Optical Prescription' -%}
+{%- if not is_prescription and not doc.orx_name -%}
 <div class="os-warning-message">WARNING: Required Prescription in document</div>
-{%- endif -%} {%- set rx = doc if is_prescription else frappe.get_doc('Optical
-Prescription', doc.orx_name) -%}
+{%- endif -%}
+{%- set rx = doc if is_prescription else frappe.get_doc('Optical Prescription', doc.orx_name) -%}
 <main class="os-lof">
   {%- if not is_prescription -%}
   <div class="os-lof-preheader">
-    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch,
-    ['branch_phone', 'os_cr_no']) or (None, None) -%} {%- set tax_id =
-    frappe.db.get_value('Company', doc.company, 'tax_id') -%} {%- if tax_id -%}
+    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch, ['branch_phone', 'os_cr_no']) or (None, None) -%}
+    {%- set tax_id = frappe.db.get_value('Company', doc.company, 'tax_id') -%} {%- if tax_id -%}
     <div>{{ _('VAT ID') }}: {{ tax_id or '' }}</div>
     {%- endif -%}
     <div>{{ doc.os_branch or '' }}</div>
@@ -28,8 +27,7 @@ Prescription', doc.orx_name) -%}
       <dl>
         <dt>{{ _('Dispensor')}}</dt>
         <dd>
-          {{ frappe.db.get_value('Employee', doc.orx_dispensor, 'employee_name') if
-          doc.orx_dispensor else '' }}
+          {{ frappe.db.get_value('Employee', doc.orx_dispensor, 'employee_name') if doc.orx_dispensor else '' }}
         </dd>
       </dl>
       {%- endif -%}
@@ -41,8 +39,7 @@ Prescription', doc.orx_name) -%}
       <dl>
         <dt>{{ _('Optometrist')}}</dt>
         <dd>
-          {{ frappe.db.get_value('Employee', doc.os_lab_tech, 'employee_name') if
-          doc.os_lab_tech else '' }}
+          {{ frappe.db.get_value('Employee', doc.os_lab_tech, 'employee_name') if doc.os_lab_tech else '' }}
         </dd>
       </dl>
       <dl>
@@ -69,32 +66,37 @@ Prescription', doc.orx_name) -%}
         </tr>
         <tr>
           <td></td>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
-          'va'] -%}
-          <td>{{ param|upper }}</td>
-          {%- endfor -%} {%- endfor -%}
+          {%- for side in ['right', 'left'] -%}
+            {%- for param in ['sph', 'cyl', 'axis', 'va'] -%}
+            <td>{{ param|upper }}</td>
+            {%- endfor -%}
+          {%- endfor -%}
         </tr>
       </thead>
       <tbody>
         <tr>
           <th>{{ _('Distance') }}</th>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
-          'va'] -%}
-          <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
-          {%- endfor -%} {%- endfor -%}
+          {%- for side in ['right', 'left'] -%}
+            {%- for param in ['sph', 'cyl', 'axis', 'va'] -%}
+            <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
+            {%- endfor -%}
+          {%- endfor -%}
         </tr>
         <tr>
           <th>{{ _('Reading') }}</th>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
-          'va'] -%}
-          <td>{{ rx.get('{}_reading_{}'.format(param, side)) or '' }}</td>
-          {%- endfor -%} {%- endfor -%}
+          {%- for side in ['right', 'left'] -%}
+            {%- for param in ['sph', 'cyl', 'axis', 'va'] -%}
+            <td>{{ rx.get('{}_reading_{}'.format(param, side)) or '' }}</td>
+            {%- endfor -%}
+          {%- endfor -%}
         </tr>
         <tr>
           <th>{{ _('Add') }}</th>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['add', '', '', ''] -%}
-          <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
-          {%- endfor -%} {%- endfor -%}
+          {%- for side in ['right', 'left'] -%}
+            {%- for param in ['add', '', '', ''] -%}
+            <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
+            {%- endfor -%}
+          {%- endfor -%}
         </tr>
       </tbody>
     </table>
@@ -177,9 +179,8 @@ Prescription', doc.orx_name) -%}
   </div>
   {%- endif -%}
   <div class="os-lof-footer">
-    {%- if not is_prescription -%} {%- set sales_person_name =
-    frappe.db.get_value('Employee', doc.os_sales_person, 'employee_name') if
-    doc.os_sales_person else '' -%}
+    {%- if not is_prescription -%}
+    {%- set sales_person_name = frappe.db.get_value('Employee', doc.os_sales_person, 'employee_name') if doc.os_sales_person else '' -%}
     <dl>
       <dt>{{ _('Issued By') }}</dt>
       <dd>{{ sales_person_name }}</dd>

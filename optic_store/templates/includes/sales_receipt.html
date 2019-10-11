@@ -70,53 +70,8 @@
   </div>
 
   <div class="os-sof-items os-fill">
-    {%- set items = get_optical_items(doc.items) -%}
-    <table class="table table-condensed os-items">
-      <thead>
-        <tr>
-          <th>{{ _('Type') }}</th>
-          <th>{{ _('Description') }}</th>
-          <th>{{ _('Amount') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>{{ _('Frame') }}</td>
-          <td>
-            {%- if items.frame -%} {{ items.frame.item_name }} x {{ items.frame.qty }}
-            {%- endif -%}
-          </td>
-          <td>{{ items.frame.get_formatted('amount') if items.frame else '-' }}</td>
-        </tr>
-        <tr>
-          <td>{{ _('Lens (R)') }}</td>
-          <td>
-            {%- if items.lens_right -%} {{ items.lens_right.item_name }} x {{
-            items.lens_right.qty }} {%- endif -%}
-          </td>
-          <td>
-            {{ items.lens_right.get_formatted('amount') if items.lens_right else '-' }}
-          </td>
-        </tr>
-        <tr>
-          <td>{{ _('Lens (L)') }}</td>
-          <td>
-            {%- if items.lens_left -%} {{ items.lens_left.item_name }} x {{
-            items.lens_left.qty }} {%- endif -%}
-          </td>
-          <td>
-            {{ items.lens_left.get_formatted('amount') if items.lens_left else '-' }}
-          </td>
-        </tr>
-        {%- for item in items.others -%}
-        <tr>
-          <td>{{ item.item_group }}</td>
-          <td>{{ item.item_name }} x {{ item.qty }}</td>
-          <td>{{ item.get_formatted('amount') }}</td>
-        </tr>
-        {%- endfor -%}
-      </tbody>
-    </table>
+    {%- set items = get_optical_items(doc.items) -%} {{ macros.item_table_cat(items,
+    currency=doc.currency) }}
   </div>
   <div class="os-summary">
     <div>

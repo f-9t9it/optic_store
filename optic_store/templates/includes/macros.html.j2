@@ -1,0 +1,33 @@
+{% macro item_row(item, currency, label=None) -%}
+  {%- if item -%}
+  <tr>
+    <td>{{ label or item.item_group }}</td>
+    <td class="os-single-line">{{ item.item_code }} {{ item.item_name }}</td>
+    <td class="os-fit-content">x {{ item.qty }}</td>
+    <td>
+      {{ frappe.utils.fmt_money(item.qty * item.price_list_rate, currency=currency) }}
+    </td>
+  </tr>
+  {%- endif -%}
+{%- endmacro %}
+
+{%- macro item_table_cat(items, currency) -%}
+<table class="table table-condensed os-items">
+  <thead>
+    <tr>
+      <th>{{ _('Type') }}</th>
+      <th>{{ _('Description') }}</th>
+      <th class="os-fit-content"></th>
+      <th>{{ _('Amount') }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{ item_row(items.frame, currency, _('Frame')) }}
+    {{ item_row(items.lens_right, currency, _('Lens (R)')) }}
+    {{ item_row(items.lens_left, currency, _('Lens (L)')) }}
+    {%- for item in items.others -%}
+      {{ item_row(item, currency, 'Other {}'.format(loop.index)) }}
+    {%- endfor -%}
+</tbody>
+</table>
+{%- endmacro -%}
