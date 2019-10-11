@@ -2,20 +2,14 @@
 {%- if not is_prescription and not doc.orx_name -%}
 <div class="os-warning-message">WARNING: Required Prescription in document</div>
 {%- endif -%}
-{%- set rx = doc if is_prescription else frappe.get_doc('Optical Prescription', doc.orx_name) -%}
+
 <main class="os-lof">
   {%- if not is_prescription -%}
-  <div class="os-lof-preheader">
-    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch, ['branch_phone', 'os_cr_no']) or (None, None) -%}
-    {%- set tax_id = frappe.db.get_value('Company', doc.company, 'tax_id') -%} {%- if tax_id -%}
-    <div>{{ _('VAT ID') }}: {{ tax_id or '' }}</div>
-    {%- endif -%}
-    <div>{{ doc.os_branch or '' }}</div>
-    {%- if branch_phone -%}
-    <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
-    {%- endif -%}
-  </div>
+  {{ macros.preheader(doc) }}
   {%- endif -%}
+
+  {%- set rx = doc if is_prescription else frappe.get_doc('Optical Prescription', doc.orx_name) -%}
+
   <div class="os-header">
     <h1>{{ _('Optical Prescription Form') }}</h1>
     <div class="os-header-content">
@@ -56,140 +50,25 @@
     </div>
   </div>
 
-  <div class="os-lof-details">
-    <table class="table table-condensed table-bordered os-prescription">
-      <thead>
-        <tr>
-          <th></th>
-          <th colspan="4">R</th>
-          <th colspan="4">L</th>
-        </tr>
-        <tr>
-          <td></td>
-          {%- for side in ['right', 'left'] -%}
-            {%- for param in ['sph', 'cyl', 'axis', 'va'] -%}
-            <td>{{ param|upper }}</td>
-            {%- endfor -%}
-          {%- endfor -%}
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>{{ _('Distance') }}</th>
-          {%- for side in ['right', 'left'] -%}
-            {%- for param in ['sph', 'cyl', 'axis', 'va'] -%}
-            <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
-            {%- endfor -%}
-          {%- endfor -%}
-        </tr>
-        <tr>
-          <th>{{ _('Reading') }}</th>
-          {%- for side in ['right', 'left'] -%}
-            {%- for param in ['sph', 'cyl', 'axis', 'va'] -%}
-            <td>{{ rx.get('{}_reading_{}'.format(param, side)) or '' }}</td>
-            {%- endfor -%}
-          {%- endfor -%}
-        </tr>
-        <tr>
-          <th>{{ _('Add') }}</th>
-          {%- for side in ['right', 'left'] -%}
-            {%- for param in ['add', '', '', ''] -%}
-            <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
-            {%- endfor -%}
-          {%- endfor -%}
-        </tr>
-      </tbody>
-    </table>
-    {%- if not is_prescription -%}
-    <div class="os-lof-details-others">
-      <dl>
-        <dt>{{ _('Frame Size')}}</dt>
-        <dd>{{ doc.orx_frame_size or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Height')}}</dt>
-        <dd>{{ doc.orx_height or '' }}</dd>
-      </dl>
-    </div>
-    {%- endif -%}
-    <div class="os-lof-details-others">
-      <dl>
-        <dt>{{ _('PD (right) mm')}}</dt>
-        <dd>{{ rx.pd_right or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('PD (left) mm')}}</dt>
-        <dd>{{ rx.pd_left or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('PD (total) mm')}}</dt>
-        <dd>{{ rx.pd_total or '' }}</dd>
-      </dl>
-    </div>
-    <div class="os-lof-details-others">
-      <dl>
-        <dt>{{ _('Prism (right)')}}</dt>
-        <dd>{{ rx.prism_right or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Prism (left)')}}</dt>
-        <dd>{{ rx.prism_left or '' }}</dd>
-      </dl>
-    </div>
-  </div>
-  <div class="os-header">
-    {%- set customer = frappe.get_doc('Customer', doc.customer) -%}
-    <div>
-      <dl>
-        <dt>{{ _('Name / ID') }}</dt>
-        <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('IC No') }}</dt>
-        <dd>{{ customer.os_loyalty_card_no or ''}}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Address') }}</dt>
-        <dd>{{ customer.os_address or '' }}</dd>
-      </dl>
-    </div>
-    <div class="os-header-content">
-      <dl>
-        <dt>{{ _('Office No') }}</dt>
-        <dd>{{ customer.os_office_number or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Mobile No') }}</dt>
-        <dd>{{ customer.os_mobile_number or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Home No') }}</dt>
-        <dd>{{ customer.os_home_number or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Other No') }}</dt>
-        <dd>{{ customer.os_other_number or '' }}</dd>
-      </dl>
-    </div>
-  </div>
+  {{ macros.prescription_details(rx) }}
+
+  {{ macros.prescription_order_details(rx, doc=None if is_prescription else doc) }}
+
+  {{ macros.customer_details(doc.customer) }}
+
   {%- if not is_prescription and doc.terms -%}
   <div class="os-sr-terms os-bordered-bottom">
     <div>{{ _('Notes')}}</div>
     <div>{{ doc.terms }}</div>
   </div>
   {%- endif -%}
+
+  <div class="os-fill"></div>
+
+  {%- if is_prescription -%}
+  {{ macros.footer(doc) }}
+  {%- else -%}
   <div class="os-lof-footer">
-    {%- if not is_prescription -%}
-    {%- set sales_person_name = frappe.db.get_value('Employee', doc.os_sales_person, 'employee_name') if doc.os_sales_person else '' -%}
-    <dl>
-      <dt>{{ _('Issued By') }}</dt>
-      <dd>{{ sales_person_name }}</dd>
-    </dl>
-    <dl>
-      <dt>{{ _('Sales Person') }}</dt>
-      <dd>{{ sales_person_name }}</dd>
-    </dl>
-    {%- endif -%}
     <dl>
       <dt>{{ _('Printed On') }}</dt>
       <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
@@ -198,4 +77,5 @@
       This is a computer generated receipt. No signature is required.
     </div>
   </div>
+  {%- endif -%}
 </main>

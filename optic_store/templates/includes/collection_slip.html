@@ -1,17 +1,9 @@
 <main class="os-lof">
-  <div class="os-lof-preheader">
-    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch,
-    ['branch_phone', 'os_cr_no']) or (None, None) -%} {%- set tax_id =
-    frappe.db.get_value('Company', doc.company, 'tax_id') -%} {%- if tax_id -%}
-    <div>{{ _('VAT ID') }}: {{ tax_id or '' }}</div>
-    {%- endif -%}
-    <div>{{ doc.os_branch or '' }}</div>
-    {%- if branch_phone -%}
-    <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
-    {%- endif -%}
-  </div>
-  <div class="os-lof-header">
-    <div class="os-lof-header-content">
+  {{ macros.preheader(doc) }}
+
+  {%- set branch_cr_no = frappe.db.get_value('Branch', doc.os_branch, 'os_cr_no') -%}
+  <div class="os-header os-header--barcode">
+    <div class="os-header-content">
       <h1>{{ _('Tax Invoice') }}</h1>
       <div class="os-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
       <dl>
@@ -39,150 +31,42 @@
       jsbarcode-margin="4"
     />
   </div>
-  <div class="os-cs-header">
-    {%- set customer = frappe.get_doc('Customer', doc.customer) -%}
-    <div>
-      <dl>
-        <dt>{{ _('Name / ID') }}</dt>
-        <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('IC No') }}</dt>
-        <dd>{{ customer.os_loyalty_card_no or ''}}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Address') }}</dt>
-        <dd>{{ customer.os_address or '' }}</dd>
-      </dl>
-    </div>
-    <div class="os-header-content">
-      <dl>
-        <dt>{{ _('Office No') }}</dt>
-        <dd>{{ customer.os_office_number or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Mobile No') }}</dt>
-        <dd>{{ customer.os_mobile_number or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Home No') }}</dt>
-        <dd>{{ customer.os_home_number or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Other No') }}</dt>
-        <dd>{{ customer.os_other_number or '' }}</dd>
-      </dl>
-    </div>
+
+  {{ macros.customer_details(doc.customer) }}
+
+  <div class="os-section os-fill">
+    {%- set items = get_optical_items(doc.items) -%}
+    {{ macros.item_table_cat(items, currency=doc.currency) }}
   </div>
-  <div class="os-sof-items os-cs-items">
-    {%- set items = get_optical_items(doc.items) -%} {{ macros.item_table_cat(items,
-    currency=doc.currency) }}
-  </div>
+
   <div class="os-summary">
-    <div>
-      <div class="os-bordered os-fill">
-        <dl>
-          <dt>{{ _('Storage Location')}}</dt>
-          <dd></dd>
-        </dl>
-        <dl>
-          <dt>{{ _('Remarks')}}</dt>
-          <dd>{{ doc.os_orx_notes or '' }}</dd>
-        </dl>
+    {%- call macros.summary_aside(doc, amounts=get_amounts(doc)) -%}
+    <div class="os-bordered os-fill">
+      <div>
+        <span>{{ _('Storage Location')}}:</span>
+        <span></span>
       </div>
-      <div class="os-sof-totals">
-        {%- set amounts = get_amounts(doc) -%}
-        <dl>
-          <dt>{{ _('Total Original Amount') }}</dt>
-          <dd>{{ frappe.utils.fmt_money(amounts.total, currency=doc.currency) }}</dd>
-        </dl>
-        {%- if amounts.discount_amount -%}
-        <dl>
-          <dt>{{ _('Total Discount') }} (-)</dt>
-          <dd>
-            {{ frappe.utils.fmt_money(amounts.discount_amount, currency=doc.currency) }}
-          </dd>
-        </dl>
-        {%- endif -%}
+      <div>
+        <span>{{ _('Remarks')}}:</span>
+        <span>{{ doc.os_orx_notes or '' }}</span>
       </div>
     </div>
-    <div class="os-sof-totals">
-      {%- if doc.rounding_adjustment -%}
-      <dl>
-        <dt>{{ _('Rounding Adjustment') }}</dt>
-        <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
-      </dl>
-      {%- endif -%}
-      <dl class="os-sr-totals-divide">
-        <dt>{{ _('Total Amount') }}</dt>
-        <dd>{{ doc.get_formatted('total') }}</dd>
-      </dl>
-      {%- if doc.discount_amount -%}
-      <dl>
-        <dt>{{ _('Discount') }} (-)</dt>
-        <dd>{{ doc.get_formatted('discount_amount') }}</dd>
-      </dl>
-      {%- endif -%} {%- if doc.taxes|len -%} {%- for tax in doc.taxes -%}
-      <dl>
-        <dt>{{ _(tax.description) }}</dt>
-        <dd>{{ tax.get_formatted('tax_amount', doc) }}</dd>
-      </dl>
-      {%- endfor -%} {%- endif-%} {%- if doc.total != doc.grand_total -%}
-      <dl class="os-sr-totals-divide">
-        <dt>{{ _('Grand Total') }}</dt>
-        <dd>{{ doc.get_formatted('grand_total') }}</dd>
-      </dl>
-      {%- endif -%} {%- set payments = get_payments(doc)|selectattr('payment_doctype',
-      'eq', 'Sales Invoice')|list -%} {%- set total_received =
-      payments|sum(attribute='paid_amount') -%}
-      <dl>
-        <dt>{{ _('Total Received') }}</dt>
-        <dd>{{ frappe.utils.fmt_money(total_received, currency=doc.currency) }}</dd>
-      </dl>
-      {%- for mop, list in payments|groupby('mode_of_payment') -%}
-      <div class="os-sof-totals-payment">
-        {{ mop }}: {{ frappe.utils.fmt_money(list|sum(attribute='paid_amount'),
-        currency=doc.currency) }}
-      </div>
-      {%- endfor -%}
-      <dl>
-        <dt>{{ _('Balance Amount') }}</dt>
-        <dd>
-          {{ frappe.utils.fmt_money(doc.grand_total - total_received,
-          currency=doc.currency) }}
-        </dd>
-      </dl>
-    </div>
+    {%- endcall -%}
+    {{ macros.sales_summary(doc, payments=get_payments(doc)|selectattr('payment_doctype', 'eq', 'Sales Invoice')|list, show_details=True) }}
   </div>
-  <div class="os-sr-terms">
+
+  <div class="os-section">
     {%- if doc.terms -%}
-    <div>
-      <dl>
+    <div class="os-section-content">
+      <dl class="os-fill">
         <dt>{{ _('Notes')}}</dt>
         <dd>{{ doc.terms }}</dd>
       </dl>
     </div>
     {%- endif -%}
   </div>
-  <div class="os-lof-footer">
-    {%- set sales_person_name = frappe.db.get_value('Employee', doc.os_sales_person,
-    'employee_name') if doc.os_sales_person else '' -%}
-    <dl>
-      <dt>{{ _('Issued By') }}</dt>
-      <dd>{{ sales_person_name }}</dd>
-    </dl>
-    <dl>
-      <dt>{{ _('Sales Person') }}</dt>
-      <dd>{{ sales_person_name }}</dd>
-    </dl>
-    <dl>
-      <dt>{{ _('Printed On') }}</dt>
-      <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
-    </dl>
-    <div class="os-lof-footer-message">
-      This is a computer generated receipt. No signature is required.
-    </div>
-  </div>
+
+  {{ macros.footer(doc) }}
 </main>
 
 <script type="text/javascript" src="/assets/js/optic_store_print.min.js"></script>

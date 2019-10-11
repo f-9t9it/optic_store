@@ -1,15 +1,6 @@
 <main class="os-lof">
-  <div class="os-lof-preheader">
-    {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.os_branch,
-    ['branch_phone', 'os_cr_no']) or (None, None) -%} {%- set tax_id =
-    frappe.db.get_value('Company', doc.company, 'tax_id') -%} {%- if tax_id -%}
-    <div>{{ _('VAT ID') }}: {{ tax_id or '' }}</div>
-    {%- endif -%}
-    <div>{{ doc.os_branch or '' }}</div>
-    {%- if branch_phone -%}
-    <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
-    {%- endif -%}
-  </div>
+  {{ macros.preheader(doc) }}
+
   <div class="os-lof-header">
     <div class="os-lof-header-content">
       <h1>{{ _('Lab Order Form') }}</h1>
@@ -38,119 +29,44 @@
       jsbarcode-margin="4"
     />
   </div>
-  <div class="os-lof-details">
-    {%- if doc.orx_name -%} {%- set rx = frappe.get_doc('Optical Prescription',
-    doc.orx_name) -%}
-    <table class="table table-condensed table-bordered os-prescription">
-      <thead>
-        <tr>
-          <th></th>
-          <th colspan="4">R</th>
-          <th colspan="4">L</th>
-        </tr>
-        <tr>
-          <td></td>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
-          'va'] -%}
-          <td>{{ param|upper }}</td>
-          {%- endfor -%} {%- endfor -%}
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>{{ _('Distance') }}</th>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
-          'va'] -%}
-          <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
-          {%- endfor -%} {%- endfor -%}
-        </tr>
-        <tr>
-          <th>{{ _('Reading') }}</th>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
-          'va'] -%}
-          <td>{{ rx.get('{}_reading_{}'.format(param, side)) or '' }}</td>
-          {%- endfor -%} {%- endfor -%}
-        </tr>
-        <tr>
-          <th>{{ _('Add') }}</th>
-          {%- for side in ['right', 'left'] -%} {%- for param in ['add', '', '', ''] -%}
-          <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
-          {%- endfor -%} {%- endfor -%}
-        </tr>
-      </tbody>
-    </table>
-    <div class="os-lof-details-items">
+  {%- if doc.orx_name -%}
+
+  {%- set rx = frappe.get_doc('Optical Prescription', doc.orx_name) -%}
+  {{ macros.prescription_details(rx) }}
+
+  <div class="os-section">
+    <div class="os-section-content">
       {%- set items = get_optical_items(doc.items) -%}
-      <dl>
+      <dl class="os-fill">
         <dt>{{ _('Frame / Model') }}</dt>
         <dd>
-          {%- if items.frame -%} {{ items.frame.item_name }} x {{ items.frame.qty }} {%-
-          endif -%}
+          {%- if items.frame -%} {{ items.frame.item_name }} x {{ items.frame.qty }} {%- endif -%}
         </dd>
       </dl>
-      <dl>
+      <dl class="os-fill">
         <dt>{{ _('Lens (R)') }}</dt>
         <dd>
-          {%- if items.lens_right -%} {{ items.lens_right.item_name }} x {{
-          items.lens_right.qty }} {%- endif -%}
+          {%- if items.lens_right -%} {{ items.lens_right.item_name }} x {{ items.lens_right.qty }} {%- endif -%}
         </dd>
       </dl>
-      <dl>
+      <dl class="os-fill">
         <dt>{{ _('Lens (L)') }}</dt>
         <dd>
-          {%- if items.lens_left -%} {{ items.lens_left.item_name }} x {{
-          items.lens_left.qty }} {%- endif -%}
+          {%- if items.lens_left -%} {{ items.lens_left.item_name }} x {{ items.lens_left.qty }} {%- endif -%}
         </dd>
       </dl>
       {%- for item in items.others -%}
-      <dl>
+      <dl class="os-fill">
         <dt>{{ item.item_group }}</dt>
         <dd>{{ item.item_name }} x {{ item.qty }}</dd>
       </dl>
       {%- endfor -%}
     </div>
-    <div class="os-lof-details-others">
-      <dl>
-        <dt>{{ _('PD (right) mm')}}</dt>
-        <dd>{{ rx.pd_right or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('PD (left) mm')}}</dt>
-        <dd>{{ rx.pd_left or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('PD (total) mm')}}</dt>
-        <dd>{{ rx.pd_total or '' }}</dd>
-      </dl>
-    </div>
-    <div class="os-lof-details-others">
-      <dl>
-        <dt>{{ _('Prism (right)')}}</dt>
-        <dd>{{ rx.prism_right or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Prism (left)')}}</dt>
-        <dd>{{ rx.prism_left or '' }}</dd>
-      </dl>
-    </div>
-    <div class="os-lof-details-others">
-      <dl>
-        <dt>{{ _('Type')}}</dt>
-        <dd>{{ doc.os_type_of_spectacle or '' }}</dd>
-      </dl>
-    </div>
-    <div class="os-lof-details-others">
-      <dl>
-        <dt>{{ _('Frame Size')}}</dt>
-        <dd>{{ doc.orx_frame_size or '' }}</dd>
-      </dl>
-      <dl>
-        <dt>{{ _('Height')}}</dt>
-        <dd>{{ doc.orx_height or '' }}</dd>
-      </dl>
-    </div>
-    {%- endif -%}
   </div>
+
+  {{ macros.prescription_order_details(rx, doc) }}
+  {%- endif -%}
+
   <div class="os-lof-main os-fill">
     <div class="os-lof-main-subline">
       <dl>
@@ -165,6 +81,7 @@
       </dl>
     </div>
   </div>
+
   <div class="os-summary">
     <div class="os-bordered">
       <dl>
@@ -183,25 +100,8 @@
       </dl>
     </div>
   </div>
-  <div class="os-lof-footer">
-    {%- set sales_person_name = frappe.db.get_value('Employee', doc.os_sales_person,
-    'employee_name') if doc.os_sales_person else '' -%}
-    <dl>
-      <dt>{{ _('Issued By') }}</dt>
-      <dd>{{ sales_person_name }}</dd>
-    </dl>
-    <dl>
-      <dt>{{ _('Sales Person') }}</dt>
-      <dd>{{ sales_person_name }}</dd>
-    </dl>
-    <dl>
-      <dt>{{ _('Printed On') }}</dt>
-      <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
-    </dl>
-    <div class="os-lof-footer-message">
-      This is a computer generated receipt. No signature is required.
-    </div>
-  </div>
+
+  {{ macros.footer(doc) }}
 </main>
 
 <script type="text/javascript" src="/assets/js/optic_store_print.min.js"></script>
