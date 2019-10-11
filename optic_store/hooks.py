@@ -193,6 +193,7 @@ fixtures = [
                     "Sales Invoice Item-os_spec_part",
                     "Sales Invoice Payment-os_in_alt_tab",
                     "Delivery Note-os_branch",
+                    "Purchase Invoice-supplier_delivery_note",
                     "Purchase Receipt Item-os_expiry_date",
                     "Payment Entry-os_posting_time",
                     "Payment Entry-os_branch",
