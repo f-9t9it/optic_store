@@ -1,0 +1,78 @@
+<main class="os-lof">
+  {{ macros.preheader(doc) }}
+
+  {%- set branch_cr_no = frappe.db.get_value('Branch', doc.os_branch, 'os_cr_no') -%}
+  <div class="os-lof-header">
+    <div class="os-lof-header-content">
+      <h1>{{ _('Payment Top Up') }}</h1>
+      <div class="os-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
+      <dl>
+        <dt>{{ _('Branch')}}</dt>
+        <dd>{{ doc.os_branch or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Order Date')}}</dt>
+        <dd>{{ doc.get_formatted('posting_date') }}</dd>
+      </dl>
+    </div>
+    <svg
+      class="barcode"
+      jsbarcode-format="CODE128"
+      jsbarcode-value="{{ doc.name }}"
+      jsbarcode-textmargin="2"
+      jsbarcode-textposition="top"
+      jsbarcode-fontoptions="bold"
+      jsbarcode-height="40"
+      jsbarcode-width="1"
+      jsbarcode-margin="4"
+    />
+  </div>
+
+  {{ macros.customer_details(doc.customer) }}
+
+  {%- set payments = get_payments(doc) -%}
+  <div class="os-sof-items os-cs-items">
+    <table class="table table-condensed os-items">
+      <thead>
+        <tr>
+          <th>{{ _('No') }}</th>
+          <th>{{ _('Date') }}</th>
+          <th>{{ _('Mode of Payment') }}</th>
+          <th>{{ _('Amount') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for payment in payments -%}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ frappe.utils.formatdate(payment.posting_date) }}</td>
+          <td>{{ payment.mode_of_payment }}</td>
+          <td>
+            {{ frappe.utils.fmt_money(payment.paid_amount, currency=doc.currency) }}
+          </td>
+        </tr>
+        {%- endfor -%}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="os-summary">
+    {%- call macros.summary_aside(doc) -%}
+    <div class="os-fill">
+      {%- if doc.terms -%}
+      <div>{{ _('Notes')}}</div>
+      <div>{{ doc.terms }}</div>
+      {%- endif -%}
+    </div>
+    {%- endcall -%}
+    {{ macros.sales_summary(doc, payments=get_payments(doc)) }}
+  </div>
+
+  {{ macros.footer(doc) }}
+
+</main>
+
+<script type="text/javascript" src="/assets/js/optic_store_print.min.js"></script>
+<script type="text/javascript">
+  JsBarcode('.barcode').init();
+</script>

@@ -1,0 +1,296 @@
+{%- macro preheader(doc) -%}
+{%- set branch_phone = frappe.db.get_value('Branch', doc.os_branch, 'branch_phone') -%}
+{%- set tax_id = frappe.db.get_value('Company', doc.company, 'tax_id') -%}
+<div class="os-preheader">
+  {%- if tax_id -%}
+  <div>{{ _('VAT ID') }}: {{ tax_id or '' }}</div>
+  {%- endif -%}
+  <div>{{ doc.os_branch or '' }}</div>
+  {%- if branch_phone -%}
+  <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
+  {%- endif -%}
+</div>
+{%- endmacro -%}
+
+{%- macro customer_details(customer_id) -%}
+{%- set customer = frappe.get_doc('Customer', customer_id) -%}
+<div class="os-section">
+  <div class="os-section-content">
+    <dl class="os-fill">
+      <dt>{{ _('Name / ID') }}</dt>
+      <dd>{{ customer.customer_name }} / {{ customer_id }}</dd>
+    </dl>
+    <dl class="os-fill">
+      <dt>{{ _('IC No') }}</dt>
+      <dd>{{ customer.os_loyalty_card_no or ''}}</dd>
+    </dl>
+    <dl class="os-fill">
+      <dt>{{ _('Address') }}</dt>
+      <dd>{{ customer.os_address or '' }}</dd>
+    </dl>
+  </div>
+  <div class="os-section-content">
+    <dl>
+      <dt>{{ _('Office No') }}</dt>
+      <dd>{{ customer.os_office_number or '' }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Mobile No') }}</dt>
+      <dd>{{ customer.os_mobile_number or '' }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Home No') }}</dt>
+      <dd>{{ customer.os_home_number or '' }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Other No') }}</dt>
+      <dd>{{ customer.os_other_number or '' }}</dd>
+    </dl>
+  </div>
+</div>
+{%- endmacro -%}
+
+{%- macro customer_details_short(customer_id) -%}
+{%- set customer = frappe.get_doc('Customer', customer_id) -%}
+<div class="os-section">
+  <div class="os-section-content">
+    <dl class="os-fill">
+      <dt>{{ _('Name / ID') }}</dt>
+      <dd>{{ customer.customer_name }} / {{ customer_id }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Mobile No') }}</dt>
+      <dd>{{ customer.os_mobile_number or '' }}</dd>
+    </dl>
+  </div>
+</div>
+{%- endmacro -%}
+
+{%- macro prescription_details(rx) -%}
+<table class="table table-condensed table-bordered os-prescription">
+  <thead>
+    <tr>
+      <th></th>
+      <th colspan="4">R</th>
+      <th colspan="4">L</th>
+    </tr>
+    <tr>
+      <td></td>
+      {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
+      'va'] -%}
+      <td>{{ param|upper }}</td>
+      {%- endfor -%} {%- endfor -%}
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>{{ _('Distance') }}</th>
+      {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
+      'va'] -%}
+      <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
+      {%- endfor -%} {%- endfor -%}
+    </tr>
+    <tr>
+      <th>{{ _('Reading') }}</th>
+      {%- for side in ['right', 'left'] -%} {%- for param in ['sph', 'cyl', 'axis',
+      'va'] -%}
+      <td>{{ rx.get('{}_reading_{}'.format(param, side)) or '' }}</td>
+      {%- endfor -%} {%- endfor -%}
+    </tr>
+    <tr>
+      <th>{{ _('Add') }}</th>
+      {%- for side in ['right', 'left'] -%} {%- for param in ['add', '', '', ''] -%}
+      <td>{{ rx.get('{}_{}'.format(param, side)) or '' }}</td>
+      {%- endfor -%} {%- endfor -%}
+    </tr>
+  </tbody>
+</table>
+{%- endmacro -%}
+
+{%- macro prescription_order_details(rx, doc=None) -%}
+<div class="os-section">
+  <div class="os-section-content os-section-content--col-3">
+    <dl>
+      <dt>{{ _('PD (right) mm')}}</dt>
+      <dd>{{ rx.pd_right or '' }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('PD (left) mm')}}</dt>
+      <dd>{{ rx.pd_left or '' }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('PD (total) mm')}}</dt>
+      <dd>{{ rx.pd_total or '' }}</dd>
+    </dl>
+  </div>
+  <div class="os-section-content os-section-content--col-3">
+    <dl>
+      <dt>{{ _('Prism (right)')}}</dt>
+      <dd>{{ rx.prism_right or '' }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Prism (left)')}}</dt>
+      <dd>{{ rx.prism_left or '' }}</dd>
+    </dl>
+  </div>
+  {%-if doc -%}
+  <div class="os-section-content">
+    <dl>
+      <dt>{{ _('Type')}}</dt>
+      <dd>{{ doc.os_type_of_spectacle or '' }}</dd>
+    </dl>
+  </div>
+  <div class="os-section-content os-section-content--col-3">
+    <dl>
+      <dt>{{ _('Frame Size')}}</dt>
+      <dd>{{ doc.orx_frame_size or '' }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Height')}}</dt>
+      <dd>{{ doc.orx_height or '' }}</dd>
+    </dl>
+  </div>
+  {%- endif -%}
+</div>
+{%- endmacro -%}
+
+{%- macro item_row(item, currency, label=None, lines=1) -%}
+{%- if item -%}
+{%- set amount = [item.qty * item.price_list_rate, item.amount]|max -%}
+<tr>
+  <td>{{ label or item.item_group }}</td>
+  <td>
+    <div class="os-{{ lines }}-line">
+      {{ item.item_code }} {{ item.item_name }}
+    </div>
+  </td>
+  <td class="os-fit-content">x {{ item.qty }}</td>
+  <td>
+    {{ frappe.utils.fmt_money(amount, currency=currency) }}
+  </td>
+</tr>
+{%- endif -%}
+{%- endmacro -%}
+
+{%- macro item_table_cat(items, currency, lines=1) -%}
+<table class="table table-condensed os-items">
+  <thead>
+    <tr>
+      <th>{{ _('Type') }}</th>
+      <th>{{ _('Description') }}</th>
+      <th class="os-fit-content"></th>
+      <th>{{ _('Amount') }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{ item_row(items.frame, currency, _('Frame'), lines=lines) }}
+    {{ item_row(items.lens_right, currency, _('Lens (R)'), lines=lines) }}
+    {{ item_row(items.lens_left, currency, _('Lens (L)'), lines=lines) }}
+    {%- for item in items.others -%}
+    {{ item_row(item, currency, 'Other {}'.format(loop.index)) }}
+    {%- endfor -%}
+</tbody>
+</table>
+{%- endmacro -%}
+
+{%- macro sales_summary(doc, payments=None, show_details=False, hide_balance=False) -%}
+<div class="os-summary-content">
+  {%- if doc.rounding_adjustment -%}
+  <dl>
+    <dt>{{ _('Rounding Adjustment') }}</dt>
+    <dd>{{ doc.get_formatted('rounding_adjustment') }}</dd>
+  </dl>
+  {%- endif -%}
+  <dl class="os-underline">
+    <dt>{{ _('Total Amount') }}</dt>
+    <dd>{{ doc.get_formatted('total') }}</dd>
+  </dl>
+  {%- if doc.discount_amount -%}
+  <dl>
+    <dt>{{ _('Discount') }} (-)</dt>
+    <dd>{{ doc.get_formatted('discount_amount') }}</dd>
+  </dl>
+  {%- endif -%}
+  {%- if doc.taxes|len -%}
+  {%- for tax in doc.taxes -%}
+  <dl>
+    <dt>{{ _(tax.description) }}</dt>
+    <dd>{{ tax.get_formatted('tax_amount', doc) }}</dd>
+  </dl>
+  {%- endfor -%}
+  {%- endif-%}
+  {%- if doc.total != doc.grand_total -%}
+  <dl class="os-underline">
+    <dt>{{ _('Grand Total') }}</dt>
+    <dd>{{ doc.get_formatted('grand_total') }}</dd>
+  </dl>
+  {%- endif -%}
+  {%- set total_received = payments|sum(attribute='paid_amount') -%}
+  <dl>
+    <dt>{{ _('Total Received') }}</dt>
+    <dd>{{ frappe.utils.fmt_money(total_received, currency=doc.currency) }}</dd>
+  </dl>
+  {%- if show_details -%}
+  {%- for mop, list in payments|groupby('mode_of_payment') -%}
+  <div class="os-small">
+    {{ mop }}: {{ frappe.utils.fmt_money(list|sum(attribute='paid_amount'), currency=doc.currency) }}
+  </div>
+  {%- endfor -%}
+  {%- endif -%}
+  {%- if not hide_balance -%}
+  <dl>
+    <dt>{{ _('Balance Amount') }}</dt>
+    <dd>
+      {{ frappe.utils.fmt_money(doc.grand_total - total_received, currency=doc.currency) }}
+    </dd>
+  </dl>
+  {%- endif -%}
+</div>
+{%- endmacro -%}
+
+{%- macro summary_aside(doc, amounts=None) -%}
+<div class="os-summary-content">
+  {{ caller() }}
+  {%- if amounts -%}
+  <div>
+    <dl>
+      <dt>{{ _('Total Original Amount') }}</dt>
+      <dd>{{ frappe.utils.fmt_money(amounts.total, currency=currency) }}</dd>
+    </dl>
+    {%- if amounts.discount_amount -%}
+    <dl>
+      <dt>{{ _('Total Discount') }} (-)</dt>
+      <dd>
+        {{ frappe.utils.fmt_money(amounts.discount_amount, currency=currency) }}
+      </dd>
+    </dl>
+    {%- endif -%}
+  </div>
+  {%- endif -%}
+</div>
+{%- endmacro -%}
+
+{%- macro footer(doc) -%}
+{%- set sales_person_name = frappe.db.get_value('Employee', doc.os_sales_person, 'employee_name') if doc.os_sales_person else '' -%}
+<div class="os-footer">
+  <div class="os-footer-content ">
+    <dl>
+      <dt>{{ _('Issued By') }}</dt>
+      <dd>{{ sales_person_name }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Sales Person') }}</dt>
+      <dd>{{ sales_person_name }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Printed On') }}</dt>
+      <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
+    </dl>
+  </div>
+  <div class="os-footer-content">
+    <div class="os-footer-message">
+      This is a computer generated receipt. No signature is required.
+    </div>
+  </div>
+</div>
+{%- endmacro -%}

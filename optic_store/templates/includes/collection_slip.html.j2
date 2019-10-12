@@ -1,0 +1,75 @@
+<main class="os-lof">
+  {{ macros.preheader(doc) }}
+
+  {%- set branch_cr_no = frappe.db.get_value('Branch', doc.os_branch, 'os_cr_no') -%}
+  <div class="os-header os-header--barcode">
+    <div class="os-header-content">
+      <h1>{{ _('Tax Invoice') }}</h1>
+      <div class="os-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
+      <dl>
+        <dt>{{ _('Branch')}}</dt>
+        <dd>{{ doc.os_branch or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Order Date')}}</dt>
+        <dd>{{ doc.get_formatted('transaction_date') }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Collection')}}</dt>
+        <dd>{{ doc.get_formatted('delivery_date') }}</dd>
+      </dl>
+    </div>
+    <svg
+      class="barcode"
+      jsbarcode-format="CODE128"
+      jsbarcode-value="{{ doc.name }}"
+      jsbarcode-textmargin="2"
+      jsbarcode-textposition="top"
+      jsbarcode-fontoptions="bold"
+      jsbarcode-height="40"
+      jsbarcode-width="1"
+      jsbarcode-margin="4"
+    />
+  </div>
+
+  {{ macros.customer_details(doc.customer) }}
+
+  <div class="os-section os-fill">
+    {%- set items = get_optical_items(doc.items) -%}
+    {{ macros.item_table_cat(items, currency=doc.currency, lines=2) }}
+  </div>
+
+  <div class="os-summary">
+    {%- call macros.summary_aside(doc, amounts=get_amounts(doc)) -%}
+    <div class="os-bordered os-fill">
+      <div>
+        <span>{{ _('Storage Location')}}:</span>
+        <span></span>
+      </div>
+      <div>
+        <span>{{ _('Remarks')}}:</span>
+        <span>{{ doc.os_orx_notes or '' }}</span>
+      </div>
+    </div>
+    {%- endcall -%}
+    {{ macros.sales_summary(doc, payments=get_payments(doc)|selectattr('payment_doctype', 'eq', 'Sales Invoice')|list, show_details=True) }}
+  </div>
+
+  <div class="os-section">
+    {%- if doc.terms -%}
+    <div class="os-section-content">
+      <dl class="os-fill">
+        <dt>{{ _('Notes')}}</dt>
+        <dd>{{ doc.terms }}</dd>
+      </dl>
+    </div>
+    {%- endif -%}
+  </div>
+
+  {{ macros.footer(doc) }}
+</main>
+
+<script type="text/javascript" src="/assets/js/optic_store_print.min.js"></script>
+<script type="text/javascript">
+  JsBarcode('.barcode').init();
+</script>

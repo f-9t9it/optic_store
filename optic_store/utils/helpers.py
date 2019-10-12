@@ -94,7 +94,8 @@ def get_optical_items(items):
 
 def get_amounts(doc):
     get_price_list_amount = compose(
-        sum, partial(map, lambda x: flt(x.price_list_rate) * flt(x.qty))
+        sum,
+        partial(map, lambda x: max(flt(x.price_list_rate) * flt(x.qty), flt(x.amount))),
     )
     total = get_price_list_amount(doc.items)
     # `doc.discount_amount` is negative

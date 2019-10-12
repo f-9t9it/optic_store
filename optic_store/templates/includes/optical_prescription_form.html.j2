@@ -1,0 +1,81 @@
+{%- set is_prescription = doc.doctype == 'Optical Prescription' -%}
+{%- if not is_prescription and not doc.orx_name -%}
+<div class="os-warning-message">WARNING: Required Prescription in document</div>
+{%- endif -%}
+
+<main class="os-lof">
+  {%- if not is_prescription -%}
+  {{ macros.preheader(doc) }}
+  {%- endif -%}
+
+  {%- set rx = doc if is_prescription else frappe.get_doc('Optical Prescription', doc.orx_name) -%}
+
+  <div class="os-header">
+    <h1>{{ _('Optical Prescription Form') }}</h1>
+    <div class="os-header-content">
+      <dl>
+        <dt>{{ '{} No'.format(doc.doctype.split(' ')[-1]) }}</dt>
+        <dd>{{ doc.name }}</dd>
+      </dl>
+      {%- if not is_prescription -%}
+      <dl>
+        <dt>{{ _('Dispensor')}}</dt>
+        <dd>
+          {{ frappe.db.get_value('Employee', doc.orx_dispensor, 'employee_name') if doc.orx_dispensor else '' }}
+        </dd>
+      </dl>
+      {%- endif -%}
+      <dl>
+        <dt>{{ _('Prescription Date')}}</dt>
+        <dd>{{ rx.get_formatted('test_date') }}</dd>
+      </dl>
+      {%- if not is_prescription -%}
+      <dl>
+        <dt>{{ _('Optometrist')}}</dt>
+        <dd>
+          {{ frappe.db.get_value('Employee', doc.os_lab_tech, 'employee_name') if doc.os_lab_tech else '' }}
+        </dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Collection Date')}}</dt>
+        <dd>{{ doc.get_formatted('delivery_date') }}</dd>
+      </dl>
+      {%- else -%}
+      <div></div>
+      {%- endif -%}
+      <dl>
+        <dt>{{ _('Expiry Date')}}</dt>
+        <dd>{{ rx.get_formatted('expiry') }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  {{ macros.prescription_details(rx) }}
+
+  {{ macros.prescription_order_details(rx, doc=None if is_prescription else doc) }}
+
+  {{ macros.customer_details(doc.customer) }}
+
+  {%- if not is_prescription and doc.terms -%}
+  <div class="os-sr-terms os-bordered-bottom">
+    <div>{{ _('Notes')}}</div>
+    <div>{{ doc.terms }}</div>
+  </div>
+  {%- endif -%}
+
+  <div class="os-fill"></div>
+
+  {%- if is_prescription -%}
+  {{ macros.footer(doc) }}
+  {%- else -%}
+  <div class="os-lof-footer">
+    <dl>
+      <dt>{{ _('Printed On') }}</dt>
+      <dd>{{ frappe.utils.now_datetime().strftime('%A, %B %d, %Y, %I:%M:%S %p') }}</dd>
+    </dl>
+    <div class="os-lof-footer-message">
+      This is a computer generated receipt. No signature is required.
+    </div>
+  </div>
+  {%- endif -%}
+</main>

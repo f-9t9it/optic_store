@@ -15,7 +15,7 @@ from six import string_types
 from functools import partial, reduce
 from toolz import compose, unique, pluck, concat, merge, excepts, groupby, valmap, first
 
-from optic_store.utils import sum_by, pick
+from optic_store.utils import sum_by, pick, mapf, filterf
 
 _filter_batch_items = partial(
     filter, lambda x: frappe.db.get_value("Item", x.item_code, "has_batch_no")
@@ -42,7 +42,7 @@ def deliver_qol(name, payments=[], batches=None, deliver=0):
         pe.submit()
         pe.name
 
-    make_payments = compose(partial(map, make_payment), json.loads)
+    make_payments = compose(partial(mapf, make_payment), json.loads)
     pe_names = make_payments(payments) if payments else []
 
     result = {"payment_entries": pe_names}
@@ -56,7 +56,7 @@ def deliver_qol(name, payments=[], batches=None, deliver=0):
         )
         if batches:
             get_batches = compose(unique, partial(pluck, "item_code"), json.loads)
-            batch_items = filter(
+            batch_items = filterf(
                 lambda x: x.item_code in get_batches(batches), dn.items
             )
 
@@ -67,7 +67,7 @@ def deliver_qol(name, payments=[], batches=None, deliver=0):
                     partial(filter, lambda x: x.si_detail == si_detail),
                 )(batch_items)
 
-            dn.items = filter(lambda x: x not in batch_items, dn.items)
+            dn.items = filterf(lambda x: x not in batch_items, dn.items)
             for batch in json.loads(batches):
                 item = get_item(batch.get("si_detail"))
                 dn.append("items", merge(item, batch))
@@ -253,7 +253,7 @@ def get_payments_against(doctype, names):
 
 
 def _get_si_self_payments(doc):
-    return filter(
+    return filterf(
         lambda x: x.get("paid_amount"),
         concat(
             [
@@ -295,7 +295,9 @@ def get_ref_so_date(sales_invoice):
 @frappe.whitelist()
 def get_ref_so_statuses(sales_invoice):
     get_statuses = compose(
-        partial(map, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")),
+        partial(
+            mapf, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")
+        ),
         _get_sales_orders,
     )
     return get_statuses(sales_invoice)
