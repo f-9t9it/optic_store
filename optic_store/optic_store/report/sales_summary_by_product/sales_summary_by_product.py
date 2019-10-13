@@ -17,7 +17,7 @@ from toolz import (
     reduceby,
 )
 
-from optic_store.utils import pick, split_to_list, with_report_error_check
+from optic_store.utils import pick, split_to_list, with_report_error_check, mapf
 from optic_store.api.sales_invoice import get_payments_against
 
 
@@ -127,22 +127,20 @@ def _get_filters(filters):
         [
             """
                 (
-                    so.workflow_state = 'Completed' OR
-                    si.update_stock = 1 OR
-                    sii.delivered_qty = sii.qty
-                )
-            """,
-            """
-                (
                     (
                         si.update_stock = 1 AND
                         si.posting_date BETWEEN %(from_date)s AND %(to_date)s
                     ) OR (
-                        si.update_stock = 0 AND
+                        so.workflow_state = 'Collected' AND
+                        si.is_return = 0 AND
                         dn.posting_date BETWEEN %(from_date)s AND %(to_date)s
+                    ) OR (
+                        so.workflow_state = 'Collected' AND
+                        si.is_return = 1 AND
+                        si.posting_date BETWEEN %(from_date)s AND %(to_date)s
                     )
                 )
-            """,
+            """
         ]
         if filters.report_type == "Collected"
         else [],
@@ -220,11 +218,12 @@ def _get_data(clauses, values, keys):
                 si.orx_dispensor AS dispensor,
                 si.os_branch AS branch,
                 IF(
-                    si.update_stock = 1 OR sii.qty = sii.delivered_qty,
+                    si.update_stock = 1 OR so.workflow_state = 'Collected',
                     'Collected',
                     'Achieved'
                 ) AS sales_status,
                 si.update_stock AS own_delivery,
+                si.is_return AS is_return,
                 dn.posting_date AS delivery_date
             FROM `tabSales Invoice Item` AS sii
             LEFT JOIN `tabSales Invoice` AS si ON
@@ -258,7 +257,7 @@ def _get_data(clauses, values, keys):
         def get_collection_date(x):
             if x.sales_status == "Achieved":
                 return None
-            if x.own_delivery:
+            if x.own_delivery or x.is_return:
                 return x.invoice_date
             return x.delivery_date
 
@@ -317,7 +316,7 @@ def _get_data(clauses, values, keys):
         add_collection_date,
     )
 
-    return map(make_row, items)
+    return mapf(make_row, items)
 
 
 def _get_payments(items):
