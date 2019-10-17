@@ -16,6 +16,7 @@ import scripts, {
   batch_qe,
   stock_entry,
 } from './scripts';
+import extend_query_report from './pages/query_report';
 import extend_pos from './pages/pos';
 import extend_batch_selector from './pages/serial_no_and_batch_selector';
 import * as reports from './reports';
@@ -58,3 +59,5 @@ optic_store = {
   extend_batch_selector,
   listview: { sales_invoice: sales_invoice_list },
 };
+
+frappe.views.QueryReport = extend_query_report(frappe.views.QueryReport);
