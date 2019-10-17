@@ -10,7 +10,7 @@ export default {
     const { message: user_warehouse } = await frappe.call({
       method: 'optic_store.api.customer.get_user_warehouse',
     });
-    rep.set_filter_value('warehouse', user_warehouse);
+    await rep.set_filter_value('warehouse', user_warehouse);
   },
   filters: [
     make_link({
