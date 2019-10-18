@@ -11,7 +11,10 @@ from functools import partial
 from toolz import merge, compose
 
 from optic_store.api.customer import get_user_branch
-from optic_store.utils import pick, sum_by
+from optic_store.utils import pick, sum_by, mapf, filterf
+
+DISPATCH = "Dispatch"
+RECEIVE = "Receive"
 
 
 class StockTransfer(Document):
@@ -45,7 +48,7 @@ class StockTransfer(Document):
             if has_batch_no and not item.batch_no:
                 frappe.throw(_("Batch No required in row {}".format(item.idx)))
             if has_serial_no and len(
-                filter(lambda x: x, item.serial_no.split("\n"))
+                filterf(lambda x: x, item.serial_no.split("\n"))
             ) != cint(item.qty):
                 frappe.throw(_("Serial No missing for row {}".format(item.idx)))
 
@@ -59,6 +62,7 @@ class StockTransfer(Document):
 
     def on_submit(self):
         if self.workflow_state == "In Transit":
+            self.validate_reference(DISPATCH)
             warehouses = self.get_warehouses(incoming=False)
             accounts = self.get_accounts()
             ref_doc = _make_stock_entry(
@@ -87,6 +91,7 @@ class StockTransfer(Document):
 
     def on_update_after_submit(self):
         if self.workflow_state == "Received":
+            self.validate_reference(RECEIVE)
             warehouses = self.get_warehouses(incoming=True)
             accounts = self.get_accounts()
             ref_doc = _make_stock_entry(
@@ -136,6 +141,14 @@ class StockTransfer(Document):
     def validate_owner(self):
         if not _is_sys_mgr() and self.owner != frappe.session.user:
             frappe.throw(_("Only document owner can perform this"))
+
+    def validate_reference(self, action):
+        if (action == DISPATCH and self.outgoing_stock_entry) or (
+            action == RECEIVE and self.incoming_stock_entry
+        ):
+            frappe.throw(
+                _("Stock Entry already present for this leg of Stock Transfer")
+            )
 
     def set_ref_doc(self, field, ref_doc):
         self.db_set(field, ref_doc)
@@ -192,7 +205,7 @@ def _map_items(warehouses, accounts):
         ),
         lambda x: x.as_dict(),
     )
-    return partial(map, make_item)
+    return partial(mapf, make_item)
 
 
 def _make_stock_entry(args):

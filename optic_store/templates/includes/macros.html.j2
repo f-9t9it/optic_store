@@ -156,7 +156,7 @@
 
 {%- macro item_row(item, currency, label=None, lines=1) -%}
 {%- if item -%}
-{%- set amount = [item.qty * item.price_list_rate, item.amount]|max -%}
+{%- set amount = item.amount / item.amount|abs * (item.qty|abs * item.price_list_rate, item.amount|abs)|max -%}
 <tr>
   <td>{{ label or item.item_group }}</td>
   <td>

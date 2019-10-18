@@ -2,7 +2,7 @@ import { make_date, make_multiselect, make_select } from './fields';
 
 export default {
   onload: async function(rep) {
-    rep.set_filter_value({
+    await rep.set_filter_value({
       from_date: frappe.datetime.month_start(),
       to_date: frappe.datetime.month_end(),
     });

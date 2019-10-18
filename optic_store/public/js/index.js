@@ -16,6 +16,7 @@ import scripts, {
   batch_qe,
   stock_entry,
 } from './scripts';
+import extend_query_report from './pages/query_report';
 import extend_pos from './pages/pos';
 import extend_batch_selector from './pages/serial_no_and_batch_selector';
 import * as reports from './reports';
@@ -46,7 +47,7 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
 );
 frappe.ui.form.BatchQuickEntryForm = frappe.ui.form.QuickEntryForm.extend(batch_qe);
 
-const __version__ = '0.7.20';
+const __version__ = '0.7.21';
 
 frappe.provide('optic_store');
 optic_store = {
@@ -58,3 +59,5 @@ optic_store = {
   extend_batch_selector,
   listview: { sales_invoice: sales_invoice_list },
 };
+
+frappe.views.QueryReport = extend_query_report(frappe.views.QueryReport);
