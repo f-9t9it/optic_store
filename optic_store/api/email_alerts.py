@@ -57,6 +57,7 @@ def _document_expiry_reminder(dx):
             subject=_("Document Expiry Reminder"),
             message=msg,
             reference_doctype="Email Alerts",
+            reference_name="Email Alerts",
             unsubscribe_message=_("Unsubscribe from this Reminder"),
         )
 
@@ -134,6 +135,7 @@ def _branch_sales_summary(bs):
             subject=_("Daily Sales Summary"),
             message=msg,
             reference_doctype="Email Alerts",
+            reference_name="Email Alerts",
             unsubscribe_message=_("Unsubscribe from this Report"),
         )
 
