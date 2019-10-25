@@ -19,6 +19,11 @@ def get_data():
                     "name": "Stock Transfer",
                     "label": _("Stock Transfer"),
                 },
+                {
+                    "type": "doctype",
+                    "name": "Custom Loyalty Entry",
+                    "label": _("Custom Loyalty Entry"),
+                },
             ],
         },
         {
