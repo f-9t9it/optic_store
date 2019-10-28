@@ -104,6 +104,12 @@ def get_data():
                 {
                     "type": "report",
                     "is_query_report": True,
+                    "name": "Customer Loyalty Point",
+                    "label": _("Customer Loyalty Point"),
+                },
+                {
+                    "type": "report",
+                    "is_query_report": True,
                     "name": "Stock Ledger 2",
                     "label": _("Stock Ledger 2"),
                 },
