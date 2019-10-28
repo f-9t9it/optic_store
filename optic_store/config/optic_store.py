@@ -110,6 +110,12 @@ def get_data():
                 {
                     "type": "report",
                     "is_query_report": True,
+                    "name": "Loyalty Point Expiry",
+                    "label": _("Loyalty Point Expiry"),
+                },
+                {
+                    "type": "report",
+                    "is_query_report": True,
                     "name": "Stock Ledger 2",
                     "label": _("Stock Ledger 2"),
                 },
