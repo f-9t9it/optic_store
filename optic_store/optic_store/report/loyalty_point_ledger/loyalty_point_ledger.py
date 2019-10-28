@@ -4,22 +4,10 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from functools import partial, reduce
-from toolz import (
-    compose,
-    pluck,
-    merge,
-    concatv,
-    excepts,
-    groupby,
-    flip,
-    get,
-    first,
-    accumulate,
-)
+from functools import partial
+from toolz import compose, pluck, merge, concatv, first, accumulate
 
-from optic_store.utils import pick, split_to_list
-from optic_store.utils.helpers import generate_intervals
+from optic_store.utils import pick
 
 
 def execute(filters=None):
