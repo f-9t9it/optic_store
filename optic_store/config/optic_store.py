@@ -21,6 +21,11 @@ def get_data():
                 },
                 {
                     "type": "doctype",
+                    "name": "Custom Purchase Receipt",
+                    "label": _("Custom Purchase Receipt"),
+                },
+                {
+                    "type": "doctype",
                     "name": "Custom Loyalty Entry",
                     "label": _("Custom Loyalty Entry"),
                 },
