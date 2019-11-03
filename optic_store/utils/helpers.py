@@ -97,9 +97,13 @@ def get_amounts(doc):
         sum,
         partial(
             map,
-            lambda x: x.amount
-            / abs(x.amount)
-            * max(flt(x.price_list_rate) * abs(flt(x.qty)), abs(flt(x.amount))),
+            excepts(
+                ZeroDivisionError,
+                lambda x: x.amount
+                / abs(x.amount)
+                * max(flt(x.price_list_rate) * abs(flt(x.qty)), abs(flt(x.amount))),
+                lambda __: 0,
+            ),
         ),
     )
     total = get_price_list_amount(doc.items)
