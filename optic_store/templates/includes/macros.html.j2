@@ -156,7 +156,6 @@
 
 {%- macro item_row(item, currency, label=None, lines=1) -%}
 {%- if item -%}
-{%- set amount = item.amount / item.amount|abs * (item.qty|abs * item.price_list_rate, item.amount|abs)|max -%}
 <tr>
   <td>{{ label or item.item_group }}</td>
   <td>
@@ -166,7 +165,7 @@
   </td>
   <td class="os-fit-content">x {{ item.qty }}</td>
   <td>
-    {{ frappe.utils.fmt_money(amount, currency=currency) }}
+    {{ frappe.utils.fmt_money(item.amount, currency=currency) }}
   </td>
 </tr>
 {%- endif -%}

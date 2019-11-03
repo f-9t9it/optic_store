@@ -9,6 +9,8 @@ export { default as daily_sales_summary } from './daily_sales_summary';
 export { default as batch_wise_expiry } from './batch_wise_expiry';
 export { default as loyalty_card_activation } from './loyalty_card_activation';
 export { default as stock_ledger_2 } from './stock_ledger_2';
+export { default as loyalty_point_ledger } from './loyalty_point_ledger';
+export { default as loyalty_point_expiry } from './loyalty_point_expiry';
 
 import * as utils from './fields';
 export { utils };

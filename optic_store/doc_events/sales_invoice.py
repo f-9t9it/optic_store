@@ -6,8 +6,9 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import getdate, cint
+from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
 from functools import partial
-from toolz import compose
+from toolz import compose, pluck, unique, first
 
 from optic_store.doc_events.sales_order import (
     before_insert as so_before_insert,
@@ -93,6 +94,8 @@ def before_submit(doc, method):
 def on_submit(doc, method):
     _set_gift_card_validities(doc)
     _set_gift_card_balances(doc)
+    if doc.is_return and not doc.update_stock:
+        _make_return_dn(doc)
 
 
 def _set_gift_card_validities(doc):
@@ -104,14 +107,14 @@ def _set_gift_card_validities(doc):
                     "Gift Card", {"gift_card_no": serial_no}
                 )
                 if gift_card_no:
-                    gift_card_validity = frappe.db.get_value("Item", row.item_code, "gift_card_validity")
+                    gift_card_validity = frappe.db.get_value(
+                        "Item", row.item_code, "gift_card_validity"
+                    )
                     frappe.db.set_value(
                         "Gift Card",
                         gift_card_no,
                         "expiry_date",
-                        frappe.utils.add_days(
-                            doc.posting_date, gift_card_validity
-                        ),
+                        frappe.utils.add_days(doc.posting_date, gift_card_validity),
                     )
 
 
@@ -134,6 +137,33 @@ def _set_gift_card_balances(doc, cancel=False):
             gift_card.balance - amount if not cancel else gift_card.balance + amount,
         )
         amount_remaining -= amount
+
+
+def _make_return_dn(si_doc):
+    get_dns = compose(list, unique, partial(pluck, "parent"), frappe.get_all)
+    dns = get_dns(
+        "Delivery Note Item",
+        filters={"against_sales_invoice": si_doc.return_against, "docstatus": 1},
+        fields=["parent"],
+    )
+    if not dns:
+        return
+    if len(dns) > 1:
+        frappe.throw(
+            _(
+                "Multiple Delivery Notes found for this Sales Invoice. "
+                "Please create Sales Return from the Delivery Note manually."
+            )
+        )
+    doc = make_delivery_note(si_doc.name)
+    for i, item in enumerate(doc.items):
+        item.qty = si_doc.items[i].qty
+        item.stock_qty = si_doc.items[i].stock_qty
+    doc.is_return = 1
+    doc.return_against = first(dns)
+    doc.run_method("calculate_taxes_and_totals")
+    doc.insert()
+    doc.submit()
 
 
 def on_cancel(doc, method):

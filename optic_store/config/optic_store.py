@@ -19,6 +19,16 @@ def get_data():
                     "name": "Stock Transfer",
                     "label": _("Stock Transfer"),
                 },
+                {
+                    "type": "doctype",
+                    "name": "Custom Purchase Receipt",
+                    "label": _("Custom Purchase Receipt"),
+                },
+                {
+                    "type": "doctype",
+                    "name": "Custom Loyalty Entry",
+                    "label": _("Custom Loyalty Entry"),
+                },
             ],
         },
         {
@@ -89,6 +99,24 @@ def get_data():
                     "is_query_report": True,
                     "name": "Loyalty Card Activation",
                     "label": _("Loyalty Card Activation"),
+                },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Loyalty Point Ledger",
+                    "label": _("Loyalty Point Ledger"),
+                },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Customer Loyalty Point",
+                    "label": _("Customer Loyalty Point"),
+                },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Loyalty Point Expiry",
+                    "label": _("Loyalty Point Expiry"),
                 },
                 {
                     "type": "report",
