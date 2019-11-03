@@ -220,7 +220,7 @@ export function hide_actions(frm) {
 }
 
 export async function handle_min_item_prices(frm, cdt, cdn) {
-  const { item_code } = frappe.get_doc(cdt, cdn);
+  const { item_code = '' } = frappe.get_doc(cdt, cdn);
   const {
     message: { ms1: os_minimum_selling_rate, ms2: os_minimum_selling_2_rate } = {},
   } = await frappe.call({

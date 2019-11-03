@@ -94,7 +94,7 @@ def before_submit(doc, method):
 def on_submit(doc, method):
     _set_gift_card_validities(doc)
     _set_gift_card_balances(doc)
-    if doc.is_return and not doc.update_stock:
+    if doc.is_return and not doc.os_manual_return_dn and not doc.update_stock:
         _make_return_dn(doc)
 
 

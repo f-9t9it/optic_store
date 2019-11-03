@@ -150,6 +150,7 @@ fixtures = [
                     "Sales Order Item-os_minimum_selling_2_rate",
                     "Sales Order Item-batch_no",
                     "Sales Order Item-os_spec_part",
+                    "Sales Invoice-os_manual_return_dn",
                     "Sales Invoice-os_insurance_sec",
                     "Sales Invoice-os_is_insurance",
                     "Sales Invoice-os_membership_no",
