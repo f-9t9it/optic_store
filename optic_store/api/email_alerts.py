@@ -134,7 +134,9 @@ def _branch_sales_summary(bs):
     context = _make_branch_sales_context(
         branch_collections=branch_collections, mop_collections=mop_collections
     )
-    msg = frappe.render_template("templates/includes/daily_branch_sales.html", context)
+    msg = frappe.render_template(
+        "templates/includes/daily_branch_sales.html.j2", context
+    )
 
     for recipient in _get_recipients(bs.branch_sales_recipients):
         frappe.sendmail(
