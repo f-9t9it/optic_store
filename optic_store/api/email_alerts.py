@@ -9,7 +9,7 @@ from frappe.utils import getdate, add_days
 from functools import partial
 from toolz import curry, unique, compose, merge, get, excepts
 
-from optic_store.utils import sum_by, map_resolved
+from optic_store.utils import sum_by, mapf, filterf
 
 
 def process():
@@ -29,16 +29,19 @@ def _document_expiry_reminder(dx):
 
     get_branch_records = _get_branch_records(end_date)
     get_emp_records = _get_emp_records(end_date)
-    filter_empty = partial(filter, lambda x: x.get("data"))
+    filter_empty = partial(filterf, lambda x: x.get("data"))
 
     branch_docs = [
-        {"label": "CR Expiry", "data": get_branch_records("os_cr_expiry")},
-        {"label": "NHRA Expiry", "data": get_branch_records("os_nhra_expiry")},
+        {"label": "CR", "data": get_branch_records("os_cr_no", "os_cr_expiry")},
+        {
+            "label": "NHRA License",
+            "data": get_branch_records("os_nhra_license", "os_nhra_expiry"),
+        },
     ]
     employee_docs = [
-        {"label": "Passport Expiry", "data": get_emp_records("valid_upto")},
-        {"label": "CPR Expiry", "data": get_emp_records("os_cpr_expiry")},
-        {"label": "NHRA Expiry", "data": get_emp_records("os_nhra_expiry")},
+        {"label": "Passport", "data": get_emp_records("valid_upto")},
+        {"label": "CPR", "data": get_emp_records("os_cpr_expiry")},
+        {"label": "NHRA", "data": get_emp_records("os_nhra_expiry")},
     ]
 
     if not len(filter_empty(branch_docs + employee_docs)):
@@ -63,7 +66,7 @@ def _document_expiry_reminder(dx):
 
 
 def _make_document_expiry_context(branch_docs, employee_docs, days_till_expiry):
-    subtitle = "Documents expiring in {} days or less".format(days_till_expiry)
+    subtitle = "Within {} days or less".format(days_till_expiry)
     context = frappe._dict(
         branch_docs=branch_docs,
         employee_docs=employee_docs,
@@ -76,23 +79,27 @@ def _make_document_expiry_context(branch_docs, employee_docs, days_till_expiry):
 
 
 def _set_other_styles(context):
-    context.table = "width: 100%; margin-bottom: 1em;"
-    context.caption = (
-        "text-align: left; font-size: 1.2em; margin-bottom: 1em; line-height: 1;"
+    context.table = "width: 100%; border-collapse: collapse;"
+    context.caption = "text-align: center; font-weight: bold; margin: 1em 0;"
+    context.th = (
+        "text-align: center; background-color: #c4bd97; border: 1px solid black;"
     )
-    context.th = "color: #8D99A6; font-variant: all-small-caps;"
-    context.td = "border-top: 1px solid #d1d8dd; padding: 5px 0;"
+    context.td = "border: 1px solid black;"
 
 
 @curry
-def _get_branch_records(end_date, fieldname):
+def _get_branch_records(end_date, param_field, expiry_field):
     return frappe.db.sql(
         """
-            SELECT branch_code, branch AS branch_name, {fieldname} AS expiry_date
+            SELECT
+                branch_code,
+                branch AS branch_name,
+                {param_field} AS param,
+                {expiry_field} AS expiry_date
             FROM `tabBranch`
             WHERE {fieldname} <= %(end_date)s
         """.format(
-            fieldname=fieldname
+            param_field=param_field, expiry_field=expiry_field
         ),
         values={"end_date": end_date},
         as_dict=1,
@@ -215,7 +222,7 @@ def _get_branch_collections(payments, end_date):
             "monthly_target_percent": get_percent(collected_mtd, monthly_target),
         }
 
-    return map_resolved(
+    return mapf(
         lambda x: merge(x, set_amounts(x)),
         frappe.get_all(
             "Branch",
@@ -239,7 +246,7 @@ def _get_mop_collections(payments, end_date):
         lambda x: filter(lambda row: row.mode_of_payment == x, payments),
         partial(get, "mop"),
     )
-    return map_resolved(
+    return mapf(
         lambda x: merge(
             x, {"collected_today": get_sum_today(x), "collected_mtd": get_sum_mtd(x)}
         ),
