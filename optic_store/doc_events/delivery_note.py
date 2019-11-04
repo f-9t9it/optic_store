@@ -43,7 +43,10 @@ def _are_paid(sales_orders):
                 SELECT si.status AS status
                 FROM `tabSales Invoice Item` AS sii
                 LEFT JOIN `tabSales Invoice` AS si ON sii.parent = si.name
-                WHERE sii.sales_order IN %(sales_orders)s AND si.docstatus = 1
+                WHERE
+                    sii.sales_order IN %(sales_orders)s AND
+                    si.is_return = 0 AND
+                    si.docstatus = 1
             """,
             values={"sales_orders": sales_orders},
             as_dict=1,
