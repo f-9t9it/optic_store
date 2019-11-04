@@ -175,7 +175,7 @@ export default class InvoiceDialog {
       async function() {
         const { name } = frm.doc;
         const values = this.dialog.get_values();
-        const enabled_print_formats = this.print_formats.filter(pf => values[pf]);
+        const enabled_print_formats = await this._get_print_formats(name);
         const payments = values.payments.map(({ mode_of_payment, amount }) => ({
           mode_of_payment,
           amount,
@@ -199,8 +199,8 @@ export default class InvoiceDialog {
           },
         });
         frm.reload_doc();
-        enabled_print_formats.forEach(pf => {
-          print_doc(frm.doc.doctype, frm.doc.name, pf, 0);
+        enabled_print_formats.forEach(({ doctype, docname, print_format }) => {
+          print_doc(doctype, docname, print_format, 0);
         });
       }.bind(this)
     );
@@ -266,19 +266,28 @@ export default class InvoiceDialog {
     }
   }
   async print(frm) {
-    const print_formats = this.print_formats;
     this.dialog.get_primary_btn().off('click');
-    this.dialog.set_primary_action('OK', async function() {
-      const { name } = frm.doc;
-      const values = this.get_values();
-      const enabled_print_formats = print_formats.filter(pf => values[pf]);
-      this.hide();
-      enabled_print_formats.forEach(pf => {
-        print_doc(frm.doc.doctype, frm.doc.name, pf, 0);
-      });
-    });
+    this.dialog.set_primary_action(
+      'OK',
+      async function() {
+        const enabled_print_formats = await this._get_print_formats(frm.doc.name);
+        this.dialog.hide();
+        enabled_print_formats.forEach(({ doctype, docname, print_format }) => {
+          print_doc(doctype, docname, print_format, 0);
+        });
+      }.bind(this)
+    );
     this.dialog.set_df_property('loyalty_sec', 'hidden', 1);
     this.dialog.set_df_property('payment_sec', 'hidden', 1);
     this.dialog.show();
+  }
+  async _get_print_formats(sales_order) {
+    const values = this.dialog.get_values();
+    const print_formats = this.print_formats.filter(pf => values[pf]);
+    const { message } = await frappe.call({
+      method: 'optic_store.api.sales_order.get_print_formats',
+      args: { sales_order, print_formats },
+    });
+    return message;
   }
 }
