@@ -97,7 +97,7 @@ def _get_branch_records(end_date, param_field, expiry_field):
                 {param_field} AS param,
                 {expiry_field} AS expiry_date
             FROM `tabBranch`
-            WHERE {fieldname} <= %(end_date)s
+            WHERE disabled = 0 AND {expiry_field} <= %(end_date)s
         """.format(
             param_field=param_field, expiry_field=expiry_field
         ),
@@ -112,7 +112,7 @@ def _get_emp_records(end_date, fieldname):
         """
             SELECT name AS employee_id, employee_name, {fieldname} AS expiry_date
             FROM `tabEmployee`
-            WHERE {fieldname} <= %(end_date)s
+            WHERE status = 'Active' AND {fieldname} <= %(end_date)s
         """.format(
             fieldname=fieldname
         ),
