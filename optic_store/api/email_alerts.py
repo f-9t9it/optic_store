@@ -49,7 +49,7 @@ def _document_expiry_reminder(dx):
         employee_docs=filter_empty(employee_docs),
         days_till_expiry=dx.document_expiry_days_till_expiry or 0,
     )
-    msg = frappe.render_template("templates/includes/document_expiry.html", context)
+    msg = frappe.render_template("templates/includes/document_expiry.html.j2", context)
 
     for recipient in _get_recipients(dx.document_expiry_recipients):
         frappe.sendmail(
