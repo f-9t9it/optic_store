@@ -150,13 +150,11 @@ def _branch_sales_summary(bs):
 
 
 def _make_branch_sales_context(branch_collections, mop_collections):
-    subtitle = "Figures collected for today and the MTD"
     context = frappe._dict(
         branch_collections=branch_collections,
         mop_collections=mop_collections,
         company=frappe.defaults.get_global_default("company"),
         currency=frappe.defaults.get_global_default("currency"),
-        subtitle=subtitle,
     )
     frappe.new_doc("Email Digest").set_style(context)
     _set_other_styles(context)
