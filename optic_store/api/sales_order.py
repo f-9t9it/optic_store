@@ -9,10 +9,10 @@ from frappe.utils import cint
 from frappe.model.workflow import get_workflow, apply_workflow
 from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
 from functools import partial
-from toolz import compose, keyfilter, cons, identity
+from toolz import compose, keyfilter, cons, identity, unique, concat
 
 from optic_store.api.customer import get_user_branch
-from optic_store.utils import mapf, filterf
+from optic_store.utils import mapf, filterf, key_by
 
 
 @frappe.whitelist()
@@ -111,6 +111,57 @@ def update_sales_orders(sales_orders, action, lab_tech=None):
             lambda x: frappe.db.set_value("Sales Order", x, "os_lab_tech", lab_tech)
         )
         mapf(update, json.loads(sales_orders))
+
+
+@frappe.whitelist()
+def get_print_formats(sales_order, print_formats):
+    get_pf_settings = compose(
+        partial(key_by, "print_format"),
+        lambda x: frappe.db.sql(
+            """
+                SELECT print_format, is_invoice_pf
+                FROM `tabOptical Store Settings Print Format`
+                WHERE parentfield = 'order_pfs' AND print_format IN %(print_formats)s
+            """,
+            values={"print_formats": x},
+            as_dict=1,
+        ),
+        json.loads,
+    )
+
+    get_sales_invoices = compose(
+        list,
+        unique,
+        partial(map, lambda x: x.name),
+        lambda x: frappe.db.sql(
+            """
+                SELECT sii.parent AS name
+                FROM `tabSales Invoice Item` AS sii
+                LEFT JOIN `tabSales Invoice` AS si ON si.name = sii.parent
+                WHERE sii.sales_order = %(sales_order)s AND si.docstatus = 1
+            """,
+            values={"sales_order": x},
+            as_dict=1,
+        ),
+    )
+
+    sales_invoices = get_sales_invoices(sales_order)
+
+    def get_ref_doc(pf):
+        if not pf_settings.get(pf, {}).get("is_invoice_pf"):
+            return [
+                {"doctype": "Sales Order", "docname": sales_order, "print_format": pf}
+            ]
+        return mapf(
+            lambda x: {"doctype": "Sales Invoice", "docname": x, "print_format": pf},
+            sales_invoices,
+        )
+
+    pf_settings = get_pf_settings(print_formats)
+
+    make_pfs = compose(list, concat, partial(map, get_ref_doc), json.loads)
+
+    return make_pfs(print_formats)
 
 
 workflow = {

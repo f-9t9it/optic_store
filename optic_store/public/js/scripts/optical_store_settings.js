@@ -4,8 +4,13 @@ function pf_query_filter(doctype) {
 
 export default {
   refresh: function(frm) {
-    frm.set_query('print_format', 'order_pfs', {
-      filters: pf_query_filter('Sales Order'),
+    frm.set_query('print_format', 'order_pfs', (doc, cdt, cdn) => {
+      const { is_invoice_pf = 0 } = frappe.get_doc(cdt, cdn) || {};
+      return {
+        filters: is_invoice_pf
+          ? pf_query_filter('Sales Invoice')
+          : pf_query_filter('Sales Order'),
+      };
     });
     frm.set_query('print_format', 'invoice_pfs', {
       filters: pf_query_filter('Sales Invoice'),

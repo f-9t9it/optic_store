@@ -1,0 +1,70 @@
+<div>
+  <p><strong>Date: {{ frappe.format_date(current_date, 'dd-MM-YYYY') }}</strong></p>
+  {%- if branch_collections -%}
+  <table style="{{ table }} max-width: 1500px;">
+    <thead>
+      <tr>
+        <th style="{{ th }} width: 240px;">{{ _('Branch') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Total Sales Collected') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Branch Monthly Target') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Branch Half Month Target') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('% Half Month Achieved') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Monthly Target Achieved till Date') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Remaining Monthy Target Amount to be Achieved') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('% Monthly Achieved') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for row in branch_collections -%}
+      <tr>
+        <td style="{{ td }} width: 240px;">{{ row.branch }}</td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(row.collected_today, currency=currency) }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(row.monthly_target, currency=currency) }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(row.half_monthly_target, currency=currency) }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ '%0.2f%%'|format(row.half_monthly_target_percent) if row.monthly_target
+          else 'N/A' }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(row.collected_mtd, currency=currency) }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(row.monthly_target_remaining, currency=currency) if
+          row.monthly_target else 'N/A' }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ '%0.2f%%'|format(row.monthly_target_percent) if row.monthly_target else
+          'N/A' }}
+        </td>
+      </tr>
+      {%- endfor -%}
+    </tbody>
+  </table>
+  {%- endif -%}
+  {%- if mop_collections -%}
+  <table style="{{ table }}; margin-top: 2em; max-width: 420px;">
+    <thead>
+      <tr>
+        <th style="{{ th }} width: 240px;">{{ _('Payment Mode') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Total Amount') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for row in mop_collections -%}
+      <tr>
+        <td style="{{ td }}">{{ row.mop }}</td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(row.collected_today, currency=currency) }}
+        </td>
+      </tr>
+      {%- endfor -%}
+    </tbody>
+  </table>
+  {%- endif -%}
+</div>

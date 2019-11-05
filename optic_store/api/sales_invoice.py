@@ -114,6 +114,8 @@ def _validate_qol(batches, si):
 
 
 def _make_payment_entry(name, mode_of_payment, paid_amount, gift_card_no):
+    if not mode_of_payment:
+        frappe.throw(_("Mode of Payment is required"))
     si = frappe.get_doc("Sales Invoice", name)
     payment_account = _get_account(mode_of_payment, si.company)
     pe = frappe.new_doc("Payment Entry")
