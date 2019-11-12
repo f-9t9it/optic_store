@@ -155,7 +155,7 @@ def _make_return_dn(si_doc):
                 "Please create Sales Return from the Delivery Note manually."
             )
         )
-    doc = make_delivery_note(si_doc.name)
+    doc = make_delivery_note(si_doc.return_against)
     for i, item in enumerate(doc.items):
         item.qty = si_doc.items[i].qty
         item.stock_qty = si_doc.items[i].stock_qty
