@@ -122,7 +122,7 @@ def _get_emp_records(end_date, fieldname):
 
 
 def _branch_sales_summary(bs):
-    end_date = frappe.utils.getdate()
+    end_date = frappe.utils.add_days(frappe.utils.getdate(), -1)
     payments = _get_payments(end_date)
 
     branch_collections = _get_branch_collections(payments, end_date)
@@ -186,7 +186,7 @@ def _get_payments(end_date):
         """,
         values={
             "start_date": frappe.utils.get_first_day(end_date),
-            "end_date": end_date,
+            "end_date": frappe.utils.get_last_day(end_date),
         },
         as_dict=1,
     )
