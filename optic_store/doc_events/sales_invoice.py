@@ -168,3 +168,44 @@ def _make_return_dn(si_doc):
 
 def on_cancel(doc, method):
     _set_gift_card_balances(doc, cancel=True)
+    if doc.is_return and not doc.os_manual_return_dn and not doc.update_stock:
+        _cancel_return_dn(doc)
+
+
+def _cancel_return_dn(si_doc):
+    get_dns = compose(list, unique, partial(pluck, "parent"), frappe.db.sql)
+    dns = get_dns(
+        """
+            SELECT dni.parent AS parent
+            FROM `tabDelivery Note Item` AS dni
+            LEFT JOIN `tabDelivery Note` AS dn ON dn.name = dni.parent
+            WHERE
+                dn.docstatus = 1 AND
+                dn.is_return = 1 AND
+                dni.against_sales_invoice = %(against_sales_invoice)s
+        """,
+        values={"against_sales_invoice": si_doc.return_against},
+        as_dict=1,
+    )
+    if not dns:
+        return
+    if len(dns) > 1:
+        frappe.throw(
+            _(
+                "Multiple Delivery Notes found for this Sales Invoice. "
+                "Please cancel from the return Delivery Note manually."
+            )
+        )
+    doc = frappe.get_doc("Delivery Note", first(dns))
+    for i, item in enumerate(doc.items):
+        if (
+            item.item_code != si_doc.items[i].item_code
+            or item.qty != si_doc.items[i].qty
+        ):
+            frappe.throw(
+                _(
+                    "Mismatched <code>item_code</code> / <code>qty</code> "
+                    "found in <em>items</em> table."
+                )
+            )
+    doc.cancel()
