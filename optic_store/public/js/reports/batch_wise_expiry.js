@@ -1,4 +1,4 @@
-import { make_link, make_date } from './fields';
+import { make_link, make_date, make_check } from './fields';
 
 export default function() {
   return {
@@ -34,6 +34,7 @@ export default function() {
       }),
       make_link({ fieldname: 'warehouse', options: 'Warehouse' }),
       make_link({ fieldname: 'item_group', options: 'Item Group' }),
+      make_check({ fieldname: 'hide_zero_stock' }),
     ],
   };
 }

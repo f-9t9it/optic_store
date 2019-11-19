@@ -3,6 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+import math
 import frappe
 from frappe import _
 from frappe.utils import getdate, add_days
@@ -122,17 +123,19 @@ def _get_emp_records(end_date, fieldname):
 
 
 def _branch_sales_summary(bs):
-    end_date = frappe.utils.add_days(frappe.utils.getdate(), -1)
-    payments = _get_payments(end_date)
+    yesterday = frappe.utils.add_days(frappe.utils.getdate(), -1)
+    payments = _get_payments(yesterday)
 
-    branch_collections = _get_branch_collections(payments, end_date)
-    mop_collections = _get_mop_collections(payments, end_date)
+    branch_collections = _get_branch_collections(payments, yesterday)
+    mop_collections = _get_mop_collections(payments, yesterday)
 
     if not len(branch_collections + mop_collections):
         return
 
     context = _make_branch_sales_context(
-        branch_collections=branch_collections, mop_collections=mop_collections
+        branch_collections=branch_collections,
+        mop_collections=mop_collections,
+        grouped_mop_collections=_get_grouped_mop_collections(payments, yesterday),
     )
     msg = frappe.render_template(
         "templates/includes/daily_branch_sales.html.j2", context
@@ -149,10 +152,13 @@ def _branch_sales_summary(bs):
         )
 
 
-def _make_branch_sales_context(branch_collections, mop_collections):
+def _make_branch_sales_context(
+    branch_collections, mop_collections, grouped_mop_collections
+):
     context = frappe._dict(
         branch_collections=branch_collections,
         mop_collections=mop_collections,
+        grouped_mop_collections=grouped_mop_collections,
         company=frappe.defaults.get_global_default("company"),
         currency=frappe.defaults.get_global_default("currency"),
     )
@@ -161,7 +167,8 @@ def _make_branch_sales_context(branch_collections, mop_collections):
     return context
 
 
-def _get_payments(end_date):
+def _get_payments(yesterday):
+    start_date, end_date = _get_year_dates(yesterday)
     return frappe.db.sql(
         """
             SELECT
@@ -184,71 +191,140 @@ def _get_payments(end_date):
             WHERE docstatus = 1 AND
                 posting_date BETWEEN %(start_date)s AND %(end_date)s
         """,
-        values={
-            "start_date": frappe.utils.get_first_day(end_date),
-            "end_date": frappe.utils.get_last_day(end_date),
-        },
+        values={"start_date": start_date, "end_date": end_date},
         as_dict=1,
     )
 
 
-def _get_branch_collections(payments, end_date):
-    get_sum_today = compose(
-        sum_by("amount"),
-        lambda x: filter(
-            lambda row: row.branch == x and row.posting_date == end_date, payments
-        ),
-        partial(get, "branch"),
+def _get_year_dates(date):
+    return date.replace(month=1, day=1), date.replace(month=12, day=31)
+
+
+def _get_half_year_dates(date):
+    if date.month > 6:
+        return date.replace(month=7, day=1), date.replace(month=12, day=31)
+    return date.replace(month=1, day=1), date.replace(month=6, day=31)
+
+
+def _get_quarter_dates(date):
+    if date.month > 9:
+        return date.replace(month=10, day=1), date.replace(month=12, day=31)
+    if date.month > 6:
+        return date.replace(month=7, day=1), date.replace(month=9, day=30)
+    if date.month > 3:
+        return date.replace(month=4, day=1), date.replace(month=6, day=30)
+    return date.replace(month=1, day=1), date.replace(month=3, day=31)
+
+
+def _get_month_dates(date):
+    return frappe.utils.get_first_day(date), frappe.utils.get_last_day(date)
+
+
+def _get_half_month_dates(date):
+    half_day = compose(int, math.ceil, lambda x: x / 2)
+    return (
+        frappe.utils.get_first_day(date),
+        date.replace(day=half_day(frappe.utils.get_last_day(date).day)),
     )
-    get_sum_mtd = compose(
-        sum_by("amount"),
-        lambda x: filter(lambda row: row.branch == x, payments),
-        partial(get, "branch"),
-    )
+
+
+def _get_branch_collections(payments, yesterday):
+    def make_aggregator(start, end):
+        return compose(
+            sum_by("amount"),
+            lambda x: filter(
+                lambda row: row.branch == x and (start <= row.posting_date <= end),
+                payments,
+            ),
+            partial(get, "branch"),
+        )
+
+    sum_today = make_aggregator(yesterday, yesterday)
+    sum_half_month = make_aggregator(*_get_half_month_dates(yesterday))
+    sum_month = make_aggregator(*_get_month_dates(yesterday))
+    sum_quarter = make_aggregator(*_get_quarter_dates(yesterday))
+    sum_half_year = make_aggregator(*_get_half_year_dates(yesterday))
+    sum_year = make_aggregator(*_get_year_dates(yesterday))
 
     get_percent = excepts(ZeroDivisionError, lambda x, y: x / y * 100, lambda __: 0)
 
     def set_amounts(x):
+        half_monthly_target = get("half_monthly_target", x, 0)
         monthly_target = get("monthly_target", x, 0)
-        collected_mtd = get_sum_mtd(x)
+        quarterly_target = get("quarterly_target", x, 0)
+        half_yearly_target = get("half_yearly_target", x, 0)
+        yearly_target = get("yearly_target", x, 0)
+
+        collected_mtd = sum_month(x)
         return {
-            "collected_today": get_sum_today(x),
-            "half_monthly_target": monthly_target / 2,
+            "collected_today": sum_today(x),
+            "half_monthly_target": half_monthly_target,
             "half_monthly_target_percent": get_percent(
-                collected_mtd, monthly_target / 2
+                sum_half_month(x), half_monthly_target
             ),
             "collected_mtd": collected_mtd,
             "monthly_target_remaining": monthly_target - collected_mtd,
             "monthly_target_percent": get_percent(collected_mtd, monthly_target),
+            "quarterly_target": quarterly_target,
+            "quarterly_target_percent": get_percent(sum_quarter(x), quarterly_target),
+            "half_yearly_target": half_yearly_target,
+            "half_yearly_target_percent": get_percent(
+                sum_half_year(x), half_yearly_target
+            ),
+            "yearly_target": yearly_target,
+            "yearly_target_percent": get_percent(sum_year(x), yearly_target),
         }
 
     return mapf(
         lambda x: merge(x, set_amounts(x)),
         frappe.get_all(
             "Branch",
-            fields=["name AS branch", "os_target AS monthly_target"],
+            fields=[
+                "name AS branch",
+                "os_half_monthly_target AS half_monthly_target",
+                "os_target AS monthly_target",
+                "os_quarterly_target AS quarterly_target",
+                "os_half_yearly_target AS half_yearly_target",
+                "os_yearly_target AS yearly_target",
+            ],
             filters={"disabled": 0},
         ),
     )
 
 
-def _get_mop_collections(payments, end_date):
+def _get_mop_collections(payments, yesterday):
     get_sum_today = compose(
         sum_by("amount"),
         lambda x: filter(
-            lambda row: row.mode_of_payment == x and row.posting_date == end_date,
+            lambda row: row.mode_of_payment == x and row.posting_date == yesterday,
             payments,
         ),
         partial(get, "mop"),
     )
-    get_sum_mtd = compose(
-        sum_by("amount"),
-        lambda x: filter(lambda row: row.mode_of_payment == x, payments),
-        partial(get, "mop"),
-    )
     return mapf(
-        lambda x: merge(
-            x, {"collected_today": get_sum_today(x), "collected_mtd": get_sum_mtd(x)}
-        ),
+        lambda x: merge(x, {"collected_today": get_sum_today(x)}),
         frappe.get_all("Mode of Payment", fields=["name AS mop"]),
     )
+
+
+def _get_grouped_mop_collections(payments, yesterday):
+    get_sum_today = compose(
+        sum_by("amount"),
+        lambda x: filter(
+            lambda row: row.mode_of_payment in x and row.posting_date == yesterday,
+            payments,
+        ),
+        lambda x: x.split("\n"),
+        partial(get, "mops", default=""),
+    )
+    return [
+        merge(x, {"collected_today": get_sum_today(x)})
+        for x in frappe.get_all(
+            "Email Alerts Grouped MOP", fields=["group_name", "mops"]
+        )
+    ]
+
+
+@frappe.whitelist()
+def get_mops():
+    return [x.get("name") for x in frappe.get_all("Mode of Payment")]

@@ -89,6 +89,7 @@ def _get_filters(filters):
             "item_group",
             "buying_price_list",
             "selling_price_list",
+            "hide_zero_stock",
         ],
         filters,
     )
@@ -140,4 +141,9 @@ def _get_data(clauses, values, keys):
 
     make_row = compose(partial(pick, keys), set_expiry)
 
-    return map(make_row, sles)
+    def row_filter(row):
+        if not values.get("hide_zero_stock"):
+            return True
+        return row.get("qty") > 0
+
+    return [make_row(x) for x in sles if row_filter(x)]
