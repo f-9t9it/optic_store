@@ -133,7 +133,9 @@ def _branch_sales_summary(bs):
         return
 
     context = _make_branch_sales_context(
-        branch_collections=branch_collections, mop_collections=mop_collections
+        branch_collections=branch_collections,
+        mop_collections=mop_collections,
+        grouped_mop_collections=_get_grouped_mop_collections(payments, yesterday),
     )
     msg = frappe.render_template(
         "templates/includes/daily_branch_sales.html.j2", context
@@ -150,10 +152,13 @@ def _branch_sales_summary(bs):
         )
 
 
-def _make_branch_sales_context(branch_collections, mop_collections):
+def _make_branch_sales_context(
+    branch_collections, mop_collections, grouped_mop_collections
+):
     context = frappe._dict(
         branch_collections=branch_collections,
         mop_collections=mop_collections,
+        grouped_mop_collections=grouped_mop_collections,
         company=frappe.defaults.get_global_default("company"),
         currency=frappe.defaults.get_global_default("currency"),
     )
@@ -300,3 +305,26 @@ def _get_mop_collections(payments, yesterday):
         lambda x: merge(x, {"collected_today": get_sum_today(x)}),
         frappe.get_all("Mode of Payment", fields=["name AS mop"]),
     )
+
+
+def _get_grouped_mop_collections(payments, yesterday):
+    get_sum_today = compose(
+        sum_by("amount"),
+        lambda x: filter(
+            lambda row: row.mode_of_payment in x and row.posting_date == yesterday,
+            payments,
+        ),
+        lambda x: x.split("\n"),
+        partial(get, "mops", default=""),
+    )
+    return [
+        merge(x, {"collected_today": get_sum_today(x)})
+        for x in frappe.get_all(
+            "Email Alerts Grouped MOP", fields=["group_name", "mops"]
+        )
+    ]
+
+
+@frappe.whitelist()
+def get_mops():
+    return [x.get("name") for x in frappe.get_all("Mode of Payment")]

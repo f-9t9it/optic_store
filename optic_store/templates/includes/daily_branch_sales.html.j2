@@ -94,4 +94,24 @@
     </tbody>
   </table>
   {%- endif -%}
+  {%- if grouped_mop_collections -%}
+  <table style="{{ table }}; margin-top: 2em; max-width: 420px;">
+    <thead>
+      <tr>
+        <th style="{{ th }} width: 240px;">{{ _('Payment Mode') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Amount') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for row in grouped_mop_collections -%}
+      <tr>
+        <td style="{{ td }}">{{ row.group_name }}</td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(row.collected_today, currency=currency) }}
+        </td>
+      </tr>
+      {%- endfor -%}
+    </tbody>
+  </table>
+  {%- endif -%}
 </div>
