@@ -12,6 +12,12 @@
         <th style="{{ th }} width: 180px;">{{ _('Monthly Target Achieved till Date') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('Remaining Monthy Target Amount to be Achieved') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('% Monthly Achieved') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Branch Quarterly Target') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('% Quarterly Achieved') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Branch Half Yearly Target') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('% Half Yearly Achieved') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Branch Yearly Target') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('% Yearly Achieved') }}</th>
       </tr>
     </thead>
     <tbody>
@@ -28,7 +34,7 @@
           {{ frappe.utils.fmt_money(row.half_monthly_target, currency=currency) }}
         </td>
         <td style="{{ td }} width: 180px; text-align: right;">
-          {{ '%0.2f%%'|format(row.half_monthly_target_percent) if row.monthly_target
+          {{ '%0.2f%%'|format(row.half_monthly_target_percent) if row.half_monthly_target
           else 'N/A' }}
         </td>
         <td style="{{ td }} width: 180px; text-align: right;">
@@ -41,6 +47,27 @@
         <td style="{{ td }} width: 180px; text-align: right;">
           {{ '%0.2f%%'|format(row.monthly_target_percent) if row.monthly_target else
           'N/A' }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(row.quarterly_target, currency=currency) }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ '%0.2f%%'|format(row.quarterly_target_percent) if row.quarterly_target
+          else 'N/A' }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(row.half_yearly_target, currency=currency) }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ '%0.2f%%'|format(row.half_yearly_target_percent) if row.half_yearly_target
+          else 'N/A' }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(row.yearly_target, currency=currency) }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ '%0.2f%%'|format(row.yearly_target_percent) if row.yearly_target
+          else 'N/A' }}
         </td>
       </tr>
       {%- endfor -%}
