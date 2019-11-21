@@ -8,6 +8,7 @@
         <th style="{{ th }} width: 180px;">{{ _('Total Sales Collected') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('Branch Monthly Target') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('Branch Half Month Target') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Half Monthly Target Achieved till Date') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('% Half Month Achieved') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('Monthly Target Achieved till Date') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('Remaining Monthy Target Amount to be Achieved') }}</th>
@@ -38,6 +39,9 @@
         </td>
         <td style="{{ td }} width: 180px; text-align: right;">
           {{ frappe.utils.fmt_money(row.half_monthly_target, currency=currency) }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(row.half_monthly_sales, currency=currency) }}
         </td>
         <td style="{{ td }} width: 180px; text-align: right;">
           {{ '%0.2f%%'|format(row.half_monthly_sales / row.half_monthly_target * 100)
@@ -95,6 +99,9 @@
         </td>
         <td style="{{ tdfoot }} width: 180px; text-align: right;">
           {{ frappe.utils.fmt_money(branch_collections|sum('half_monthly_target'), currency=currency) }}
+        </td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(branch_collections|sum('half_monthly_sales'), currency=currency) }}
         </td>
         <td style="{{ tdfoot }} width: 180px; text-align: right;">
           {{ '%0.2f%%'|format(
