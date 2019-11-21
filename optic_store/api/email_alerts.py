@@ -86,6 +86,7 @@ def _set_other_styles(context):
         "text-align: center; background-color: #c4bd97; border: 1px solid black;"
     )
     context.td = "border: 1px solid black;"
+    context.tdfoot = "font-weight: bold; border: 1px solid black;"
 
 
 @curry
@@ -250,49 +251,18 @@ def _get_branch_collections(payments, yesterday, settings):
     sum_half_year = make_aggregator(*_get_half_year_dates(yesterday))
     sum_year = make_aggregator(*_get_year_dates(yesterday))
 
-    get_percent = excepts(ZeroDivisionError, lambda x, y: x / y * 100, lambda __: 0)
-
     def set_amounts(x):
-        half_monthly_target = get("half_monthly_target", x, 0)
-        monthly_target = get("monthly_target", x, 0)
-        quarterly_target = get("quarterly_target", x, 0)
-        half_yearly_target = get("half_yearly_target", x, 0)
-        yearly_target = get("yearly_target", x, 0)
-
         collected_mtd = sum_month(x)
         return merge(
             {
                 "collected_today": sum_today(x),
-                "half_monthly_target": half_monthly_target,
-                "half_monthly_target_percent": get_percent(
-                    sum_half_month(x), half_monthly_target
-                ),
+                "half_monthly_sales": sum_half_month(x),
                 "collected_mtd": collected_mtd,
-                "monthly_target_remaining": monthly_target - collected_mtd,
-                "monthly_target_percent": get_percent(collected_mtd, monthly_target),
+                "monthly_target_remaining": get("monthly_target", x, 0) - collected_mtd,
             },
-            {
-                "quarterly_target": quarterly_target,
-                "quarterly_target_percent": get_percent(
-                    sum_quarter(x), quarterly_target
-                ),
-            }
-            if settings.show_quarter
-            else {},
-            {
-                "half_yearly_target": half_yearly_target,
-                "half_yearly_target_percent": get_percent(
-                    sum_half_year(x), half_yearly_target
-                ),
-            }
-            if settings.show_half_year
-            else {},
-            {
-                "yearly_target": yearly_target,
-                "yearly_target_percent": get_percent(sum_year(x), yearly_target),
-            }
-            if settings.show_year
-            else {},
+            {"quarterly_sales": sum_quarter(x)} if settings.show_quarter else {},
+            {"half_yearly_sales": sum_half_year(x)} if settings.show_half_year else {},
+            {"yearly_sales": sum_year(x)} if settings.show_year else {},
         )
 
     return mapf(
