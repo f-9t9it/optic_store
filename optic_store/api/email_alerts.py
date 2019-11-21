@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, add_days
 from functools import partial
-from toolz import curry, unique, compose, merge, get, excepts
+from toolz import curry, unique, compose, merge, get
 
 from optic_store.utils import sum_by, mapf, filterf
 
@@ -277,7 +277,7 @@ def _get_branch_collections(payments, yesterday, settings):
                 "os_half_yearly_target AS half_yearly_target",
                 "os_yearly_target AS yearly_target",
             ],
-            filters={"disabled": 0},
+            filters=[["name", "in", (settings.branches_to_show or "").split("\n")]],
         ),
     )
 
@@ -318,3 +318,8 @@ def _get_grouped_mop_collections(payments, yesterday):
 @frappe.whitelist()
 def get_mops():
     return [x.get("name") for x in frappe.get_all("Mode of Payment")]
+
+
+@frappe.whitelist()
+def get_branches():
+    return [x.get("name") for x in frappe.get_all("Branch")]
