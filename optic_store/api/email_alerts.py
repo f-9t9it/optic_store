@@ -128,7 +128,9 @@ def _branch_sales_summary(bs):
     payments = _get_payments(yesterday)
 
     branch_collections = _get_branch_collections(payments, yesterday, bs)
-    mop_collections = _get_mop_collections(payments, yesterday)
+
+    filter_zero = compose(list, partial(filter, lambda x: x.get("collected_today")))
+    mop_collections = filter_zero(_get_mop_collections(payments, yesterday))
 
     if not len(branch_collections + mop_collections):
         return
@@ -137,7 +139,9 @@ def _branch_sales_summary(bs):
         bs,
         branch_collections=branch_collections,
         mop_collections=mop_collections,
-        grouped_mop_collections=_get_grouped_mop_collections(payments, yesterday),
+        grouped_mop_collections=filter_zero(
+            _get_grouped_mop_collections(payments, yesterday)
+        ),
     )
     msg = frappe.render_template(
         "templates/includes/daily_branch_sales.html.j2", context
