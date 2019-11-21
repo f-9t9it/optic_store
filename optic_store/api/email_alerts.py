@@ -126,13 +126,14 @@ def _branch_sales_summary(bs):
     yesterday = frappe.utils.add_days(frappe.utils.getdate(), -1)
     payments = _get_payments(yesterday)
 
-    branch_collections = _get_branch_collections(payments, yesterday)
+    branch_collections = _get_branch_collections(payments, yesterday, bs)
     mop_collections = _get_mop_collections(payments, yesterday)
 
     if not len(branch_collections + mop_collections):
         return
 
     context = _make_branch_sales_context(
+        bs,
         branch_collections=branch_collections,
         mop_collections=mop_collections,
         grouped_mop_collections=_get_grouped_mop_collections(payments, yesterday),
@@ -153,7 +154,7 @@ def _branch_sales_summary(bs):
 
 
 def _make_branch_sales_context(
-    branch_collections, mop_collections, grouped_mop_collections
+    settings, branch_collections, mop_collections, grouped_mop_collections
 ):
     context = frappe._dict(
         branch_collections=branch_collections,
@@ -161,6 +162,9 @@ def _make_branch_sales_context(
         grouped_mop_collections=grouped_mop_collections,
         company=frappe.defaults.get_global_default("company"),
         currency=frappe.defaults.get_global_default("currency"),
+        show_quarter=settings.show_quarter,
+        show_half_year=settings.show_half_year,
+        show_year=settings.show_year,
     )
     frappe.new_doc("Email Digest").set_style(context)
     _set_other_styles(context)
@@ -228,7 +232,7 @@ def _get_half_month_dates(date):
     )
 
 
-def _get_branch_collections(payments, yesterday):
+def _get_branch_collections(payments, yesterday, settings):
     def make_aggregator(start, end):
         return compose(
             sum_by("amount"),
@@ -256,24 +260,40 @@ def _get_branch_collections(payments, yesterday):
         yearly_target = get("yearly_target", x, 0)
 
         collected_mtd = sum_month(x)
-        return {
-            "collected_today": sum_today(x),
-            "half_monthly_target": half_monthly_target,
-            "half_monthly_target_percent": get_percent(
-                sum_half_month(x), half_monthly_target
-            ),
-            "collected_mtd": collected_mtd,
-            "monthly_target_remaining": monthly_target - collected_mtd,
-            "monthly_target_percent": get_percent(collected_mtd, monthly_target),
-            "quarterly_target": quarterly_target,
-            "quarterly_target_percent": get_percent(sum_quarter(x), quarterly_target),
-            "half_yearly_target": half_yearly_target,
-            "half_yearly_target_percent": get_percent(
-                sum_half_year(x), half_yearly_target
-            ),
-            "yearly_target": yearly_target,
-            "yearly_target_percent": get_percent(sum_year(x), yearly_target),
-        }
+        return merge(
+            {
+                "collected_today": sum_today(x),
+                "half_monthly_target": half_monthly_target,
+                "half_monthly_target_percent": get_percent(
+                    sum_half_month(x), half_monthly_target
+                ),
+                "collected_mtd": collected_mtd,
+                "monthly_target_remaining": monthly_target - collected_mtd,
+                "monthly_target_percent": get_percent(collected_mtd, monthly_target),
+            },
+            {
+                "quarterly_target": quarterly_target,
+                "quarterly_target_percent": get_percent(
+                    sum_quarter(x), quarterly_target
+                ),
+            }
+            if settings.show_quarter
+            else {},
+            {
+                "half_yearly_target": half_yearly_target,
+                "half_yearly_target_percent": get_percent(
+                    sum_half_year(x), half_yearly_target
+                ),
+            }
+            if settings.show_half_year
+            else {},
+            {
+                "yearly_target": yearly_target,
+                "yearly_target_percent": get_percent(sum_year(x), yearly_target),
+            }
+            if settings.show_year
+            else {},
+        )
 
     return mapf(
         lambda x: merge(x, set_amounts(x)),
