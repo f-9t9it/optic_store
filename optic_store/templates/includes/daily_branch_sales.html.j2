@@ -8,16 +8,23 @@
         <th style="{{ th }} width: 180px;">{{ _('Total Sales Collected') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('Branch Monthly Target') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('Branch Half Month Target') }}</th>
+        <th style="{{ th }} width: 180px;">{{ _('Half Monthly Target Achieved till Date') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('% Half Month Achieved') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('Monthly Target Achieved till Date') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('Remaining Monthy Target Amount to be Achieved') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('% Monthly Achieved') }}</th>
+        {%- if show_quarter -%}
         <th style="{{ th }} width: 180px;">{{ _('Branch Quarterly Target') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('% Quarterly Achieved') }}</th>
+        {%- endif -%}
+        {%- if show_half_year -%}
         <th style="{{ th }} width: 180px;">{{ _('Branch Half Yearly Target') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('% Half Yearly Achieved') }}</th>
+        {%- endif -%}
+        {%- if show_year -%}
         <th style="{{ th }} width: 180px;">{{ _('Branch Yearly Target') }}</th>
         <th style="{{ th }} width: 180px;">{{ _('% Yearly Achieved') }}</th>
+        {%- endif -%}
       </tr>
     </thead>
     <tbody>
@@ -34,44 +41,121 @@
           {{ frappe.utils.fmt_money(row.half_monthly_target, currency=currency) }}
         </td>
         <td style="{{ td }} width: 180px; text-align: right;">
-          {{ '%0.2f%%'|format(row.half_monthly_target_percent) if row.half_monthly_target
-          else 'N/A' }}
+          {{ frappe.utils.fmt_money(row.half_monthly_sales, currency=currency) }}
+        </td>
+        <td style="{{ td }} width: 180px; text-align: right;">
+          {{ '%0.2f%%'|format(row.half_monthly_sales / row.half_monthly_target * 100)
+          if row.half_monthly_target else 'N/A' }}
         </td>
         <td style="{{ td }} width: 180px; text-align: right;">
           {{ frappe.utils.fmt_money(row.collected_mtd, currency=currency) }}
         </td>
         <td style="{{ td }} width: 180px; text-align: right;">
-          {{ frappe.utils.fmt_money(row.monthly_target_remaining, currency=currency) if
-          row.monthly_target else 'N/A' }}
+          {{ frappe.utils.fmt_money(row.monthly_target_remaining, currency=currency)
+            if row.monthly_target else 'N/A' }}
         </td>
         <td style="{{ td }} width: 180px; text-align: right;">
-          {{ '%0.2f%%'|format(row.monthly_target_percent) if row.monthly_target else
-          'N/A' }}
+          {{ '%0.2f%%'|format(row.collected_mtd / row.monthly_target * 100)
+          if row.monthly_target else 'N/A' }}
         </td>
+        {%- if show_quarter -%}
         <td style="{{ td }} width: 180px; text-align: right;">
           {{ frappe.utils.fmt_money(row.quarterly_target, currency=currency) }}
         </td>
         <td style="{{ td }} width: 180px; text-align: right;">
-          {{ '%0.2f%%'|format(row.quarterly_target_percent) if row.quarterly_target
-          else 'N/A' }}
+          {{ '%0.2f%%'|format(row.quarterly_sales / row.quarterly_target * 100)
+          if row.quarterly_target else 'N/A' }}
         </td>
+        {%- endif -%}
+        {%- if show_half_year -%}
         <td style="{{ td }} width: 180px; text-align: right;">
           {{ frappe.utils.fmt_money(row.half_yearly_target, currency=currency) }}
         </td>
         <td style="{{ td }} width: 180px; text-align: right;">
-          {{ '%0.2f%%'|format(row.half_yearly_target_percent) if row.half_yearly_target
-          else 'N/A' }}
+          {{ '%0.2f%%'|format(row.half_yearly_sales / row.half_yearly_target * 100)
+          if row.half_yearly_target else 'N/A' }}
         </td>
+        {%- endif -%}
+        {%- if show_year -%}
         <td style="{{ td }} width: 180px; text-align: right;">
           {{ frappe.utils.fmt_money(row.yearly_target, currency=currency) }}
         </td>
         <td style="{{ td }} width: 180px; text-align: right;">
-          {{ '%0.2f%%'|format(row.yearly_target_percent) if row.yearly_target
-          else 'N/A' }}
+          {{ '%0.2f%%'|format(row.yearly_sales / row.yearly_target * 100)
+          if row.yearly_target else 'N/A' }}
         </td>
+        {%- endif -%}
       </tr>
       {%- endfor -%}
     </tbody>
+    <tfoot>
+      <tr>
+        <td style="{{ tdfoot }}">{{ _('Total') }}</td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(branch_collections|sum('collected_today'), currency=currency) }}
+        </td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(branch_collections|sum('monthly_target'), currency=currency) }}
+        </td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(branch_collections|sum('half_monthly_target'), currency=currency) }}
+        </td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(branch_collections|sum('half_monthly_sales'), currency=currency) }}
+        </td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ '%0.2f%%'|format(
+            branch_collections|sum('half_monthly_sales') /
+            branch_collections|sum('half_monthly_target') * 100
+            ) if branch_collections|sum('half_monthly_target') else 'N/A' }}
+        </td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(branch_collections|sum('collected_mtd'), currency=currency) }}
+        </td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(branch_collections|sum('monthly_target_remaining'), currency=currency) }}
+        </td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ '%0.2f%%'|format(
+            branch_collections|sum('collected_mtd') /
+            branch_collections|sum('monthly_target') * 100
+          ) if branch_collections|sum('monthly_target') else 'N/A' }}
+        </td>
+        {%- if show_quarter -%}
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(branch_collections|sum('quarterly_target'), currency=currency) }}
+        </td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ '%0.2f%%'|format(
+            branch_collections|sum('quarterly_sales') /
+            branch_collections|sum('quarterly_target') * 100
+          ) if branch_collections|sum('quarterly_target') else 'N/A' }}
+        </td>
+        {%- endif -%}
+        {%- if show_half_year -%}
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(branch_collections|sum('half_yearly_target'), currency=currency) }}
+        </td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ '%0.2f%%'|format(
+            branch_collections|sum('half_yearly_sales') /
+            branch_collections|sum('half_yearly_target') * 100
+          ) if branch_collections|sum('half_yearly_target') else 'N/A' }}
+        </td>
+        {%- endif -%}
+        {%- if show_year -%}
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ frappe.utils.fmt_money(branch_collections|sum('yearly_target'), currency=currency) }}
+        </td>
+        <td style="{{ tdfoot }} width: 180px; text-align: right;">
+          {{ '%0.2f%%'|format(
+            branch_collections|sum('yearly_sales') /
+            branch_collections|sum('yearly_target') * 100
+          ) if branch_collections|sum('yearly_target') else 'N/A' }}
+        </td>
+        {%- endif -%}
+      </tr>
+    </tfoot>
   </table>
   {%- endif -%}
   {%- if mop_collections -%}
