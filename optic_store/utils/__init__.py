@@ -18,6 +18,7 @@ def key_by(key, items):
 split_to_list = excepts(
     AttributeError,
     compose(
+        list,
         partial(filter, lambda x: x),
         partial(map, lambda x: x.strip()),
         lambda x: x.split(","),
