@@ -284,6 +284,9 @@ export default class InvoiceDialog {
   async _get_print_formats(sales_order) {
     const values = this.dialog.get_values();
     const print_formats = this.print_formats.filter(pf => values[pf]);
+    if (print_formats.length === 0) {
+      return [];
+    }
     const { message } = await frappe.call({
       method: 'optic_store.api.sales_order.get_print_formats',
       args: { sales_order, print_formats },
