@@ -5,8 +5,6 @@ from __future__ import unicode_literals
 import frappe
 from toolz import concatv, merge
 
-from optic_store.utils import mapf
-
 
 def execute(filters=None):
     from erpnext.stock.report.stock_ledger.stock_ledger import execute
@@ -61,4 +59,4 @@ def _get_data(data):
             )
         return row
 
-    return mapf(add_fields, data)
+    return [add_fields(x) for x in data]

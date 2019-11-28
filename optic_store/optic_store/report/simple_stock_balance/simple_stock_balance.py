@@ -78,4 +78,4 @@ def _get_data(clauses, values, keys):
         partial(merge, template),
     )
 
-    return map(make_row, items)
+    return [make_row(x) for x in items]

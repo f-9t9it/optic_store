@@ -8,7 +8,7 @@ from frappe.utils import cint
 from functools import partial
 from toolz import compose, pluck, concatv, merge
 
-from optic_store.utils import pick, mapf
+from optic_store.utils import pick
 
 
 def execute(filters=None):
@@ -117,4 +117,4 @@ def _get_data(clauses, values, keys, query):
     rows = frappe.db.sql(query.format(clauses=clauses), values=values, as_dict=1)
 
     make_row = partial(pick, keys)
-    return mapf(make_row, rows)
+    return [make_row(x) for x in rows]

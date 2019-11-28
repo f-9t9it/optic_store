@@ -17,7 +17,7 @@ from toolz import (
     reduceby,
 )
 
-from optic_store.utils import pick, split_to_list, with_report_error_check, mapf
+from optic_store.utils import pick, split_to_list, with_report_error_check
 from optic_store.api.sales_invoice import get_payments_against
 
 
@@ -316,7 +316,7 @@ def _get_data(clauses, values, keys):
         add_collection_date,
     )
 
-    return mapf(make_row, items)
+    return [make_row(x) for x in items]
 
 
 def _get_payments(items):

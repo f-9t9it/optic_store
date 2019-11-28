@@ -66,7 +66,7 @@ def _get_columns():
     mops = pluck("name", frappe.get_all("Mode of Payment"))
     return (
         columns
-        + map(lambda x: make_column(x, x), mops)
+        + [make_column(x, x) for x in mops]
         + [make_column("total_collected", "Total Collected")]
     )
 
@@ -156,7 +156,7 @@ def _get_data(clauses, values, keys):
     )
     make_pe = excepts("StopIteration", first, {"pe_count": 0, "pe_amount": 0})
 
-    return map(make_row, items), merge(make_mops(payments), make_pe(collection))
+    return [make_row(x) for x in items], merge(make_mops(payments), make_pe(collection))
 
 
 def _set_payments(payments):

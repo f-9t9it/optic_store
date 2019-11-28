@@ -76,4 +76,4 @@ def _get_data(clauses, args, keys):
 
     make_row = compose(partial(keyfilter, lambda k: k in keys), add_rate)
 
-    return map(make_row, items)
+    return [make_row(x) for x in items]

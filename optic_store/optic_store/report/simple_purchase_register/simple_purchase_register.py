@@ -80,4 +80,5 @@ def _get_data(clauses, args, keys):
         values=args,
         as_dict=1,
     )
-    return map(partial(keyfilter, lambda k: k in keys), items)
+    make_row = partial(keyfilter, lambda k: k in keys)
+    return [make_row(x) for x in items]

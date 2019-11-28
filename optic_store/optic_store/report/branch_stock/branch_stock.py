@@ -55,7 +55,7 @@ def _get_columns(filters):
                 "standard_selling", "Standard Selling", type="Currency", width=90
             ),
         ],
-        map(lambda x: make_column(x, x, type="Float", width=90), branches),
+        [make_column(x, x, type="Float", width=90) for x in branches],
         [make_column("total_qty", "Total Qty", type="Float", width=90)],
     )
 
@@ -130,7 +130,7 @@ def _get_data(clauses, values, keys):
         _set_qty(bins),
     )
 
-    return map(make_row, items)
+    return [make_row(x) for x in items]
 
 
 def _set_qty(bins):
