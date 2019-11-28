@@ -38,7 +38,7 @@ def _get_columns():
     mops = pluck("name", frappe.get_all("Mode of Payment"))
     return (
         columns
-        + map(lambda x: make_column(x, x), mops)
+        + [make_column(x, x) for x in mops]
         + [make_column("total_collected", "Total Collected")]
     )
 
@@ -46,6 +46,7 @@ def _get_columns():
 def _get_filters(filters):
     branches = (
         compose(
+            list,
             partial(filter, lambda x: x),
             partial(map, lambda x: x.strip()),
             lambda x: x.split(","),
@@ -136,7 +137,7 @@ def _get_data(clauses, values, keys):
         _set_payments(si_payments + pe_payments),
     )
 
-    return map(make_row, items)
+    return [make_row(x) for x in items]
 
 
 def _set_payments(payments):

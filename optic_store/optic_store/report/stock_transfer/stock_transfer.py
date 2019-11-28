@@ -137,4 +137,4 @@ def _get_data(clauses, values, keys):
         )
 
     make_row = compose(partial(pick, keys), add_dates)
-    return map(make_row, docs)
+    return [make_row(x) for x in docs]

@@ -35,7 +35,7 @@ def _get_columns(filters, intervals):
     join_columns = compose(list, concatv)
     return join_columns(
         [make_column("branch", type="Link", options="Branch", width=120)],
-        map(lambda x: merge(x, make_column(x.get("key"), x.get("label"))), intervals),
+        [merge(x, make_column(x.get("key"), x.get("label"))) for x in intervals],
         [make_column("total", type="Int")],
     )
 
@@ -87,7 +87,8 @@ def _get_data(clauses, values, keys, intervals):
         as_dict=1,
     )
     make_row = compose(partial(pick, keys), _count_activations(customers, intervals))
-    return map(make_row, branches)
+
+    return [make_row(x) for x in branches]
 
 
 def _count_activations(customers, intervals):
@@ -113,8 +114,8 @@ def _count_activations(customers, intervals):
     def seg_filter(x):
         return lambda c: c.get("branch") == x
 
-    segregator_fns = map(
-        lambda x: merge(
+    segregator_fns = [
+        merge(
             x,
             {
                 "seger": compose(
@@ -123,9 +124,9 @@ def _count_activations(customers, intervals):
                     seg_filter,
                 )
             },
-        ),
-        intervals,
-    )
+        )
+        for x in intervals
+    ]
 
     def seg_reducer(branch):
         def fn(a, p):

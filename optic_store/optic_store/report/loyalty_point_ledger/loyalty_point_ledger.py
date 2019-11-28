@@ -40,7 +40,6 @@ def _get_columns(filters):
 
 
 def _get_filters(filters):
-    # branches = split_to_list(filters.branches)
     opening_clause = concatv(
         ["posting_date < %(from_date)s"],
         ["customer = %(customer)s"] if filters.customer else [],

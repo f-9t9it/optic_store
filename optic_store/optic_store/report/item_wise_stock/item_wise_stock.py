@@ -7,7 +7,7 @@ from frappe import _
 from functools import partial
 from toolz import compose, pluck, concatv
 
-from optic_store.utils import pick, mapf
+from optic_store.utils import pick
 
 
 def execute(filters=None):
@@ -92,4 +92,5 @@ def _get_data(clauses, values, keys):
         values=values,
         as_dict=1,
     )
-    return mapf(partial(pick, keys), items)
+    make_row = partial(pick, keys)
+    return [make_row(x) for x in items]

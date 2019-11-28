@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import today
 from functools import partial
 from toolz import compose, pluck
 
