@@ -195,13 +195,13 @@ def _get_data(clauses, values, keys):
                 sii.amount AS amount_after_discount,
                 sii.os_minimum_selling_rate AS ms1,
                 IF(
-                    ABS(sii.amount) < sii.os_minimum_selling_rate * sii.qty,
+                    (sii.amount / sii.qty) < sii.os_minimum_selling_rate,
                     'Yes',
                     'No'
                 ) AS below_ms1,
                 sii.os_minimum_selling_2_rate AS ms2,
                 IF(
-                    ABS(sii.amount) < sii.os_minimum_selling_2_rate,
+                    (sii.amount / sii.qty) < sii.os_minimum_selling_2_rate,
                     'Yes',
                     'No'
                 ) AS below_ms2,
