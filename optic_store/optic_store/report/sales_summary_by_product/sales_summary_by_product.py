@@ -15,9 +15,10 @@ from toolz import (
     groupby,
     get,
     reduceby,
+    valmap,
 )
 
-from optic_store.utils import pick, split_to_list, with_report_error_check
+from optic_store.utils import pick, split_to_list, with_report_error_check, key_by
 from optic_store.api.sales_invoice import get_payments_against
 
 
@@ -121,36 +122,31 @@ def _get_columns(filters):
 def _get_filters(filters):
     branches = split_to_list(filters.branches)
 
-    clauses = concatv(
-        ["si.docstatus = 1"],
-        ["si.os_branch IN %(branches)s"] if branches else [],
+    join_clauses = compose(" AND ".join, concatv)
+
+    si_clauses = join_clauses(
+        ["si.docstatus = 1"], ["si.os_branch IN %(branches)s"] if branches else [],
+    )
+    dn_clauses = join_clauses(
+        ["dn.docstatus = 1"],
+        ["dn.os_branch IN %(branches)s"] if branches else [],
         [
             """
                 (
                     (
-                        si.update_stock = 1 AND
-                        si.posting_date BETWEEN %(from_date)s AND %(to_date)s
-                    ) OR (
                         so.workflow_state = 'Collected' AND
-                        si.is_return = 0 AND
+                        dn.is_return = 0 AND
                         dn.posting_date BETWEEN %(from_date)s AND %(to_date)s
                     ) OR (
                         so.workflow_state = 'Collected' AND
-                        si.is_return = 1 AND
+                        dn.is_return = 1 AND
                         si.posting_date BETWEEN %(from_date)s AND %(to_date)s
                     )
                 )
             """
-        ]
-        if filters.report_type == "Collected"
-        else [],
-        [
-            "(si.update_stock = 0 OR sii.delivered_qty < sii.qty)",
-            "si.posting_date BETWEEN %(from_date)s AND %(to_date)s",
-        ]
-        if filters.report_type == "Achieved"
-        else [],
+        ],
     )
+
     values = merge(
         filters,
         {"branches": branches} if branches else {},
@@ -160,11 +156,122 @@ def _get_filters(filters):
             "min_selling_pl2": "Minimum Selling 2",
         },
     )
-    return " AND ".join(clauses), values
+    return (
+        {"si_clauses": si_clauses, "dn_clauses": dn_clauses},
+        values,
+    )
 
 
 @with_report_error_check
 def _get_data(clauses, values, keys):
+    items, dates = _query(clauses, values)
+
+    def add_collection_date(row):
+        def get_collection_date(x):
+            if x.sales_status == "Achieved":
+                return None
+            if x.own_delivery or x.is_return:
+                return x.invoice_date
+            return dates.get(x.invoice_name)
+
+        return merge(row, {"collection_date": get_collection_date(row)})
+
+    def add_payment_remarks(items):
+        payments = _get_payments(items)
+
+        def fn(row):
+            make_remark = compose(
+                lambda x: ", ".join(x),
+                partial(map, lambda x: "{mop}: {amount}".format(mop=x[0], amount=x[1])),
+                lambda x: x.items(),
+                lambda lines: reduceby(
+                    "mode_of_payment",
+                    lambda a, x: a + get("paid_amount", x, 0),
+                    lines,
+                    0,
+                ),
+                lambda x: concatv(
+                    get(x.invoice_name, payments, []), get(x.order_name, payments, [])
+                ),
+                frappe._dict,
+            )
+
+            return merge(row, {"remarks": make_remark(row)})
+
+        return fn
+
+    def set_null(k, v):
+        if v:
+            return k, v
+        if k not in [
+            "valuation_rate",
+            "selling_rate",
+            "rate",
+            "qty",
+            "valuation_amount",
+            "amount_before_discount",
+            "discount_amount",
+            "discount_percentage",
+            "amount_after_discount",
+            "ms1",
+            "ms2",
+            "commission_amount",
+        ]:
+            return k, None
+        return k, 0
+
+    template = reduce(lambda a, x: merge(a, {x: None}), keys, {})
+    make_row = compose(
+        partial(pick, keys),
+        partial(itemmap, lambda x: set_null(*x)),
+        partial(merge, template),
+        add_payment_remarks(items),
+        add_collection_date,
+    )
+
+    return [make_row(x) for x in items]
+
+
+def _query(clauses, values):
+    def get_delivered_invoices():
+        if values.get("report_type") == "Achieved":
+            return []
+        get_invoices = compose(
+            list, partial(unique, key=lambda x: x.get("invoice")), frappe.db.sql,
+        )
+        return get_invoices(
+            """
+                SELECT
+                    dni.against_sales_invoice AS invoice,
+                    dn.posting_date AS delivery_date
+                FROM `tabDelivery Note Item` AS dni
+                LEFT JOIN `tabDelivery Note` AS dn ON
+                    dn.name = dni.parent
+                LEFT JOIN `tabSales Invoice` AS si ON
+                    si.name = dni.against_sales_invoice
+                LEFT JOIN `tabSales Order` AS so ON
+                    so.name = dni.against_sales_order
+                WHERE {dn_clauses}
+            """.format(
+                **clauses
+            ),
+            values=values,
+            as_dict=1,
+        )
+
+    invoices = get_delivered_invoices()
+
+    def get_other_clauses():
+        if values.get("report_type") == "Achieved":
+            return "si.posting_date BETWEEN %(from_date)s AND %(to_date)s"
+        collected_clause = """
+            si.update_stock = 1 AND
+            si.posting_date BETWEEN %(from_date)s AND %(to_date)s
+        """
+        if not invoices:
+            return collected_clause
+        return "({} OR si.name IN %(invoices)s)".format(collected_clause)
+
     items = frappe.db.sql(
         """
             SELECT
@@ -223,100 +330,60 @@ def _get_data(clauses, values, keys):
                     'Achieved'
                 ) AS sales_status,
                 si.update_stock AS own_delivery,
-                si.is_return AS is_return,
-                dn.posting_date AS delivery_date
+                si.is_return AS is_return
             FROM `tabSales Invoice Item` AS sii
             LEFT JOIN `tabSales Invoice` AS si ON
                 si.name = sii.parent
             LEFT JOIN `tabSales Order` AS so ON
                 so.name = sii.sales_order
-            LEFT JOIN (
-                SELECT
-                    idni.si_detail AS si_detail,
-                    idn.is_return AS is_return,
-                    idn.posting_date AS posting_date
-                FROM `tabDelivery Note Item` AS idni
-                LEFT JOIN `tabDelivery Note` AS idn ON
-                    idn.name = idni.parent
-            ) AS dn ON
-                dn.si_detail = sii.name AND
-                dn.is_return = si.is_return
             LEFT JOIN `tabBin` AS bp ON
                 bp.item_code = sii.item_code AND
                 bp.warehouse = sii.warehouse
-            WHERE {clauses}
+            WHERE {si_clauses} AND {other_clauses}
             ORDER BY invoice_date
         """.format(
-            clauses=clauses
+            other_clauses=get_other_clauses(), **clauses
         ),
-        values=values,
+        values=merge(values, {"invoices": [x.get("invoice") for x in invoices]},),
         as_dict=1,
     )
 
-    def add_collection_date(row):
-        def get_collection_date(x):
-            if x.sales_status == "Achieved":
-                return None
-            if x.own_delivery or x.is_return:
-                return x.invoice_date
-            return x.delivery_date
+    def get_dates():
+        make_dates = compose(
+            partial(valmap, lambda x: x.get("delivery_date")),
+            partial(key_by, "invoice"),
+        )
 
-        return merge(row, {"collection_date": get_collection_date(row)})
+        if values.get("report_type") == "Collected":
+            return make_dates(invoices)
+        if not items:
+            return {}
 
-    def add_payment_remarks(items):
-        payments = _get_payments(items)
+        filter_invoices = compose(
+            partial(unique, key=lambda x: x.get("invoice_name")),
+            partial(filter, lambda x: not x.get("own_delivery")),
+        )
+        dates = frappe.db.sql(
+            """
+                SELECT
+                    dni.against_sales_invoice AS invoice,
+                    dn.posting_date AS delivery_date
+                FROM `tabDelivery Note Item` AS dni
+                LEFT JOIN `tabDelivery Note` AS dn ON
+                    dn.name = dni.parent
+                LEFT JOIN `tabSales Invoice` AS si ON
+                    si.name = dni.against_sales_invoice
+                WHERE dni.against_sales_invoice IN %(invoices)s
+            """,
+            values={
+                "invoices": [x.get("invoice_name") for x in filter_invoices(items)]
+            },
+            as_dict=1,
+        )
 
-        def fn(row):
-            make_remark = compose(
-                lambda x: ", ".join(x),
-                partial(map, lambda x: "{mop}: {amount}".format(mop=x[0], amount=x[1])),
-                lambda x: x.items(),
-                lambda lines: reduceby(
-                    "mode_of_payment",
-                    lambda a, x: a + get("paid_amount", x, 0),
-                    lines,
-                    0,
-                ),
-                lambda x: concatv(
-                    get(x.invoice_name, payments, []), get(x.order_name, payments, [])
-                ),
-                frappe._dict,
-            )
+        return make_dates(dates)
 
-            return merge(row, {"remarks": make_remark(row)})
-
-        return fn
-
-    def set_null(k, v):
-        if v:
-            return k, v
-        if k not in [
-            "valuation_rate",
-            "selling_rate",
-            "rate",
-            "qty",
-            "valuation_amount",
-            "amount_before_discount",
-            "discount_amount",
-            "discount_percentage",
-            "amount_after_discount",
-            "ms1",
-            "ms2",
-            "commission_amount",
-        ]:
-            return k, None
-        return k, 0
-
-    template = reduce(lambda a, x: merge(a, {x: None}), keys, {})
-    make_row = compose(
-        partial(pick, keys),
-        partial(itemmap, lambda x: set_null(*x)),
-        partial(merge, template),
-        add_payment_remarks(items),
-        add_collection_date,
-    )
-
-    return [make_row(x) for x in items]
+    return items, get_dates()
 
 
 def _get_payments(items):
