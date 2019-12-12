@@ -7,6 +7,9 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, cint
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
+from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
+    get_loyalty_program_details_with_points,
+)
 from functools import partial
 from toolz import compose, pluck, unique, first
 
@@ -76,6 +79,15 @@ def before_insert(doc, method):
 
 def before_save(doc, method):
     so_before_save(doc, method)
+    if doc.redeem_loyalty_points:
+        lp_details = get_loyalty_program_details_with_points(
+            doc.customer,
+            loyalty_program=doc.loyalty_program,
+            expiry_date=doc.posting_date,
+            company=doc.company,
+            silent=True,
+        )
+        doc.os_available_loyalty_points = lp_details.get("loyalty_points", 0)
 
 
 def before_submit(doc, method):

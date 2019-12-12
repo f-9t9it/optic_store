@@ -199,7 +199,16 @@ export default {
   orx_name: render_prescription,
   orx_group_discount: apply_group_discount,
   os_gift_card_entry: handle_gift_card_entry,
-  redeem_loyalty_points: function(frm) {
+  redeem_loyalty_points: async function(frm) {
     frm.toggle_reqd('os_loyalty_card_no', frm.doc.redeem_loyalty_points);
+    const { customer, posting_date: expiry_date, company } = frm.doc;
+    if (customer) {
+      const { message: { loyalty_points } = {} } = await frappe.call({
+        method:
+          'erpnext.accounts.doctype.loyalty_program.loyalty_program.get_loyalty_program_details_with_points',
+        args: { customer, expiry_date, company, silent: true },
+      });
+      frm.set_value('os_available_loyalty_points', loyalty_points);
+    }
   },
 };

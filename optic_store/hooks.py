@@ -188,6 +188,7 @@ fixtures = [
                     "Sales Invoice-orx_dispensor",
                     "Sales Invoice-orx_lab",
                     "Sales Invoice-os_lab_tech",
+                    "Sales Invoice-os_available_loyalty_points",
                     "Sales Invoice-os_loyalty_card_no",
                     "Sales Invoice-orx_group_discount",
                     "Sales Invoice-os_recall_sec",
