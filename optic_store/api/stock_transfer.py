@@ -28,6 +28,7 @@ workflow = {
             "style": "Danger",
             "doc_status": "2",
             "allow_edit": "Stock User",
+            "is_optional_state": 1,
         },
     ],
     "transitions": [
