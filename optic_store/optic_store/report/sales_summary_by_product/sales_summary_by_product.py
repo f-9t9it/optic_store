@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial, reduce
 from toolz import (
     compose,
@@ -15,10 +14,12 @@ from toolz import (
     groupby,
     get,
     reduceby,
+    valmap,
 )
 
-from optic_store.utils import pick, split_to_list, with_report_error_check
+from optic_store.utils import pick, split_to_list, with_report_error_check, key_by
 from optic_store.api.sales_invoice import get_payments_against
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -30,15 +31,6 @@ def execute(filters=None):
 
 
 def _get_columns(filters):
-    def make_column(key, label=None, type="Data", options=None, width=120):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     columns = concatv(
         [
             make_column(
@@ -121,36 +113,31 @@ def _get_columns(filters):
 def _get_filters(filters):
     branches = split_to_list(filters.branches)
 
-    clauses = concatv(
-        ["si.docstatus = 1"],
-        ["si.os_branch IN %(branches)s"] if branches else [],
+    join_clauses = compose(" AND ".join, concatv)
+
+    si_clauses = join_clauses(
+        ["si.docstatus = 1"], ["si.os_branch IN %(branches)s"] if branches else [],
+    )
+    dn_clauses = join_clauses(
+        ["dn.docstatus = 1"],
+        ["dn.os_branch IN %(branches)s"] if branches else [],
         [
             """
                 (
                     (
-                        si.update_stock = 1 AND
-                        si.posting_date BETWEEN %(from_date)s AND %(to_date)s
-                    ) OR (
                         so.workflow_state = 'Collected' AND
-                        si.is_return = 0 AND
+                        dn.is_return = 0 AND
                         dn.posting_date BETWEEN %(from_date)s AND %(to_date)s
                     ) OR (
                         so.workflow_state = 'Collected' AND
-                        si.is_return = 1 AND
+                        dn.is_return = 1 AND
                         si.posting_date BETWEEN %(from_date)s AND %(to_date)s
                     )
                 )
             """
-        ]
-        if filters.report_type == "Collected"
-        else [],
-        [
-            "(si.update_stock = 0 OR sii.delivered_qty < sii.qty)",
-            "si.posting_date BETWEEN %(from_date)s AND %(to_date)s",
-        ]
-        if filters.report_type == "Achieved"
-        else [],
+        ],
     )
+
     values = merge(
         filters,
         {"branches": branches} if branches else {},
@@ -160,98 +147,15 @@ def _get_filters(filters):
             "min_selling_pl2": "Minimum Selling 2",
         },
     )
-    return " AND ".join(clauses), values
+    return (
+        {"si_clauses": si_clauses, "dn_clauses": dn_clauses},
+        values,
+    )
 
 
 @with_report_error_check
 def _get_data(clauses, values, keys):
-    items = frappe.db.sql(
-        """
-            SELECT
-                si.name AS invoice_name,
-                sii.sales_order AS order_name,
-                si.posting_date AS invoice_date,
-                si.posting_time AS invoice_time,
-                sii.brand AS brand,
-                sii.item_code AS item_code,
-                sii.item_group AS item_group,
-                sii.description AS description,
-                bp.valuation_rate AS valuation_rate,
-                sii.price_list_rate AS selling_rate,
-                sii.rate AS rate,
-                sii.qty AS qty,
-                sii.qty * IFNULL(bp.valuation_rate, 0) AS valuation_amount,
-                IF(
-                    sii.discount_percentage = 100,
-                    sii.price_list_rate * sii.qty,
-                    sii.amount * 100 / (100 - sii.discount_percentage)
-                ) AS amount_before_discount,
-                IF(
-                    sii.discount_percentage = 100,
-                    sii.price_list_rate * sii.qty,
-                    sii.amount * (100 / (100 - sii.discount_percentage) - 1)
-                ) AS discount_amount,
-                sii.discount_percentage AS discount_percentage,
-                sii.amount AS amount_after_discount,
-                sii.os_minimum_selling_rate AS ms1,
-                IF(
-                    ABS(sii.amount) < sii.os_minimum_selling_rate * sii.qty,
-                    'Yes',
-                    'No'
-                ) AS below_ms1,
-                sii.os_minimum_selling_2_rate AS ms2,
-                IF(
-                    ABS(sii.amount) < sii.os_minimum_selling_2_rate,
-                    'Yes',
-                    'No'
-                ) AS below_ms2,
-                si.os_sales_person AS sales_person,
-                si.os_sales_person_name AS sales_person_name,
-                IF(
-                    si.total = 0,
-                    0,
-                    si.total_commission * sii.amount / si.total
-                ) AS commission_amount,
-                si.customer AS customer,
-                si.customer_name AS customer_name,
-                si.os_notes AS notes,
-                si.orx_dispensor AS dispensor,
-                si.os_branch AS branch,
-                IF(
-                    si.update_stock = 1 OR so.workflow_state = 'Collected',
-                    'Collected',
-                    'Achieved'
-                ) AS sales_status,
-                si.update_stock AS own_delivery,
-                si.is_return AS is_return,
-                dn.posting_date AS delivery_date
-            FROM `tabSales Invoice Item` AS sii
-            LEFT JOIN `tabSales Invoice` AS si ON
-                si.name = sii.parent
-            LEFT JOIN `tabSales Order` AS so ON
-                so.name = sii.sales_order
-            LEFT JOIN (
-                SELECT
-                    idni.si_detail AS si_detail,
-                    idn.is_return AS is_return,
-                    idn.posting_date AS posting_date
-                FROM `tabDelivery Note Item` AS idni
-                LEFT JOIN `tabDelivery Note` AS idn ON
-                    idn.name = idni.parent
-            ) AS dn ON
-                dn.si_detail = sii.name AND
-                dn.is_return = si.is_return
-            LEFT JOIN `tabBin` AS bp ON
-                bp.item_code = sii.item_code AND
-                bp.warehouse = sii.warehouse
-            WHERE {clauses}
-            ORDER BY invoice_date
-        """.format(
-            clauses=clauses
-        ),
-        values=values,
-        as_dict=1,
-    )
+    items, dates = _query(clauses, values)
 
     def add_collection_date(row):
         def get_collection_date(x):
@@ -259,7 +163,7 @@ def _get_data(clauses, values, keys):
                 return None
             if x.own_delivery or x.is_return:
                 return x.invoice_date
-            return x.delivery_date
+            return dates.get(x.invoice_name)
 
         return merge(row, {"collection_date": get_collection_date(row)})
 
@@ -316,7 +220,161 @@ def _get_data(clauses, values, keys):
         add_collection_date,
     )
 
-    return [make_row(x) for x in items]
+    return with_report_generation_time([make_row(x) for x in items], keys)
+
+
+def _query(clauses, values):
+    def get_delivered_invoices():
+        if values.get("report_type") == "Achieved":
+            return []
+        get_invoices = compose(
+            list, partial(unique, key=lambda x: x.get("invoice")), frappe.db.sql,
+        )
+        return get_invoices(
+            """
+                SELECT
+                    dni.against_sales_invoice AS invoice,
+                    dn.posting_date AS delivery_date
+                FROM `tabDelivery Note Item` AS dni
+                LEFT JOIN `tabDelivery Note` AS dn ON
+                    dn.name = dni.parent
+                LEFT JOIN `tabSales Invoice` AS si ON
+                    si.name = dni.against_sales_invoice
+                LEFT JOIN `tabSales Order` AS so ON
+                    so.name = dni.against_sales_order
+                WHERE {dn_clauses}
+            """.format(
+                **clauses
+            ),
+            values=values,
+            as_dict=1,
+        )
+
+    invoices = get_delivered_invoices()
+
+    def get_other_clauses():
+        if values.get("report_type") == "Achieved":
+            return "si.posting_date BETWEEN %(from_date)s AND %(to_date)s"
+        collected_clause = """
+            si.update_stock = 1 AND
+            si.posting_date BETWEEN %(from_date)s AND %(to_date)s
+        """
+        if not invoices:
+            return collected_clause
+        return "({} OR si.name IN %(invoices)s)".format(collected_clause)
+
+    items = frappe.db.sql(
+        """
+            SELECT
+                si.name AS invoice_name,
+                sii.sales_order AS order_name,
+                si.posting_date AS invoice_date,
+                si.posting_time AS invoice_time,
+                sii.brand AS brand,
+                sii.item_code AS item_code,
+                sii.item_group AS item_group,
+                sii.description AS description,
+                bp.valuation_rate AS valuation_rate,
+                sii.price_list_rate AS selling_rate,
+                sii.rate AS rate,
+                sii.qty AS qty,
+                sii.qty * IFNULL(bp.valuation_rate, 0) AS valuation_amount,
+                IF(
+                    sii.discount_percentage = 100,
+                    sii.price_list_rate * sii.qty,
+                    sii.amount * 100 / (100 - sii.discount_percentage)
+                ) AS amount_before_discount,
+                IF(
+                    sii.discount_percentage = 100,
+                    sii.price_list_rate * sii.qty,
+                    sii.amount * (100 / (100 - sii.discount_percentage) - 1)
+                ) AS discount_amount,
+                sii.discount_percentage AS discount_percentage,
+                sii.amount AS amount_after_discount,
+                sii.os_minimum_selling_rate AS ms1,
+                IF(
+                    (sii.amount / sii.qty) < sii.os_minimum_selling_rate,
+                    'Yes',
+                    'No'
+                ) AS below_ms1,
+                sii.os_minimum_selling_2_rate AS ms2,
+                IF(
+                    (sii.amount / sii.qty) < sii.os_minimum_selling_2_rate,
+                    'Yes',
+                    'No'
+                ) AS below_ms2,
+                si.os_sales_person AS sales_person,
+                si.os_sales_person_name AS sales_person_name,
+                IF(
+                    si.total = 0,
+                    0,
+                    si.total_commission * sii.amount / si.total
+                ) AS commission_amount,
+                si.customer AS customer,
+                si.customer_name AS customer_name,
+                si.os_notes AS notes,
+                si.orx_dispensor AS dispensor,
+                si.os_branch AS branch,
+                IF(
+                    si.update_stock = 1 OR so.workflow_state = 'Collected',
+                    'Collected',
+                    'Achieved'
+                ) AS sales_status,
+                si.update_stock AS own_delivery,
+                si.is_return AS is_return
+            FROM `tabSales Invoice Item` AS sii
+            LEFT JOIN `tabSales Invoice` AS si ON
+                si.name = sii.parent
+            LEFT JOIN `tabSales Order` AS so ON
+                so.name = sii.sales_order
+            LEFT JOIN `tabBin` AS bp ON
+                bp.item_code = sii.item_code AND
+                bp.warehouse = sii.warehouse
+            WHERE {si_clauses} AND {other_clauses}
+            ORDER BY invoice_date
+        """.format(
+            other_clauses=get_other_clauses(), **clauses
+        ),
+        values=merge(values, {"invoices": [x.get("invoice") for x in invoices]},),
+        as_dict=1,
+    )
+
+    def get_dates():
+        make_dates = compose(
+            partial(valmap, lambda x: x.get("delivery_date")),
+            partial(key_by, "invoice"),
+        )
+
+        if values.get("report_type") == "Collected":
+            return make_dates(invoices)
+        if not items:
+            return {}
+
+        filter_invoices = compose(
+            partial(unique, key=lambda x: x.get("invoice_name")),
+            partial(filter, lambda x: not x.get("own_delivery")),
+        )
+        dates = frappe.db.sql(
+            """
+                SELECT
+                    dni.against_sales_invoice AS invoice,
+                    dn.posting_date AS delivery_date
+                FROM `tabDelivery Note Item` AS dni
+                LEFT JOIN `tabDelivery Note` AS dn ON
+                    dn.name = dni.parent
+                LEFT JOIN `tabSales Invoice` AS si ON
+                    si.name = dni.against_sales_invoice
+                WHERE dni.against_sales_invoice IN %(invoices)s
+            """,
+            values={
+                "invoices": [x.get("invoice_name") for x in filter_invoices(items)]
+            },
+            as_dict=1,
+        )
+
+        return make_dates(dates)
+
+    return items, get_dates()
 
 
 def _get_payments(items):

@@ -3,11 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial
 from toolz import compose, pluck
 
 from optic_store.utils import pick
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -19,15 +19,6 @@ def execute(filters=None):
 
 
 def _get_columns(filters):
-    def make_column(key, label=None, type="Data", options=None, width=120):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     return [
         make_column("loyalty_card_no"),
         make_column("customer", type="Link", options="Customer"),
@@ -84,4 +75,4 @@ def _get_data(clauses, values, keys):
     )
 
     make_row = partial(pick, keys)
-    return [make_row(x) for x in rows]
+    return with_report_generation_time([make_row(x) for x in rows], keys)

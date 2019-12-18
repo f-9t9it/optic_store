@@ -3,11 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial
 from toolz import compose, pluck, merge, concatv, first, accumulate
 
 from optic_store.utils import pick
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -19,23 +19,12 @@ def execute(filters=None):
 
 
 def _get_columns(filters):
-    def make_column(key, label=None, type="Data", options=None, width=90):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     return [
-        make_column("posting_date", type="Date"),
-        make_column("voucher_type", type="Link", options="Doctype", width=120),
-        make_column(
-            "voucher_no", type="Dynamic Link", options="voucher_type", width=120
-        ),
-        make_column("points", type="Int"),
-        make_column("balance", type="Int"),
+        make_column("posting_date", type="Date", width=90),
+        make_column("voucher_type", type="Link", options="Doctype"),
+        make_column("voucher_no", type="Dynamic Link", options="voucher_type"),
+        make_column("points", type="Int", width=90),
+        make_column("balance", type="Int", width=90),
     ]
 
 
@@ -113,11 +102,14 @@ def _get_data(clauses, values, keys):
         return merge(row, {"balance": a.get("balance") + row.get("points")})
 
     make_list = compose(list, concatv)
-    return make_list(
-        accumulate(
-            set_balance,
-            [set_voucher_ref(x) for x in rows],
-            initial={"voucher_no": "Opening", "balance": opening},
+    return with_report_generation_time(
+        make_list(
+            accumulate(
+                set_balance,
+                [set_voucher_ref(x) for x in rows],
+                initial={"voucher_no": "Opening", "balance": opening},
+            ),
+            [{"voucher_no": "Total", "points": sum([x.points for x in rows])}],
         ),
-        [{"voucher_no": "Total", "points": sum([x.points for x in rows])}],
+        keys,
     )

@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial, reduce
 from toolz import (
     compose,
@@ -19,6 +18,7 @@ from toolz import (
 )
 
 from optic_store.utils import pick, split_to_list
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -30,38 +30,20 @@ def execute(filters=None):
 
 
 def _get_columns():
-    def make_column(key, label, type="Currency", options=None, width=120, hidden=0):
-        return {
-            "label": _(label),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-            "hidden": hidden,
-        }
-
     columns = [
-        make_column(
-            "sales_invoice", "Sales Invoice", type="Link", options="Sales Invoice"
-        ),
+        make_column("sales_invoice", type="Link", options="Sales Invoice"),
         make_column("posting_time", "Time", type="Time", width=90),
-        make_column("customer", "Customer", type="Link", options="Customer"),
-        make_column("customer_name", "Customer Name", type="Data", width=150),
-        make_column("total_qty", "Total Qty", type="Float"),
-        make_column("net_total", "Net Total"),
-        make_column("tax_total", "Tax Total"),
-        make_column("grand_total", "Grand Total"),
-        make_column("outstanding_amount", "Outstanding"),
-        make_column("sales_person", "Sales Person", type="Link", options="Employee"),
-        make_column("sales_person_name", "Sales Person Name", type="Data", width=150),
-        make_column("is_return", "Is Return", type="Check", hidden=1),
-        make_column(
-            "return_against",
-            "Return Against",
-            type="Link",
-            options="Sales Invoice",
-            hidden=1,
-        ),
+        make_column("customer", type="Link", options="Customer"),
+        make_column("customer_name", type="Data", width=150),
+        make_column("total_qty", type="Float"),
+        make_column("net_total", type="Currency"),
+        make_column("tax_total", type="Currency"),
+        make_column("grand_total", type="Currency"),
+        make_column("outstanding_amount", "Outstanding", type="Currency"),
+        make_column("sales_person", type="Link", options="Employee"),
+        make_column("sales_person_name", width=150),
+        make_column("is_return", type="Check", hidden=1),
+        make_column("return_against", type="Link", options="Sales Invoice", hidden=1),
     ]
     mops = pluck("name", frappe.get_all("Mode of Payment"))
     return (
@@ -155,8 +137,10 @@ def _get_data(clauses, values, keys):
         lambda x: {"mops": x}, unique, partial(pluck, "mode_of_payment")
     )
     make_pe = excepts("StopIteration", first, {"pe_count": 0, "pe_amount": 0})
-
-    return [make_row(x) for x in items], merge(make_mops(payments), make_pe(collection))
+    return (
+        with_report_generation_time([make_row(x) for x in items], keys),
+        merge(make_mops(payments), make_pe(collection)),
+    )
 
 
 def _set_payments(payments):

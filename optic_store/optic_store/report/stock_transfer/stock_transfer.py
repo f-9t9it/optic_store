@@ -9,6 +9,7 @@ from functools import partial
 from toolz import compose, pluck, concatv, merge
 
 from optic_store.utils import pick, split_to_list
+from optic_store.utils.report import make_column, with_report_generation_time
 from optic_store.api.customer import get_user_branch
 
 
@@ -21,24 +22,15 @@ def execute(filters=None):
 
 
 def _get_columns():
-    def make_column(key, label=None, type="Data", options=None, width=90):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     return list(
         concatv(
             [
-                make_column("outgoing_date", type="Date"),
-                make_column("incoming_date", type="Date"),
+                make_column("outgoing_date", type="Date", width=90),
+                make_column("incoming_date", type="Date", width=90),
                 make_column(
                     "name", "Doc Name", type="Link", options="Stock Transfer", width=150
                 ),
-                make_column("workflow_state", "Status"),
+                make_column("workflow_state", "Status", width=90),
                 make_column("item_code", type="Link", options="Item", width=150),
                 make_column("item_name", width=180),
                 make_column("qty", type="Float", width=90),
@@ -137,4 +129,4 @@ def _get_data(clauses, values, keys):
         )
 
     make_row = compose(partial(pick, keys), add_dates)
-    return [make_row(x) for x in docs]
+    return with_report_generation_time([make_row(x) for x in docs], keys)

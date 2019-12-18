@@ -3,11 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial, reduce
 from toolz import compose, pluck, valmap, groupby, merge, concatv
 
 from optic_store.utils import sum_by, pick
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -19,27 +19,18 @@ def execute(filters=None):
 
 
 def _get_columns():
-    def make_column(key, label, type="Currency", options=None, width=120):
-        return {
-            "label": _(label),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     columns = [
         make_column("posting_date", "Date", type="Date", width=90),
-        make_column("net_total", "Net Total"),
-        make_column("tax_total", "Tax Total"),
-        make_column("grand_total", "Grand Total"),
-        make_column("returns grand_total", "Returns Total"),
+        make_column("net_total", type="Currency"),
+        make_column("tax_total", type="Currency"),
+        make_column("grand_total", type="Currency"),
+        make_column("returns grand_total", "Returns Total", type="Currency"),
     ]
     mops = pluck("name", frappe.get_all("Mode of Payment"))
     return (
         columns
-        + [make_column(x, x) for x in mops]
-        + [make_column("total_collected", "Total Collected")]
+        + [make_column(x, type="Currency") for x in mops]
+        + [make_column("total_collected", type="Currency")]
     )
 
 
@@ -137,7 +128,7 @@ def _get_data(clauses, values, keys):
         _set_payments(si_payments + pe_payments),
     )
 
-    return [make_row(x) for x in items]
+    return with_report_generation_time([make_row(x) for x in items], keys)
 
 
 def _set_payments(payments):

@@ -7,3 +7,4 @@ optic_store.patches.v0_7.set_loyalty_activation_date
 optic_store.patches.v0_7.set_min_prices_in_sales
 optic_store.patches.v0_7.set_supplier_delivery_date
 optic_store.patches.v0_8.correct_return_dn_ref_si
+optic_store.patches.v0_8.set_customer_branch

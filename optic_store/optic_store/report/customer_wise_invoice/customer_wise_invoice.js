@@ -11,7 +11,7 @@ frappe.query_reports['Customer-wise Invoice'] = {
       fieldname: 'date_range',
       reqd: 1,
       default: [
-        frappe.datetime.add_months('2017-12-12', -1),
+        frappe.datetime.add_months(frappe.datetime.get_today(), -1),
         frappe.datetime.get_today(),
       ],
     }),

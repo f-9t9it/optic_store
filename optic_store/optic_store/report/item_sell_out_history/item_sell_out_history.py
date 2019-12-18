@@ -3,11 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial
 from toolz import compose, pluck, merge, concatv
 
 from optic_store.utils import pick, with_report_error_check, split_to_list, key_by
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -19,15 +19,6 @@ def execute(filters=None):
 
 
 def _get_columns(filters):
-    def make_column(key, label=None, type="Data", options=None, width=120):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     columns = concatv(
         [make_column("branch", type="Link", options="Branch")]
         if filters.branches
@@ -130,7 +121,7 @@ def _get_data(clauses, values, keys):
         partial(map, make_row),
     )
 
-    return make_data(items)
+    return with_report_generation_time(make_data(items), keys)
 
 
 def _make_add_qty_sold(items, with_branch):

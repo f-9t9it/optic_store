@@ -3,12 +3,12 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from frappe.utils import cint
 from functools import partial
 from toolz import compose, pluck, merge, concatv
 
 from optic_store.utils import pick, split_to_list
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -20,31 +20,18 @@ def execute(filters=None):
 
 
 def _get_columns():
-    def make_column(key, label, type="Data", options=None, width=120):
-        return {
-            "label": _(label),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     return [
         make_column("posting_date", "Payment Date", type="Date", width=90),
         make_column("posting_time", "Payment Time", type="Time", width=90),
-        make_column("voucher_type", "Voucher Type"),
-        make_column(
-            "voucher_no", "Voucher No", type="Dynamic Link", options="voucher_type"
-        ),
-        make_column(
-            "mode_of_payment", "Mode of Payment", type="Link", options="Mode of Payment"
-        ),
+        make_column("voucher_type"),
+        make_column("voucher_no", type="Dynamic Link", options="voucher_type"),
+        make_column("mode_of_payment", type="Link", options="Mode of Payment"),
         make_column("paid_amount", "Payment Amount", type="Currency"),
-        make_column("customer", "Customer", type="Link", options="Customer"),
-        make_column("customer_name", "Customer Name", width=150),
-        make_column("branch", "Branch", type="Link", options="Branch"),
-        make_column("sales_person", "Sales Person", type="Link", options="Employee"),
-        make_column("sales_person_name", "Sales Person Name", width=150),
+        make_column("customer", type="Link", options="Customer"),
+        make_column("customer_name", width=150),
+        make_column("branch", type="Link", options="Branch"),
+        make_column("sales_person", type="Link", options="Employee"),
+        make_column("sales_person_name", width=150),
     ]
 
 
@@ -133,4 +120,4 @@ def _get_data(clauses, values, keys):
     )
 
     make_row = partial(pick, keys)
-    return [make_row(x) for x in result]
+    return with_report_generation_time([make_row(x) for x in result], keys)

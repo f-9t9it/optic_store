@@ -3,9 +3,10 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial
 from toolz import compose, merge, pluck, keyfilter
+
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -16,24 +17,14 @@ def execute(filters=None):
 
 
 def _get_columns():
-    def make_column(key, label, type="Currency", options=None, width=120):
-        return {
-            "label": _(label),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
-    columns = [
+    return [
         make_column("customer", "Customer", type="Link", options="Customer"),
         make_column("item_code", "Item Code", type="Link", options="Item"),
-        make_column("item_name", "Item Name", type="Data", width=180),
+        make_column("item_name", "Item Name", width=180),
         make_column("qty", "Quantity", type="Float", width=90),
-        make_column("rate", "Rate"),
-        make_column("gross", "Gross"),
+        make_column("rate", "Rate", type="Currency"),
+        make_column("gross", "Gross", type="Currency"),
     ]
-    return columns
 
 
 def _get_keys():
@@ -75,5 +66,4 @@ def _get_data(clauses, args, keys):
         return merge(row, {"rate": row.gross / row.qty})
 
     make_row = compose(partial(keyfilter, lambda k: k in keys), add_rate)
-
-    return [make_row(x) for x in items]
+    return with_report_generation_time([make_row(x) for x in items], keys)

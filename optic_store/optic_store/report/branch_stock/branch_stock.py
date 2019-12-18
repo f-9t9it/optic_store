@@ -10,6 +10,7 @@ from toolz import compose, pluck, merge, concatv, valmap, groupby
 
 from optic_store.utils import pick, split_to_list, sum_by, with_report_error_check
 from optic_store.optic_store.report.item_wise_stock.item_wise_stock import price_sq
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -26,15 +27,6 @@ def execute(filters=None):
 
 
 def _get_columns(filters):
-    def make_column(key, label, type="Data", options=None, width=120):
-        return {
-            "label": _(label),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     branches = pluck("name", frappe.get_all("Branch", filters={"disabled": 0}))
     join_columns = compose(list, concatv)
     return join_columns(
@@ -130,7 +122,7 @@ def _get_data(clauses, values, keys):
         _set_qty(bins),
     )
 
-    return [make_row(x) for x in items]
+    return with_report_generation_time([make_row(x) for x in items], keys)
 
 
 def _set_qty(bins):

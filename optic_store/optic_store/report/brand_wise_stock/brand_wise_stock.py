@@ -3,11 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial
 from toolz import compose, pluck, concatv
 
 from optic_store.utils import pick
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -19,18 +19,10 @@ def execute(filters=None):
 
 
 def _get_columns():
-    def make_column(key, label, type="Currency", options=None, width=120):
-        return {
-            "label": _(label),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     return [
-        make_column("brand", "Brand", type="Link", options="Brand", width=180),
-        make_column("qty", "Qty", type="Float"),
+        make_column("brand", type="Link", options="Brand", width=180),
+        make_column("item_group", type="Link", options="Item Group", width=180),
+        make_column("qty", type="Float"),
     ]
 
 
@@ -55,11 +47,12 @@ def _get_data(clauses, values, keys):
         """
             SELECT
                 i.brand AS brand,
+                i.item_group AS item_group,
                 SUM(b.projected_qty) AS qty
             FROM `tabItem` AS i
             LEFT JOIN `tabBin` AS b ON {bin_clauses}
             WHERE {clauses}
-            GROUP BY i.brand
+            GROUP BY i.brand, i.item_group
         """.format(
             **clauses
         ),
@@ -67,4 +60,4 @@ def _get_data(clauses, values, keys):
         as_dict=1,
     )
     make_row = partial(pick, keys)
-    return [make_row(x) for x in items]
+    return with_report_generation_time([make_row(x) for x in items], keys)
