@@ -3,14 +3,18 @@
 
 from __future__ import unicode_literals
 import frappe
-from toolz import concatv, merge
+from functools import partial
+from toolz import concatv, merge, compose, pluck
+
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
     from erpnext.stock.report.stock_ledger.stock_ledger import execute
 
     columns, data = execute(filters)
-    return _get_columns(columns), _get_data(data)
+    keys = compose(list, partial(pluck, "fieldname"))(columns)
+    return _get_columns(columns), _get_data(data, keys)
 
 
 def _get_columns(columns):
@@ -18,26 +22,20 @@ def _get_columns(columns):
         concatv(
             columns[:15],
             [
-                {
-                    "fieldname": "purpose",
-                    "fieldtype": "Data",
-                    "width": 100,
-                    "label": "Purpose",
-                },
-                {
-                    "fieldname": "reference_stock_transfer",
-                    "fieldtype": "Link",
-                    "width": 110,
-                    "label": "Stock Transfer",
-                    "options": "Stock Transfer",
-                },
+                make_column("purpose"),
+                make_column(
+                    "reference_stock_transfer",
+                    "Stock Transfer",
+                    type="Link",
+                    options="Stock Transfer",
+                ),
             ],
             columns[15:],
         )
     )
 
 
-def _get_data(data):
+def _get_data(data, keys):
     def get_reference_st(stock_entry):
         return frappe.db.exists(
             "Stock Transfer", {"outgoing_stock_entry": stock_entry}
@@ -59,4 +57,4 @@ def _get_data(data):
             )
         return row
 
-    return [add_fields(x) for x in data]
+    return with_report_generation_time([add_fields(x) for x in data], keys)

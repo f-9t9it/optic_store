@@ -9,7 +9,7 @@ from functools import partial
 from toolz import compose, pluck, concatv, merge
 
 from optic_store.utils import pick, split_to_list
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 from optic_store.api.customer import get_user_branch
 
 
@@ -129,4 +129,4 @@ def _get_data(clauses, values, keys):
         )
 
     make_row = compose(partial(pick, keys), add_dates)
-    return [make_row(x) for x in docs]
+    return with_report_generation_time([make_row(x) for x in docs], keys)

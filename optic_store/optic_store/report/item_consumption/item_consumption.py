@@ -10,7 +10,7 @@ import operator
 from toolz import merge, pluck, get, compose, first, flip, groupby, excepts, keyfilter
 
 from optic_store.utils.helpers import generate_intervals
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -137,7 +137,7 @@ def _get_data(args, columns):
 
     make_row = compose(partial(keyfilter, lambda k: k in keys), set_consumption)
 
-    return [make_row(x) for x in items]
+    return with_report_generation_time([make_row(x) for x in items], keys)
 
 
 def _set_consumption(sles, periods):

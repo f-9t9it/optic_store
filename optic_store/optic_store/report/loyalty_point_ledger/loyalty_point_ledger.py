@@ -7,7 +7,7 @@ from functools import partial
 from toolz import compose, pluck, merge, concatv, first, accumulate
 
 from optic_store.utils import pick
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -102,11 +102,14 @@ def _get_data(clauses, values, keys):
         return merge(row, {"balance": a.get("balance") + row.get("points")})
 
     make_list = compose(list, concatv)
-    return make_list(
-        accumulate(
-            set_balance,
-            [set_voucher_ref(x) for x in rows],
-            initial={"voucher_no": "Opening", "balance": opening},
+    return with_report_generation_time(
+        make_list(
+            accumulate(
+                set_balance,
+                [set_voucher_ref(x) for x in rows],
+                initial={"voucher_no": "Opening", "balance": opening},
+            ),
+            [{"voucher_no": "Total", "points": sum([x.points for x in rows])}],
         ),
-        [{"voucher_no": "Total", "points": sum([x.points for x in rows])}],
+        keys,
     )

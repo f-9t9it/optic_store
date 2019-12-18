@@ -18,7 +18,7 @@ from toolz import (
 )
 
 from optic_store.utils import pick, split_to_list
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -137,8 +137,10 @@ def _get_data(clauses, values, keys):
         lambda x: {"mops": x}, unique, partial(pluck, "mode_of_payment")
     )
     make_pe = excepts("StopIteration", first, {"pe_count": 0, "pe_amount": 0})
-
-    return [make_row(x) for x in items], merge(make_mops(payments), make_pe(collection))
+    return (
+        with_report_generation_time([make_row(x) for x in items], keys),
+        merge(make_mops(payments), make_pe(collection)),
+    )
 
 
 def _set_payments(payments):

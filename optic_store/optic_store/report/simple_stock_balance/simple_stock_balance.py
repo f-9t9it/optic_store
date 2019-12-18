@@ -7,7 +7,7 @@ from functools import partial, reduce
 from toolz import compose, pluck, merge, concatv, valmap
 
 from optic_store.utils import pick
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -69,4 +69,4 @@ def _get_data(clauses, values, keys):
         partial(merge, template),
     )
 
-    return [make_row(x) for x in items]
+    return with_report_generation_time([make_row(x) for x in items], keys)

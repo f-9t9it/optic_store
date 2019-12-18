@@ -10,7 +10,7 @@ from toolz import compose, pluck, merge, concatv, valmap, groupby
 
 from optic_store.utils import pick, split_to_list, sum_by, with_report_error_check
 from optic_store.optic_store.report.item_wise_stock.item_wise_stock import price_sq
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -122,7 +122,7 @@ def _get_data(clauses, values, keys):
         _set_qty(bins),
     )
 
-    return [make_row(x) for x in items]
+    return with_report_generation_time([make_row(x) for x in items], keys)
 
 
 def _set_qty(bins):

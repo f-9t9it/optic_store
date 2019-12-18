@@ -7,7 +7,7 @@ from frappe import _
 from functools import partial
 from toolz import compose, pluck, keyfilter, concatv
 
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -73,4 +73,4 @@ def _get_data(clauses, args, keys):
         as_dict=1,
     )
     make_row = partial(keyfilter, lambda k: k in keys)
-    return [make_row(x) for x in items]
+    return with_report_generation_time([make_row(x) for x in items], keys)

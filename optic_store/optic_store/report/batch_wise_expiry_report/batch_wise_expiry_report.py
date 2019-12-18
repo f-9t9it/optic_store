@@ -8,7 +8,7 @@ from functools import partial
 from toolz import merge, pluck, compose, concatv
 
 from optic_store.utils import pick
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -140,4 +140,6 @@ def _get_data(clauses, values, keys):
             return True
         return row.get("qty") > 0
 
-    return [make_row(x) for x in sles if row_filter(x)]
+    return with_report_generation_time(
+        [make_row(x) for x in sles if row_filter(x)], keys
+    )

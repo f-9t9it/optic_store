@@ -8,7 +8,7 @@ from functools import partial
 from toolz import compose, pluck, concatv, merge
 
 from optic_store.utils import pick
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -108,4 +108,4 @@ def _get_data(clauses, values, keys, query):
     rows = frappe.db.sql(query.format(clauses=clauses), values=values, as_dict=1)
 
     make_row = partial(pick, keys)
-    return [make_row(x) for x in rows]
+    return with_report_generation_time([make_row(x) for x in rows], keys)

@@ -7,7 +7,7 @@ from functools import partial
 from toolz import compose, pluck, merge
 
 from optic_store.utils import pick
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -84,4 +84,4 @@ def _get_data(clauses, values, keys):
         return merge(row, {"cost_pc": cost_pc})
 
     make_row = compose(partial(pick, keys), set_cost_pc)
-    return [make_row(x) for x in rows]
+    return with_report_generation_time([make_row(x) for x in rows], keys)

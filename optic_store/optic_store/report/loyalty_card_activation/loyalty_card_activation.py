@@ -8,7 +8,7 @@ from toolz import compose, pluck, merge, concatv, excepts, groupby, flip, get, f
 
 from optic_store.utils import pick, split_to_list
 from optic_store.utils.helpers import generate_intervals
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -81,8 +81,7 @@ def _get_data(clauses, values, keys, intervals):
         as_dict=1,
     )
     make_row = compose(partial(pick, keys), _count_activations(customers, intervals))
-
-    return [make_row(x) for x in branches]
+    return with_report_generation_time([make_row(x) for x in branches], keys)
 
 
 def _count_activations(customers, intervals):

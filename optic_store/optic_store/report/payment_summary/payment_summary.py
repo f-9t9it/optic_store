@@ -8,7 +8,7 @@ from functools import partial
 from toolz import compose, pluck, merge, concatv
 
 from optic_store.utils import pick, split_to_list
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -120,4 +120,4 @@ def _get_data(clauses, values, keys):
     )
 
     make_row = partial(pick, keys)
-    return [make_row(x) for x in result]
+    return with_report_generation_time([make_row(x) for x in result], keys)

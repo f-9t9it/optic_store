@@ -19,7 +19,7 @@ from toolz import (
 
 from optic_store.utils import pick, split_to_list, with_report_error_check, key_by
 from optic_store.api.sales_invoice import get_payments_against
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -220,7 +220,7 @@ def _get_data(clauses, values, keys):
         add_collection_date,
     )
 
-    return [make_row(x) for x in items]
+    return with_report_generation_time([make_row(x) for x in items], keys)
 
 
 def _query(clauses, values):

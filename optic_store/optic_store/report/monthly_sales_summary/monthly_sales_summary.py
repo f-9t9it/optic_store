@@ -7,7 +7,7 @@ from functools import partial, reduce
 from toolz import compose, pluck, valmap, groupby, merge, concatv
 
 from optic_store.utils import sum_by, pick
-from optic_store.utils.report import make_column
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
@@ -128,7 +128,7 @@ def _get_data(clauses, values, keys):
         _set_payments(si_payments + pe_payments),
     )
 
-    return [make_row(x) for x in items]
+    return with_report_generation_time([make_row(x) for x in items], keys)
 
 
 def _set_payments(payments):
