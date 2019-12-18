@@ -10,17 +10,18 @@ import operator
 from toolz import merge, pluck, get, compose, first, flip, groupby, excepts, keyfilter
 
 from optic_store.utils.helpers import generate_intervals
+from optic_store.utils.report import make_column
 
 
 def execute(filters=None):
     args = _get_args(filters)
     columns = _get_columns(args)
     data = _get_data(args, columns)
-    make_column = partial(
+    pick_column_fields = partial(
         keyfilter,
         lambda k: k in ["label", "fieldname", "fieldtype", "options", "width"],
     )
-    return [make_column(x) for x in columns], data
+    return [pick_column_fields(x) for x in columns], data
 
 
 def _get_args(filters={}):
@@ -39,37 +40,33 @@ def _get_args(filters={}):
 
 
 def _get_columns(args):
-    def make_column(key, label, type="Float", options=None, width=90):
-        return {
-            "label": _(label),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     columns = [
-        make_column("item_code", "Item Code", type="Link", options="Item", width=120),
-        make_column("brand", "Brand", type="Link", options="Brand", width=120),
-        make_column("item_name", "Item Name", type="Data", width=200),
-        make_column("supplier", "Supplier", type="Link", options="Supplier", width=120),
+        make_column("item_code", type="Link", options="Item"),
+        make_column("brand", type="Link", options="Brand"),
+        make_column("item_name", width=200),
+        make_column("supplier", type="Link", options="Supplier"),
         make_column(
             "price",
             args.get("price_list", "Standard Buying Price"),
             type="Currency",
-            width=120,
+            width=90,
         ),
-        make_column("stock", "Available Stock"),
+        make_column("stock", "Available Stock", type="Float", width=90),
     ]
     intervals = compose(
         list,
-        partial(map, lambda x: merge(x, make_column(x.get("key"), x.get("label")))),
+        partial(
+            map,
+            lambda x: merge(
+                x, make_column(x.get("key"), x.get("label"), type="Float", width=90)
+            ),
+        ),
         generate_intervals,
     )
     return (
         columns
         + intervals(args.get("interval"), args.get("start_date"), args.get("end_date"))
-        + [make_column("total_consumption", "Total Consumption")]
+        + [make_column("total_consumption", type="Float", width=90)]
     )
 
 

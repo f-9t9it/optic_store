@@ -3,12 +3,12 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial, reduce
 from toolz import compose, pluck, merge, concatv, excepts, groupby, flip, get, first
 
 from optic_store.utils import pick, split_to_list
 from optic_store.utils.helpers import generate_intervals
+from optic_store.utils.report import make_column
 
 
 def execute(filters=None):
@@ -23,20 +23,14 @@ def execute(filters=None):
 
 
 def _get_columns(filters, intervals):
-    def make_column(key, label=None, type="Data", options=None, width=90):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     join_columns = compose(list, concatv)
     return join_columns(
-        [make_column("branch", type="Link", options="Branch", width=120)],
-        [merge(x, make_column(x.get("key"), x.get("label"))) for x in intervals],
-        [make_column("total", type="Int")],
+        [make_column("branch", type="Link", options="Branch")],
+        [
+            merge(x, make_column(x.get("key"), x.get("label"), width=90))
+            for x in intervals
+        ],
+        [make_column("total", type="Int", width=90)],
     )
 
 

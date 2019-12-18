@@ -20,11 +20,11 @@ def execute(filters=None):
 
 def _get_columns(filters):
     return [
-        make_column("branch", type="Link", options="Branch", width=120),
-        make_column("qty_sold", type="Float"),
-        make_column("cost_price", type="Currency", width=120),
-        make_column("sale_amount", type="Currency", width=120),
-        make_column("cost_pc", label="Cost %", type="Percent"),
+        make_column("branch", type="Link", options="Branch", width=150),
+        make_column("qty_sold", type="Float", width=90),
+        make_column("cost_price", type="Currency"),
+        make_column("sale_amount", type="Currency"),
+        make_column("cost_pc", label="Cost %", type="Percent", width=90),
     ]
 
 

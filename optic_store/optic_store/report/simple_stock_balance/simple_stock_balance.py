@@ -3,11 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial, reduce
 from toolz import compose, pluck, merge, concatv, valmap
 
 from optic_store.utils import pick
+from optic_store.utils.report import make_column
 
 
 def execute(filters=None):
@@ -19,22 +19,13 @@ def execute(filters=None):
 
 
 def _get_columns(filters):
-    def make_column(key, label=None, type="Float", options=None, width=90):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     return [
-        make_column("item_code", type="Link", options="Item", width=120),
+        make_column("item_code", type="Link", options="Item"),
         make_column("item_name", type="Data", width=180),
-        make_column("actual_qty"),
-        make_column("reserved_qty"),
-        make_column("projected_qty"),
-        make_column("warehouse", type="Link", options="Warehouse", width=120),
+        make_column("actual_qty", type="Float", width=90),
+        make_column("reserved_qty", type="Float", width=90),
+        make_column("projected_qty", type="Float", width=90),
+        make_column("warehouse", type="Link", options="Warehouse"),
     ]
 
 

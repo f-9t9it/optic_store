@@ -3,12 +3,12 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from frappe.utils import getdate
 from functools import partial
 from toolz import merge, pluck, compose, concatv
 
 from optic_store.utils import pick
+from optic_store.utils.report import make_column
 
 
 def execute(filters=None):
@@ -37,17 +37,7 @@ def execute(filters=None):
 
 
 def _get_columns(filters):
-    def make_column(key, label=None, type="Currency", options=None, width=120):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     join_columns = compose(list, concatv)
-
     return join_columns(
         [make_column("supplier", type="Link", options="Supplier")]
         if filters.get("is_manager")
@@ -55,7 +45,7 @@ def _get_columns(filters):
         [
             make_column("brand", type="Link", options="Brand"),
             make_column("item_code", type="Link", options="Item"),
-            make_column("item_name", type="Data", width=200),
+            make_column("item_name", width=200),
             make_column("item_group", type="Link", options="Item Group"),
             make_column("warehouse", type="Link", options="Warehouse"),
             make_column("batch_no", "Batch", type="Link", options="Batch"),
@@ -63,10 +53,14 @@ def _get_columns(filters):
             make_column("expiry_in_days", "Expiry in Days", type="Int", width=90),
             make_column("qty", "Quantity", type="Float", width=90),
         ],
-        [make_column("buying_price", filters.get("buying_price_list"))]
+        [make_column("buying_price", filters.get("buying_price_list"), type="Currency")]
         if filters.get("is_manager")
         else [],
-        [make_column("selling_price", filters.get("selling_price_list"))],
+        [
+            make_column(
+                "selling_price", filters.get("selling_price_list"), type="Currency"
+            )
+        ],
     )
 
 

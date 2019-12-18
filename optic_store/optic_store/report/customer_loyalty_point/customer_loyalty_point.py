@@ -3,12 +3,12 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from frappe.utils import today
 from functools import partial
 from toolz import compose, pluck
 
 from optic_store.utils import pick
+from optic_store.utils.report import make_column
 
 
 def execute(filters=None):
@@ -20,15 +20,6 @@ def execute(filters=None):
 
 
 def _get_columns(filters):
-    def make_column(key, label=None, type="Data", options=None, width=120):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     return [
         make_column("loyalty_card_no"),
         make_column("customer", type="Link", options="Customer"),

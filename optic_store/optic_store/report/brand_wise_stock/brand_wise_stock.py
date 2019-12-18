@@ -3,11 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial
 from toolz import compose, pluck, concatv
 
 from optic_store.utils import pick
+from optic_store.utils.report import make_column
 
 
 def execute(filters=None):
@@ -19,15 +19,6 @@ def execute(filters=None):
 
 
 def _get_columns():
-    def make_column(key, label=None, type="Data", options=None, width=120):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     return [
         make_column("brand", type="Link", options="Brand", width=180),
         make_column("item_group", type="Link", options="Item Group", width=180),

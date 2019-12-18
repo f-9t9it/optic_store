@@ -3,12 +3,12 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from frappe.utils import cint
 from functools import partial
 from toolz import compose, pluck, concatv, merge
 
 from optic_store.utils import pick
+from optic_store.utils.report import make_column
 
 
 def execute(filters=None):
@@ -21,34 +21,25 @@ def execute(filters=None):
 
 
 def _get_columns(filters):
-    def make_column(key, label=None, type="Data", options=None, width=90):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     join_columns = compose(list, concatv)
     return join_columns(
         [
-            make_column("posting_date", type="Date"),
-            make_column("posting_time", type="Time"),
-            make_column("invoice", type="Link", options="Sales Invoice", width=120),
-            make_column("customer", type="Link", options="Customer", width=120),
+            make_column("posting_date", type="Date", width=90),
+            make_column("posting_time", type="Time", width=90),
+            make_column("invoice", type="Link", options="Sales Invoice"),
+            make_column("customer", type="Link", options="Customer"),
             make_column("customer_name", width=150),
             # simplest way to ignore user permissions is to not make fieldtype Link
-            make_column("branch", width=120),
+            make_column("branch"),
         ],
         [
-            make_column("item_code", type="Link", options="Item", width=120),
+            make_column("item_code", type="Link", options="Item"),
             make_column("item_name", width=150),
-            make_column("rate", type="Currency"),
-            make_column("amount", type="Currency"),
+            make_column("rate", type="Currency", width=90),
+            make_column("amount", type="Currency", width=90),
         ]
         if cint(filters.item_wise)
-        else [make_column("grand_total", type="Currency")],
+        else [make_column("grand_total", type="Currency", width=90)],
     )
 
 

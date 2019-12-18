@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from functools import partial, reduce
 from toolz import (
     compose,
@@ -20,6 +19,7 @@ from toolz import (
 
 from optic_store.utils import pick, split_to_list, with_report_error_check, key_by
 from optic_store.api.sales_invoice import get_payments_against
+from optic_store.utils.report import make_column
 
 
 def execute(filters=None):
@@ -31,15 +31,6 @@ def execute(filters=None):
 
 
 def _get_columns(filters):
-    def make_column(key, label=None, type="Data", options=None, width=120):
-        return {
-            "label": _(label or key.replace("_", " ").title()),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     columns = concatv(
         [
             make_column(

@@ -7,6 +7,8 @@ from frappe import _
 from functools import partial
 from toolz import compose, pluck, keyfilter, concatv
 
+from optic_store.utils.report import make_column
+
 
 def execute(filters=None):
     columns = _get_columns()
@@ -16,26 +18,16 @@ def execute(filters=None):
 
 
 def _get_columns():
-    def make_column(key, label, type="Currency", options=None, width=120):
-        return {
-            "label": _(label),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
-    columns = [
+    return [
         make_column("posting_date", "Date", type="Date", width=90),
         make_column("invoice", "Invoice No", type="Link", options="Sales Invoice"),
-        make_column("customer", "Customer", type="Link", options="Customer"),
-        make_column("total", "Total"),
-        make_column("discount", "Discount"),
-        make_column("net_total", "Net Total"),
-        make_column("tax", "Tax"),
-        make_column("grand_total", "Grand Total"),
+        make_column("customer", type="Link", options="Customer"),
+        make_column("total", type="Currency"),
+        make_column("discount", type="Currency"),
+        make_column("net_total", type="Currency"),
+        make_column("tax", type="Currency"),
+        make_column("grand_total", type="Currency"),
     ]
-    return columns
 
 
 def _get_keys():
