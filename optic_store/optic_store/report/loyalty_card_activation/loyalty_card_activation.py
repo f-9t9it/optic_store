@@ -114,6 +114,7 @@ def _count_activations(customers, intervals):
             {
                 "seger": compose(
                     len,
+                    list,
                     partial(flip, filter, get(x.get("key"), customers_grouped, [])),
                     seg_filter,
                 )
@@ -130,7 +131,7 @@ def _count_activations(customers, intervals):
 
         return fn
 
-    total_fn = compose(len, partial(flip, filter, customers), seg_filter)
+    total_fn = compose(len, list, partial(flip, filter, customers), seg_filter)
 
     def fn(x):
         branch = x.get("branch")
