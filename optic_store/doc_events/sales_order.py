@@ -9,6 +9,7 @@ from functools import partial
 from toolz import compose
 
 from optic_store.api.customer import get_user_branch
+from optic_store.api.item import get_min_prices
 from optic_store.utils.helpers import get_parts
 from optic_store.utils import mapf
 
@@ -103,6 +104,13 @@ def _validate_spec_parts(items):
     for part in ["Frame", "Lens Right", "Lens Left"]:
         if count(part)(parts) > 1:
             frappe.throw(_("There can only be one row for {}".format(part)))
+
+
+def before_submit(doc, method):
+    for item in doc.items:
+        prices = get_min_prices(item.item_code)
+        item.os_minimum_selling_rate = prices.get("ms1")
+        item.os_minimum_selling_2_rate = prices.get("ms2")
 
 
 def on_update(doc, method):
