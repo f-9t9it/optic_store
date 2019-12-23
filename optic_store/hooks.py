@@ -360,6 +360,7 @@ doc_events = {
         "validate": "optic_store.doc_events.sales_order.validate",
         "before_insert": "optic_store.doc_events.sales_order.before_insert",
         "before_save": "optic_store.doc_events.sales_order.before_save",
+        "before_submit": "optic_store.doc_events.sales_order.before_submit",
         "on_update": "optic_store.doc_events.sales_order.on_update",
         "before_cancel": "optic_store.doc_events.sales_order.before_cancel",
     },

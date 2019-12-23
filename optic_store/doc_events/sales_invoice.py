@@ -16,6 +16,7 @@ from toolz import compose, pluck, unique, first
 from optic_store.doc_events.sales_order import (
     before_insert as so_before_insert,
     before_save as so_before_save,
+    before_submit as so_before_submit,
 )
 from optic_store.api.sales_invoice import validate_loyalty
 
@@ -95,6 +96,7 @@ def before_submit(doc, method):
         Service dates are set to None to disable monthly scheduled task
         `erpnext.accounts.deferred_revenue.convert_deferred_revenue_to_income`
     """
+    so_before_submit(doc, method)
     for item in doc.items:
         is_gift_card = frappe.db.get_value("Item", item.item_code, "is_gift_card")
         if is_gift_card:
