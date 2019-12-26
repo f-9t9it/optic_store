@@ -47,7 +47,7 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
 );
 frappe.ui.form.BatchQuickEntryForm = frappe.ui.form.QuickEntryForm.extend(batch_qe);
 
-const __version__ = '0.8.12';
+const __version__ = '0.8.13';
 
 frappe.provide('optic_store');
 optic_store = {
@@ -57,7 +57,10 @@ optic_store = {
   addons,
   extend_pos,
   extend_batch_selector,
-  listview: { sales_invoice: sales_invoice_list },
+  listview: {
+    sales_invoice: sales_invoice_list,
+    stock_entry: stock_entry.listview_settings,
+  },
 };
 
 frappe.views.QueryReport = extend_query_report(frappe.views.QueryReport);
