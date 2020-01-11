@@ -212,7 +212,7 @@ def _get_year_dates(date):
 def _get_half_year_dates(date):
     if date.month > 6:
         return date.replace(month=7, day=1), date.replace(month=12, day=31)
-    return date.replace(month=1, day=1), date.replace(month=6, day=30)
+    return date.replace(month=1, day=1), date.replace(month=6, day=31)
 
 
 def _get_quarter_dates(date):
