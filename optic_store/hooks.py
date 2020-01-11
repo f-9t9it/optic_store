@@ -206,6 +206,7 @@ fixtures = [
                     "Payment Entry-os_posting_time",
                     "Payment Entry-os_branch",
                     "Payment Entry-os_gift_card",
+                    "Stock Entry-os_reference_stock_transfer",
                 ],
             ]
         ],
