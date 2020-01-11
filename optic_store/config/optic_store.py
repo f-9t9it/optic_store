@@ -124,12 +124,6 @@ def get_data():
                     "name": "Stock Ledger 2",
                     "label": _("Stock Ledger 2"),
                 },
-                {
-                    "type": "report",
-                    "is_query_report": True,
-                    "name": "Stock Movement Analysis",
-                    "label": _("Stock Movement Analysis"),
-                },
             ],
         },
         {
