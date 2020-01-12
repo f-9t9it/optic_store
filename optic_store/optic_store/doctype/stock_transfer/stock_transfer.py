@@ -69,7 +69,10 @@ class StockTransfer(Document):
                 merge(
                     pick(["company"], self.as_dict()),
                     warehouses,
-                    {"items": _map_items(warehouses, accounts)(self.items)},
+                    {
+                        "items": _map_items(warehouses, accounts)(self.items),
+                        "os_reference_stock_transfer": self.name,
+                    },
                     _destruct_datetime(self.outgoing_datetime),
                 )
             )
@@ -98,7 +101,10 @@ class StockTransfer(Document):
                 merge(
                     pick(["company"], self.as_dict()),
                     warehouses,
-                    {"items": _map_items(warehouses, accounts)(self.items)},
+                    {
+                        "items": _map_items(warehouses, accounts)(self.items),
+                        "os_reference_stock_transfer": self.name,
+                    },
                     _destruct_datetime(self.incoming_datetime),
                 )
             )
