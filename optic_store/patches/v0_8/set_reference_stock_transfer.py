@@ -7,6 +7,19 @@ import frappe
 
 
 def execute():
+    if not frappe.db.exists("Custom Field", "Stock Entry-os_reference_stock_transfer"):
+        frappe.get_doc(
+            {
+                "doctype": "Custom Field",
+                "dt": "Stock Entry",
+                "fieldname": "os_reference_stock_transfer",
+                "fieldtype": "Data",
+                "insert_after": "credit_note",
+                "label": "Reference Stock Transfer",
+                "translatable": 0,
+                "read_only": 1,
+            }
+        ).insert()
     for doc in frappe.get_all(
         "Stock Transfer",
         fields=["name", "outgoing_stock_entry", "incoming_stock_entry"],
