@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from toolz import excepts, first, compose
 
 from optic_store.utils import map_resolved
 
@@ -21,6 +22,17 @@ def set_or_create_batch(doc, method):
                 )
                 item.batch_no = batch_no
 
+    get_batch_in_previous_items = compose(
+        lambda x: x.get("batch_no"),
+        excepts(StopIteration, first, lambda _: {}),
+        lambda x: filter(
+            lambda item: item.idx < x.idx
+            and item.item_code == x.item_code
+            and item.pb_expiry_date == x.pb_expiry_date,
+            doc.items,
+        ),
+    )
+
     def create_new_batch(item):
         warehouse = "t_warehouse" if doc.doctype == "Stock Entry" else "warehouse"
         if item.get(warehouse) and item.os_expiry_date and not item.batch_no:
@@ -30,6 +42,10 @@ def set_or_create_batch(doc, method):
                 ["has_batch_no", "create_new_batch", "has_expiry_date"],
             )
             if has_batch_no and create_new_batch and has_expiry_date:
+                batch_in_items = get_batch_in_previous_items(item)
+                if batch_in_items:
+                    item.batch_no = batch_in_items
+                    return
                 batch = frappe.get_doc(
                     {
                         "doctype": "Batch",
