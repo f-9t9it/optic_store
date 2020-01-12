@@ -218,7 +218,10 @@ def _get_sales_invoices(sales_order):
             SELECT sii.parent AS name
             FROM `tabSales Invoice Item` AS sii
             LEFT JOIN `tabSales Invoice` AS si ON sii.parent = si.name
-            WHERE si.docstatus = 1 AND sii.sales_order = %(sales_order)s
+            WHERE
+                si.docstatus = 1 AND
+                si.is_return = 0 AND
+                sii.sales_order = %(sales_order)s
         """,
         values={"sales_order": sales_order},
         as_dict=1,
