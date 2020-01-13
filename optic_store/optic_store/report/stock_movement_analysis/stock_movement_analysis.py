@@ -21,10 +21,10 @@ def execute(filters=None):
 
 def _get_columns(filters):
     return [
-        # make_column("item_group", type="Link", options="Item Group"),
-        # make_column("brand", type="Link", options="Brand"),
+        make_column("item_group", type="Link", options="Item Group"),
+        make_column("brand", type="Link", options="Brand"),
         make_column("item_code", type="Link", options="Item"),
-        # make_column("item_name", width=150),
+        make_column("item_name", width=150),
         make_column("opening_qty", type="Int", width=90),
         make_column("purchased_qty", type="Int", width=90),
         make_column("transit_qty", type="Int", width=90),
