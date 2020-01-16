@@ -14,6 +14,7 @@ from functools import partial
 from toolz import compose, pluck, unique, first
 
 from optic_store.doc_events.sales_order import (
+    validate_opened_xz_report,
     before_insert as so_before_insert,
     before_save as so_before_save,
     before_submit as so_before_submit,
@@ -39,6 +40,7 @@ _get_gift_card_amounts = compose(
 
 
 def validate(doc, method):
+    validate_opened_xz_report(doc.company, doc.pos_profile)
     gift_cards = map(
         lambda x: frappe.get_doc("Gift Card", x.gift_card), doc.os_gift_cards
     )

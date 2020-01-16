@@ -12,6 +12,7 @@ from optic_store.api.customer import get_user_branch
 from optic_store.api.item import get_min_prices
 from optic_store.utils.helpers import get_parts
 from optic_store.utils import mapf
+from optic_store.api.xz_report import get_unclosed
 
 
 def before_naming(doc, method):
@@ -25,6 +26,7 @@ def before_naming(doc, method):
 
 
 def validate(doc, method):
+    validate_opened_xz_report(doc.company)
     if len(doc.items) > 5:
         frappe.throw(_("Number of items cannot be greater than 5"))
     for i in range(0, 3):
@@ -45,6 +47,21 @@ def validate(doc, method):
                         )
                     )
                 )
+
+
+def validate_opened_xz_report(company, pos_profile=None):
+    if not any(
+        role in ["Sales Manager", "Accounts Manager"] for role in frappe.get_roles()
+    ):
+        if not get_unclosed(
+            user=frappe.session.user, pos_profile=pos_profile, company=company
+        ):
+            frappe.throw(
+                _(
+                    "Open XZ Report not found. "
+                    "Please create a draft XZ Report and try again."
+                )
+            )
 
 
 def before_insert(doc, method):
