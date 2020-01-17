@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import now
+from toolz import merge
 
 
 @frappe.whitelist()
@@ -23,8 +24,11 @@ def create_opening(
 
 
 @frappe.whitelist()
-def get_unclosed(user, pos_profile, company):
+def get_unclosed(user, pos_profile=None, company=None):
     return frappe.db.exists(
         "XZ Report",
-        {"user": user, "pos_profile": pos_profile, "company": company, "docstatus": 0},
+        merge(
+            {"user": user, "company": company, "docstatus": 0},
+            {"pos_profile": pos_profile} if pos_profile else {},
+        ),
     )

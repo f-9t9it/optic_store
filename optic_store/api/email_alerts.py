@@ -35,14 +35,16 @@ def _document_expiry_reminder(dx):
     branch_docs = [
         {"label": "CR", "data": get_branch_records("os_cr_no", "os_cr_expiry")},
         {
-            "label": "NHRA License",
+            "label": "Shop NHRA License",
             "data": get_branch_records("os_nhra_license", "os_nhra_expiry"),
         },
     ]
     employee_docs = [
-        {"label": "Passport", "data": get_emp_records("valid_upto")},
         {"label": "CPR", "data": get_emp_records("os_cpr_expiry")},
-        {"label": "NHRA", "data": get_emp_records("os_nhra_expiry")},
+        {"label": "Passport", "data": get_emp_records("valid_upto")},
+        {"label": "Employee NHRA License", "data": get_emp_records("os_nhra_expiry")},
+        {"label": "Staff Contract", "data": get_emp_records("contract_end_date")},
+        {"label": "Staff Resident Permit", "data": get_emp_records("os_rp_expiry")},
     ]
 
     if not len(filter_empty(branch_docs + employee_docs)):
