@@ -29,6 +29,11 @@ def get_data():
                     "name": "Custom Loyalty Entry",
                     "label": _("Custom Loyalty Entry"),
                 },
+                {
+                    "type": "doctype",
+                    "name": "Old Sales Record",
+                    "label": _("Old Sales Record"),
+                },
             ],
         },
         {
