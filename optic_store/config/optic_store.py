@@ -135,6 +135,12 @@ def get_data():
                     "name": "Stock Movement Analysis",
                     "label": _("Stock Movement Analysis"),
                 },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Salary Report for Bank",
+                    "label": _("Salary Report for Bank"),
+                },
             ],
         },
         {

@@ -13,6 +13,7 @@ export { default as stock_ledger_2 } from './stock_ledger_2';
 export { default as loyalty_point_ledger } from './loyalty_point_ledger';
 export { default as loyalty_point_expiry } from './loyalty_point_expiry';
 export { default as stock_movement_analysis } from './stock_movement_analysis';
+export { default as salary_report_for_bank } from './salary_report_for_bank';
 
 import * as utils from './fields';
 export { utils };
