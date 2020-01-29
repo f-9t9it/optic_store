@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import math
 import frappe
 from frappe import _
-from frappe.utils import getdate, add_days
+from frappe.utils import getdate, add_days, get_datetime, datetime
 from functools import partial
 from toolz import curry, unique, compose, merge, get
 
@@ -20,6 +20,12 @@ def process():
 
 
 _get_recipients = compose(unique, partial(map, lambda x: x.user))
+
+
+def _get_send_after(mins):
+    if not mins:
+        return None
+    return get_datetime() + datetime.timedelta(minutes=mins)
 
 
 def _document_expiry_reminder(dx):
@@ -65,6 +71,7 @@ def _document_expiry_reminder(dx):
             reference_doctype="Email Alerts",
             reference_name="Email Alerts",
             unsubscribe_message=_("Unsubscribe from this Reminder"),
+            send_after=_get_send_after(dx.send_after_mins),
         )
 
 
@@ -157,6 +164,7 @@ def _branch_sales_summary(bs):
             reference_doctype="Email Alerts",
             reference_name="Email Alerts",
             unsubscribe_message=_("Unsubscribe from this Report"),
+            send_after=_get_send_after(bs.send_after_mins),
         )
 
 

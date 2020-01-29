@@ -29,6 +29,11 @@ def get_data():
                     "name": "Custom Loyalty Entry",
                     "label": _("Custom Loyalty Entry"),
                 },
+                {
+                    "type": "doctype",
+                    "name": "Old Sales Record",
+                    "label": _("Old Sales Record"),
+                },
             ],
         },
         {
@@ -129,6 +134,12 @@ def get_data():
                     "is_query_report": True,
                     "name": "Stock Movement Analysis",
                     "label": _("Stock Movement Analysis"),
+                },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Salary Report for Bank",
+                    "label": _("Salary Report for Bank"),
                 },
             ],
         },

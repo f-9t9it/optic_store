@@ -9,6 +9,10 @@ from frappe.model.document import Document
 
 class EmailAlerts(Document):
     def validate(self):
+        if self.send_after_mins and self.send_after_mins < 0:
+            frappe.throw(
+                frappe._("Send After (mins) can only be zero or a positive integer.")
+            )
         for grouped_mop in self.branch_sales_grouped_mops:
             if not grouped_mop.mops:
                 frappe.throw(

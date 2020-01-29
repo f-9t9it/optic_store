@@ -119,23 +119,12 @@ def _get_filters(filters):
         ["si.docstatus = 1"], ["si.os_branch IN %(branches)s"] if branches else [],
     )
     dn_clauses = join_clauses(
-        ["dn.docstatus = 1"],
-        ["dn.os_branch IN %(branches)s"] if branches else [],
         [
-            """
-                (
-                    (
-                        so.workflow_state = 'Collected' AND
-                        dn.is_return = 0 AND
-                        dn.posting_date BETWEEN %(from_date)s AND %(to_date)s
-                    ) OR (
-                        so.workflow_state = 'Collected' AND
-                        dn.is_return = 1 AND
-                        si.posting_date BETWEEN %(from_date)s AND %(to_date)s
-                    )
-                )
-            """
+            "dn.docstatus = 1",
+            "dn.posting_date BETWEEN %(from_date)s AND %(to_date)s",
+            "so.workflow_state = 'Collected'",
         ],
+        ["dn.os_branch IN %(branches)s"] if branches else [],
     )
 
     values = merge(
@@ -162,6 +151,8 @@ def _get_data(clauses, values, keys):
             if x.sales_status == "Achieved":
                 return None
             if x.own_delivery or x.is_return:
+                # x.s_return because return delivery note is always considered to have
+                # the same posting_date as that of the return sales invoice
                 return x.invoice_date
             return dates.get(x.invoice_name)
 
@@ -233,15 +224,20 @@ def _query(clauses, values):
         return get_invoices(
             """
                 SELECT
-                    dni.against_sales_invoice AS invoice,
+                    IF(
+                        dn.is_return = 1,
+                        rsi.name,
+                        dni.against_sales_invoice
+                    ) AS invoice,
                     dn.posting_date AS delivery_date
                 FROM `tabDelivery Note Item` AS dni
                 LEFT JOIN `tabDelivery Note` AS dn ON
                     dn.name = dni.parent
-                LEFT JOIN `tabSales Invoice` AS si ON
-                    si.name = dni.against_sales_invoice
                 LEFT JOIN `tabSales Order` AS so ON
                     so.name = dni.against_sales_order
+                LEFT JOIN `tabSales Invoice` AS rsi ON
+                    rsi.is_return = dn.is_return AND
+                    rsi.return_against = dni.against_sales_invoice
                 WHERE {dn_clauses}
             """.format(
                 **clauses
