@@ -14,6 +14,7 @@ export { default as loyalty_point_ledger } from './loyalty_point_ledger';
 export { default as loyalty_point_expiry } from './loyalty_point_expiry';
 export { default as stock_movement_analysis } from './stock_movement_analysis';
 export { default as salary_report_for_bank } from './salary_report_for_bank';
+export { default as customer_old_sales } from './customer_old_sales';
 
 import * as utils from './fields';
 export { utils };
