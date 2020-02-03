@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint
 from functools import partial
-from toolz import compose, pluck, concatv, merge
+from toolz import compose, pluck, concatv, merge, unique, groupby, excepts, first
 
 from optic_store.utils import pick
 from optic_store.utils.report import make_column, with_report_generation_time
@@ -35,11 +35,19 @@ def _get_columns(filters):
         [
             make_column("item_code", type="Link", options="Item"),
             make_column("item_name", width=150),
+            make_column("item_group", type="Link", options="Item Group"),
+            make_column("brand", type="Link", options="Brand"),
             make_column("rate", type="Currency", width=90),
+            make_column("qty", type="Float", width=90),
             make_column("amount", type="Currency", width=90),
         ]
         if cint(filters.item_wise)
         else [make_column("grand_total", type="Currency", width=90)],
+        [
+            make_column("sales_order", "Order", type="Link", options="Sales Order"),
+            make_column("order_status", width=150),
+            make_column("mops", "Modes of Payment", width=150),
+        ],
     )
 
 
@@ -78,7 +86,10 @@ def _get_query(filters):
                 {common_fields}
                 sii.item_code AS item_code,
                 sii.item_name AS item_name,
+                sii.item_group AS item_group,
+                sii.brand AS brand,
                 sii.rate AS rate,
+                sii.qty AS qty,
                 sii.amount AS amount
             FROM `tabSales Invoice` AS si
             RIGHT JOIN `tabSales Invoice Item` AS sii ON
@@ -107,5 +118,81 @@ def _get_query(filters):
 def _get_data(clauses, values, keys, query):
     rows = frappe.db.sql(query.format(clauses=clauses), values=values, as_dict=1)
 
-    make_row = partial(pick, keys)
+    make_row = compose(partial(pick, keys), _set_mops(rows), _set_sales_orders(rows))
     return with_report_generation_time([make_row(x) for x in rows], keys)
+
+
+def _set_sales_orders(rows):
+    get_orders = compose(
+        partial(groupby, "invoice"),
+        partial(unique, key=lambda x: x.get("invoice")),
+        lambda x: frappe.db.sql(
+            """
+            SELECT
+                sii.parent AS invoice,
+                sii.sales_order AS sales_order,
+                so.workflow_state AS order_status
+            FROM `tabSales Invoice Item` AS sii
+            LEFT JOIN `tabSales Order` AS so ON so.name = sii.sales_order
+            WHERE sii.parent IN %(invoices)s
+        """,
+            values={"invoices": x},
+            as_dict=1,
+        ),
+        list,
+        unique,
+        partial(pluck, "invoice"),
+    )
+
+    orders = get_orders(rows)
+    set_sales_order = compose(
+        excepts(StopIteration, first, lambda _: {}),
+        lambda x: orders.get(x, []),
+        lambda x: x.get("invoice"),
+    )
+
+    def fn(row):
+        return merge(row, set_sales_order(row))
+
+    return fn
+
+
+def _set_mops(rows):
+    get_mops = compose(
+        partial(groupby, "invoice"),
+        partial(unique, key=lambda x: x.get("invoice")),
+        lambda x: frappe.db.sql(
+            """
+            SELECT
+                sip.parent AS invoice,
+                sip.mode_of_payment AS mode_of_payment
+            FROM `tabSales Invoice Payment` AS sip
+            WHERE sip.parent IN %(invoices)s
+            UNION ALL
+            SELECT
+                per.reference_name AS invoice,
+                pe.mode_of_payment AS mode_of_payments
+            FROM `tabPayment Entry Reference` AS per
+            LEFT JOIN `tabPayment Entry` AS pe ON pe.name = per.parent
+            WHERE pe.docstatus = 1 AND per.reference_name IN %(invoices)s
+        """,
+            values={"invoices": x},
+            as_dict=1,
+        ),
+        list,
+        unique,
+        partial(pluck, "invoice"),
+    )
+
+    mops = get_mops(rows)
+    set_mops = compose(
+        lambda x: {"mops": ", ".join(x)},
+        partial(pluck, "mode_of_payment"),
+        lambda x: mops.get(x, []),
+        lambda x: x.get("invoice"),
+    )
+
+    def fn(row):
+        return merge(row, set_mops(row))
+
+    return fn
