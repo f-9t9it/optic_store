@@ -293,3 +293,60 @@
   </div>
 </div>
 {%- endmacro -%}
+
+{%- macro payslip_preheader(title, subtitle, logo_url) -%}
+<div class="os-preheader">
+  {%- if logo_url -%}
+  <img class="os-payslip-preheader-logo" src="{{ logo_url }}" alt="logo" />
+  {%- endif -%}
+  <div class="os-payslip-preheader-text">
+    <div>{{ title }}</div>
+    <div>{{ subtitle }}</div>
+  </div>
+</div>
+{%- endmacro -%}
+
+{%- macro payslip_header(doc, posting_date) -%}
+<div class="os-header os-payslip">
+  <div class="os-payslip-title os-bordered-bottom">
+    {{ doc.employee_name }}
+  </div>
+  <dl>
+    <dt>Employee</dt>
+    <dd>{{ doc.employee }}</dd>
+  </dl>
+  <dl>
+    <dt>Designation</dt>
+    <dd>{{ doc.designation }}</dd>
+  </dl>
+  <dl>
+    <dt>Posting Date</dt>
+    <dd>{{ frappe.format(frappe.utils.getdate(posting_date)) }}</dd>
+  </dl>
+</div>
+{%- endmacro -%}
+
+{%- macro salary_components(label, components) -%}
+<table class="table table-condensed">
+  <thead>
+    <tr>
+      <th width="60%">{{ label }}</th>
+      <th class="text-right">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    {%- for row in components -%}
+    <tr>
+      <td>{{ row.salary_component }}</td>
+      <td class="text-right">{{ row.get_formatted('amount', doc) }}</td>
+    </tr>
+    {%- endfor -%}
+  </tbody>
+  <tfoot>
+    <tr>
+      <th>Total {{ label }}</th>
+      <th class="text-right">{{ frappe.utils.fmt_money(components|sum(attribute='amount'), currency=frappe.db.get_default('currency')) }}</th>
+    </tr>
+  </tfoot>
+</table>
+{%- endmacro -%}
