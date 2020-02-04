@@ -450,5 +450,7 @@ jenv = {
         "get_amounts:optic_store.utils.helpers.get_amounts",
         "get_ref_so_date:optic_store.api.sales_invoice.get_ref_so_date",
         "get_payments:optic_store.api.sales_invoice.get_payments",
+        "get_salary_component_by_type:optic_store.api.leave_application.get_salary_component_by_type",  # noqa
+        "get_leave_balance:optic_store.api.leave_application.get_leave_balance",
     ]
 }

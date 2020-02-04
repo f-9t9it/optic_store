@@ -1,0 +1,35 @@
+<main class="os-lof">
+  {{ macros.payslip_preheader('CASH RECEIPT', 'for %s'|format(frappe.utils.getdate(doc.start_date).strftime('%b, %Y')), logo_url) }}
+  {{ macros.payslip_header(doc, frappe.utils.add_days(doc.posting_date, posting_date_offset or 0)) }}
+
+  {%- set earnings = get_salary_component_by_type('type_2', doc.earnings) -%}
+  {%- set deductions = get_salary_component_by_type('type_2', doc.deductions) -%}
+
+  {%- if earnings -%}
+  {{ macros.salary_components('Earnings', earnings) }}
+  {%- endif -%}
+  {%- if deductions -%}
+  {{ macros.salary_components('Deductions', deductions) }}
+  {%- endif -%}
+
+  {%- set total = earnings|sum(attribute='amount') - deductions|sum(attribute='amount') -%}
+  <div class="os-section os-payslip">
+    <dl>
+      <dt>Amount</dt>
+      <dd>
+        {{ frappe.utils.fmt_money(total, currency=frappe.db.get_default('currency')) }}<br />
+        {{ frappe.utils.money_in_words(total) }}
+      </dd>
+    </dl>
+  </div>
+
+  <div class="os-fill"></div>
+
+  <div class="os-footer">
+    <div class="os-footer-content">
+      <div class="os-footer-message">
+        This is a computer generated receipt. No signature is required.
+      </div>
+    </div>
+  </div>
+</main>

@@ -1,0 +1,52 @@
+<main class="os-lof">
+  {{ macros.payslip_preheader('PAYSLIP', 'for %s'|format(frappe.utils.getdate(doc.start_date).strftime('%b, %Y')), logo_url) }}
+  {{ macros.payslip_header(doc, doc.posting_date) }}
+
+  {%- set earnings = get_salary_component_by_type('type_1', doc.earnings) -%}
+  {%- set deductions = get_salary_component_by_type('type_1', doc.deductions) -%}
+
+  {%- if earnings -%}
+  {{ macros.salary_components('Earnings', earnings) }}
+  {%- endif -%}
+  {%- if deductions -%}
+  {{ macros.salary_components('Deductions', deductions) }}
+  {%- endif -%}
+
+  {%- set total = earnings|sum(attribute='amount') - deductions|sum(attribute='amount') -%}
+  <div class="os-section os-payslip">
+    <dl>
+      <dt>Amount</dt>
+      <dd>
+        {{ frappe.utils.fmt_money(total, currency=frappe.db.get_default('currency')) }}<br />
+        {{ frappe.utils.money_in_words(total) }}
+      </dd>
+    </dl>
+  </div>
+
+  <div class="os-section os-fill os-payslip">
+    <dl>
+      <dt>Working Days</dt>
+      <dd>{{ doc.get_formatted('total_working_days') }}</dd>
+    </dl>
+    <dl>
+      <dt>Leave Without Pay</dt>
+      <dd>{{ doc.get_formatted('leave_without_pay') }}</dd>
+    </dl>
+    <dl>
+      <dt>Payment Days</dt>
+      <dd>{{ doc.get_formatted('payment_days') }}</dd>
+    </dl>
+    <dl>
+      <dt>Annual Leave Accumalted</dt>
+      <dd>{{ get_leave_balance(doc.employee, doc.end_date) }}</dd>
+    </dl>
+  </div>
+
+  <div class="os-footer">
+    <div class="os-footer-content">
+      <div class="os-footer-message">
+        This is a computer generated receipt. No signature is required.
+      </div>
+    </div>
+  </div>
+</main>
