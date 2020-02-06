@@ -1,4 +1,4 @@
-import { make_date } from './fields';
+import { make_date, make_select } from './fields';
 
 export default function() {
   return {
@@ -9,11 +9,17 @@ export default function() {
         reqd: 1,
         default: frappe.datetime.month_start(),
       }),
-      make_date({
-        fieldname: 'end_date',
-        options: 'End Date',
+      make_select({
+        fieldname: 'report_type',
         reqd: 1,
-        default: frappe.datetime.month_end(),
+        options: ['Type 1', 'Type 2'],
+        default: 'Type 1',
+      }),
+      make_select({
+        fieldname: 'status',
+        reqd: 1,
+        options: ['Draft', 'Submitted'],
+        default: 'Submitted',
       }),
     ],
   };
