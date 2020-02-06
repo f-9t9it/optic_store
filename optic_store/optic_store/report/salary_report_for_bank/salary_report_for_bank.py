@@ -35,15 +35,21 @@ def _get_columns(filters):
 
 def _get_filters(filters):
     join_clauses = compose(lambda x: " AND ".join(x), concatv)
-    return (
-        join_clauses(
-            [
-                "sl.docstatus = 1",
-                "sl.start_date = %(start_date)s",
-                "sl.end_date = %(end_date)s",
-            ]
+    get_components = compose(
+        list,
+        partial(pluck, "salary_component"),
+        lambda x: frappe.get_all(
+            "Optical Store HR Settings Salary Component",
+            fields=["salary_component"],
+            filters={"parentfield": "{}_components".format(x)},
         ),
-        filters,
+        lambda x: x.replace(" ", "_").lower(),
+    )
+
+    values = merge(filters, {"components": get_components(filters.get("report_type"))})
+    return (
+        join_clauses(["sl.status = %(status)s", "sl.start_date = %(start_date)s"]),
+        values,
     )
 
 
@@ -54,14 +60,23 @@ def _get_data(clauses, values, keys):
                 e.bank_name AS bank_name,
                 e.bank_ac_no AS bank_ac_no,
                 e.employee_name AS employee_name,
-                sl.rounded_total AS amount,
+                IFNULL(SUM(sde.amount), 0) - IFNULL(SUM(sdd.amount), 0) AS amount,
                 sl.start_date AS start_date,
                 a.account_number AS account_number
             FROM `tabSalary Slip` AS sl
+            LEFT JOIN `tabSalary Detail` AS sde ON
+                sde.parent = sl.name AND
+                sde.parentfield = 'earnings' AND
+                sde.salary_component IN %(components)s
+            LEFT JOIN `tabSalary Detail` AS sdd ON
+                sdd.parent = sl.name AND
+                sdd.parentfield = 'deductions' AND
+                sdd.salary_component IN %(components)s
             LEFT JOIN `tabEmployee` AS e ON e.name = sl.employee
             LEFT JOIN `tabPayroll Entry` AS pe ON pe.name = sl.payroll_entry
             LEFT JOIN `tabAccount` AS a ON a.name = pe.payment_account
             WHERE {clauses}
+            GROUP BY sl.employee, sl.start_date
         """.format(
             clauses=clauses
         ),
