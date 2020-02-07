@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from functools import partial
-from toolz import compose, pluck, concatv, merge
+from toolz import compose, pluck, concatv, merge, groupby, excepts, first
 
 from optic_store.utils import pick
 from optic_store.utils.report import make_column, with_report_generation_time
@@ -60,23 +60,14 @@ def _get_data(clauses, values, keys):
                 e.bank_name AS bank_name,
                 e.bank_ac_no AS bank_ac_no,
                 e.employee_name AS employee_name,
-                IFNULL(SUM(sde.amount), 0) - IFNULL(SUM(sdd.amount), 0) AS amount,
+                sl.name AS salary_slip,
                 sl.start_date AS start_date,
                 a.account_number AS account_number
             FROM `tabSalary Slip` AS sl
-            LEFT JOIN `tabSalary Detail` AS sde ON
-                sde.parent = sl.name AND
-                sde.parentfield = 'earnings' AND
-                sde.salary_component IN %(components)s
-            LEFT JOIN `tabSalary Detail` AS sdd ON
-                sdd.parent = sl.name AND
-                sdd.parentfield = 'deductions' AND
-                sdd.salary_component IN %(components)s
             LEFT JOIN `tabEmployee` AS e ON e.name = sl.employee
             LEFT JOIN `tabPayroll Entry` AS pe ON pe.name = sl.payroll_entry
             LEFT JOIN `tabAccount` AS a ON a.name = pe.payment_account
             WHERE {clauses}
-            GROUP BY sl.employee, sl.start_date
         """.format(
             clauses=clauses
         ),
@@ -84,11 +75,51 @@ def _get_data(clauses, values, keys):
         as_dict=1,
     )
 
+    get_amounts = compose(
+        partial(groupby, "salary_slip"),
+        lambda type: frappe.db.sql(
+            """
+                SELECT
+                    sl.name AS salary_slip,
+                    SUM(sd.amount) AS amount
+                FROM `tabSalary Detail` AS sd
+                LEFT JOIN `tabSalary Slip` AS sl ON sl.name = sd.parent
+                WHERE
+                    sd.parentfield = %(parentfield)s AND
+                    sd.parent IN %(salary_slips)s AND
+                    sd.salary_component IN %(components)s
+                GROUP BY sl.name
+            """,
+            values=merge(
+                values,
+                {
+                    "salary_slips": [x.get("salary_slip") for x in result],
+                    "parentfield": type,
+                },
+            ),
+            as_dict=1,
+        ),
+    )
+
+    get_amount = compose(
+        lambda x: x.get("amount", 0),
+        excepts(StopIteration, first, lambda _: {}),
+        lambda col, key: col.get(key, []),
+    )
+
+    earnings = get_amounts("earnings")
+    deductions = get_amounts("deductions")
+
     def add_remarks(row):
         start_date = row.get("start_date")
         return merge(
             row, {"remarks": "{} SAL".format(start_date.strftime("%b").upper())}
         )
 
-    make_row = compose(partial(pick, keys), add_remarks)
+    def set_amounts(row):
+        salary_slip = row.get("salary_slip")
+        amount = get_amount(earnings, salary_slip) - get_amount(deductions, salary_slip)
+        return merge(row, {"amount": amount})
+
+    make_row = compose(partial(pick, keys), add_remarks, set_amounts)
     return with_report_generation_time([make_row(x) for x in result], keys)
