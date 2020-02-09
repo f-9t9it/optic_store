@@ -16,6 +16,7 @@ import scripts, {
   batch_qe,
   stock_entry,
   salary_slip,
+  payroll_entry,
 } from './scripts';
 import extend_query_report from './pages/query_report';
 import extend_pos from './pages/pos';
@@ -37,6 +38,7 @@ frappe.ui.form.on('Employee', employee);
 frappe.ui.form.on('Branch', branch);
 frappe.ui.form.on('Item', item);
 frappe.ui.form.on('Salary Slip', salary_slip);
+frappe.ui.form.on('Payroll Entry', payroll_entry);
 
 if (frappe.ui.form.CustomerQuickEntryForm) {
   frappe.ui.form.CustomerQuickEntryForm = frappe.ui.form.CustomerQuickEntryForm.extend(
@@ -49,7 +51,7 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
 );
 frappe.ui.form.BatchQuickEntryForm = frappe.ui.form.QuickEntryForm.extend(batch_qe);
 
-const __version__ = '0.8.18';
+const __version__ = '0.8.19';
 
 frappe.provide('optic_store');
 optic_store = {
