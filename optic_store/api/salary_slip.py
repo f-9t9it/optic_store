@@ -14,3 +14,10 @@ def get_salary_slips_from_payroll_entry(payroll_entry):
             "Salary Slip", filters={"docstatus": 1, "payroll_entry": payroll_entry}
         )
     ]
+
+
+def get_salary_slip_docs_from_payroll_entry(payroll_entry):
+    return [
+        frappe.get_doc("Salary Slip", x)
+        for x in get_salary_slips_from_payroll_entry(payroll_entry)
+    ]
