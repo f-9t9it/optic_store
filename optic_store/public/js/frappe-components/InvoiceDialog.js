@@ -208,7 +208,10 @@ export default class InvoiceDialog {
     this.dialog.set_df_property('loyalty_sec', 'hidden', 0);
     this.dialog.set_df_property('payment_sec', 'hidden', 0);
     this.dialog.fields_dict.loyalty_card_no.bind_change_event();
-    await this.dialog.set_value('loyalty_card_no', null);
+    const { message: { os_loyalty_card_no: loyalty_card_no } = {} } =
+      (await frappe.db.get_value('Customer', frm.doc.customer, 'os_loyalty_card_no')) ||
+      {};
+    await this.dialog.set_value('loyalty_card_no', loyalty_card_no);
     this.dialog.fields_dict.loyalty_card_no.change();
 
     this.set_payments(frm);
