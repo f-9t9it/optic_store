@@ -207,6 +207,7 @@ fixtures = [
                     "Payment Entry-os_branch",
                     "Payment Entry-os_gift_card",
                     "Stock Entry-os_reference_stock_transfer",
+                    "Loyalty Point Entry-os_custom_loyalty_entry",
                 ],
             ]
         ],
