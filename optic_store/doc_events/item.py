@@ -27,6 +27,25 @@ def autoname(doc, method):
 
 
 def validate(doc, method):
+    existing_item_name = frappe.db.exists(
+        "Item", {"item_name": doc.item_name, "name": ("!=", doc.name)}
+    )
+    if existing_item_name:
+        frappe.throw(
+            frappe._("Item Name '{}' already exists in Item {}").format(
+                doc.item_name, existing_item_name
+            )
+        )
+    existing_description = frappe.db.exists(
+        "Item", {"description": doc.description, "name": ("!=", doc.name)}
+    )
+    if existing_description:
+        frappe.throw(
+            frappe._("Item Description '{}' already exists in Item {}").format(
+                doc.description, existing_description
+            )
+        )
+
     if doc.is_gift_card and not doc.gift_card_value:
         frappe.throw(_("Gift Card value is required."))
     if doc.is_gift_card and doc.no_of_months:

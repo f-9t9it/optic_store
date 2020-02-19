@@ -72,6 +72,25 @@ def before_validate(doc, method):
     set_or_create_batch(doc, method)
 
 
+def validate(doc, method):
+    if doc.supplier_delivery_note:
+        existing = frappe.db.exists(
+            "Purchase Receipt",
+            {
+                "supplier_delivery_note": doc.supplier_delivery_note,
+                "name": ("!=", doc.name),
+            },
+        )
+        if existing:
+            frappe.throw(
+                frappe._(
+                    "Supplier Delivery Note {} exists in Purchase Receipt {}".format(
+                        doc.supplier_delivery_note, existing
+                    )
+                )
+            )
+
+
 def set_batch_references(doc, method):
     # this method will not be necessaery when upstream 'before_validate' comes into play
     def set_fields(item):
