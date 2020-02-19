@@ -331,6 +331,7 @@ doc_events = {
     },
     "Purchase Receipt": {
         "before_save": "optic_store.doc_events.purchase_receipt.before_validate",
+        "validate": "pos_bahrain.doc_events.purchase_receipt.validate",
         "on_submit": "optic_store.doc_events.purchase_receipt.set_batch_references",
     },
     "Sales Order": {
