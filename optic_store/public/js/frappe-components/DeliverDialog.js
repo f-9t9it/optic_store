@@ -87,9 +87,13 @@ export default class DeliverDialog {
               options: 'Batch',
               label: __('Batch No'),
               in_list_view: 1,
+              only_select: 1,
               get_query: function({ item_code }) {
-                return { filters: { item: item_code } };
-              },
+                return {
+                  filters: { item_code, warehouse: this.warehouse },
+                  query: 'erpnext.controllers.queries.get_batch_no',
+                };
+              }.bind(this),
             },
             {
               fieldname: 'available_qty',
@@ -110,7 +114,6 @@ export default class DeliverDialog {
               hidden: 1,
             },
           ],
-          cannot_add_rows: true,
           in_place_edit: true,
           data: this.batches,
           get_data: () => this.batches,
@@ -140,6 +143,7 @@ export default class DeliverDialog {
       method: 'optic_store.api.sales_order.get_warehouse',
       args: { branch: frm.doc.os_branch },
     });
+    this.warehouse = warehouse;
     this.dialog.fields_dict.batches.grid.fields_map.batch_no.change = async function() {
       const { item_code, batch_no } = this.doc;
       const set_value = qty =>
@@ -311,6 +315,7 @@ export default class DeliverDialog {
   }
   async set_batches(frm, warehouse) {
     this.batches = await this._get_batch_items(frm.doc.items, warehouse);
+    this.dialog.fields_dict.batches.df.data = this.batches;
     this.dialog.fields_dict.batches.refresh();
   }
   async print(frm) {
