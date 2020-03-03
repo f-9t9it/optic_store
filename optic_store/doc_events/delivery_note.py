@@ -58,14 +58,18 @@ def _are_paid(sales_orders):
 def on_submit(doc, method):
     def advance_wf(name):
         doc = frappe.get_doc("Sales Order", name)
-        if doc and doc.workflow_state == "Ready to Deliver":
+        if (
+            doc
+            and doc.delivery_status == "Fully Delivered"
+            and doc.workflow_state == "Ready to Deliver"
+        ):
             apply_workflow(doc, "Complete")
 
     transit_sales_orders = compose(
-        partial(map, advance_wf),
         unique,
         partial(filter, lambda x: x),
         partial(map, lambda x: x.against_sales_order),
     )
 
-    transit_sales_orders(doc.items)
+    for name in transit_sales_orders(doc.items):
+        advance_wf(name)
