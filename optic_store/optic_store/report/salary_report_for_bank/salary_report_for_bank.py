@@ -98,7 +98,9 @@ def _get_data(clauses, values, keys):
                 },
             ),
             as_dict=1,
-        ),
+        )
+        if result
+        else {},
     )
 
     get_amount = compose(
