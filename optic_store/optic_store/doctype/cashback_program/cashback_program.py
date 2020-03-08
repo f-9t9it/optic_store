@@ -5,8 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from functools import partial
-from toolz import compose
 
 
 class CashbackProgram(Document):
@@ -21,36 +19,28 @@ class CashbackProgram(Document):
 
         existing = frappe.db.sql(
             """
-                    SELECT name FROM `tabCashback Program`
-                    WHERE
-                        disabled = 0 AND
-                        name != %(name)s AND
-                        from_date <= %(to_date)s AND
-                        IF(
-                            IFNULL(to_date, '') = '',
-                            9999-12-31,
-                            to_date
-                        ) >= %(from_date)s
-                """,
+                SELECT cp.name FROM `tabCashback Program Branch` AS cpb
+                LEFT JOIN `tabCashback Program` AS cp ON
+                    cp.name = cpb.parent
+                WHERE
+                    cp.disabled = 0 AND
+                    cp.name != %(name)s AND
+                    cp.from_date <= %(to_date)s AND
+                    IFNULL(cp.to_date, '9999-12-31') >= %(from_date)s AND
+                    cpb.branch IN %(branches)s
+            """,
             values={
                 "name": self.name,
                 "from_date": self.from_date,
                 "to_date": self.to_date or frappe.utils.datetime.date.max,
+                "branches": [x.branch for x in self.branches],
             },
         )
         if existing:
-            existing_doc = frappe.get_doc("Cashback Program", existing[0][0])
-            _get_item_groups = compose(list, partial(map, lambda x: x.item_group))
-            if any(
-                [
-                    x in _get_item_groups(existing_doc.item_groups)
-                    for x in _get_item_groups(self.item_groups)
-                ]
-            ):
-                frappe.throw(
-                    frappe._(
-                        "Another Program: {} exists with conflicting params".format(
-                            frappe.get_desk_link("Cashback Program", existing[0][0])
-                        )
+            frappe.throw(
+                frappe._(
+                    "Another {} exists with conflicting params".format(
+                        frappe.get_desk_link("Cashback Program", existing[0][0])
                     )
                 )
+            )
