@@ -9,6 +9,7 @@ import sms_template from './sms_template';
 import custom_loyalty_entry from './custom_loyalty_entry';
 import custom_purchase_receipt from './custom_purchase_receipt';
 import email_alerts from './email_alerts';
+import cashback_program from './cashback_program';
 import * as extensions from './extensions';
 
 export { default as payment_entry } from './payment_entry';
@@ -45,5 +46,6 @@ export default {
   custom_loyalty_entry,
   custom_purchase_receipt,
   email_alerts,
+  cashback_program,
   extensions,
 };

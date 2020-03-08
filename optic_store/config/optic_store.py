@@ -157,6 +157,11 @@ def get_data():
                     "label": _("Group Discount"),
                 },
                 {"type": "doctype", "name": "Gift Card", "label": _("Gift Card")},
+                {
+                    "type": "doctype",
+                    "name": "Cashback Program",
+                    "label": _("Cashback Program"),
+                },
                 {"type": "doctype", "name": "Optical Lab", "label": _("Optical Lab")},
                 {
                     "type": "doctype",
