@@ -4,7 +4,10 @@
 
 from __future__ import unicode_literals
 import frappe
-from toolz import compose, excepts, first
+from functools import partial
+from toolz import compose, excepts, first, unique, valmap
+
+from optic_store.utils import key_by
 
 
 def get_cashback_program(branch, posting_date):
@@ -36,3 +39,57 @@ def get_cashback_program(branch, posting_date):
     )
 
     return get_program(program_names)
+
+
+def get_invoice_casback_amount(items, cashback_program):
+    item_prices = _get_item_prices(items, cashback_program.price_list)
+    applicable_item_codes = _get_applicable_item_codes(items, cashback_program)
+    applicable_doc_items = [x for x in items if x.item_code in applicable_item_codes]
+
+    # validates price check against just the applicable items
+    if not all([x.rate == item_prices.get(x.item_code) for x in applicable_doc_items]):
+        return 0
+
+    # calculates amount against just the applicable items
+    return sum(
+        [x.amount * cashback_program.cashback_rate / 100 for x in applicable_doc_items]
+    )
+
+
+_get_item_codes = compose(list, unique, partial(map, lambda x: x.item_code))
+
+
+def _get_item_prices(items, price_list):
+    get_price_map = compose(
+        partial(valmap, lambda x: x.get("price_list_rate")),
+        partial(key_by, "item_code"),
+        frappe.db.sql,
+    )
+    return get_price_map(
+        """
+            SELECT item_code, price_list_rate FROM `tabItem Price`
+            WHERE price_list = %(price_list)s AND item_code IN %(item_codes)s
+        """,
+        values={"price_list": price_list, "item_codes": _get_item_codes(items)},
+        as_dict=1,
+    )
+
+
+def _get_applicable_item_codes(items, cashback_program):
+    return [
+        x.get("name")
+        for x in frappe.db.sql(
+            """
+                SELECT name FROM `tabItem`
+                WHERE
+                    name IN %(item_codes)s AND
+                    os_ignore_cashback = 0 AND
+                    item_group IN %(item_groups)s
+            """,
+            values={
+                "item_codes": _get_item_codes(items),
+                "item_groups": [x.item_group for x in cashback_program.item_groups],
+            },
+            as_dict=1,
+        )
+    ]

@@ -11,7 +11,7 @@ from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
     get_loyalty_program_details_with_points,
 )
 from functools import partial
-from toolz import compose, pluck, unique, first, valmap
+from toolz import compose, pluck, unique, first
 
 from optic_store.doc_events.sales_order import (
     validate_opened_xz_report,
@@ -20,8 +20,10 @@ from optic_store.doc_events.sales_order import (
     before_submit as so_before_submit,
 )
 from optic_store.api.sales_invoice import validate_loyalty
-from optic_store.api.cashback_program import get_cashback_program
-from optic_store.utils import key_by
+from optic_store.api.cashback_program import (
+    get_cashback_program,
+    get_invoice_casback_amount,
+)
 
 
 def before_naming(doc, method):
@@ -112,13 +114,15 @@ def before_submit(doc, method):
 def on_submit(doc, method):
     _set_gift_card_validities(doc)
     _set_gift_card_balances(doc)
-    _create_cashback(doc)
+    if doc.status == "Paid" and not doc.is_return:
+        _create_cashback(doc)
     if doc.is_return and not doc.os_manual_return_dn and not doc.update_stock:
         _make_return_dn(doc)
 
 
 def on_update_after_submit(doc, method):
-    _create_cashback(doc)
+    if doc.status == "Paid" and not doc.is_return:
+        _create_cashback(doc)
 
 
 def _set_gift_card_validities(doc):
@@ -163,76 +167,23 @@ def _set_gift_card_balances(doc, cancel=False):
 
 
 def _create_cashback(doc):
-    if doc.status == "Paid" and not doc.is_return:
-        cashback_program = get_cashback_program(doc.os_branch, doc.posting_date)
-        if cashback_program and cashback_program.price_list == doc.selling_price_list:
-            item_prices = _get_item_prices(doc)
-            applicable_item_codes = _get_applicable_item_codes(doc, cashback_program)
-            applicable_doc_items = [
-                x for x in doc.items if x.item_code in applicable_item_codes
-            ]
-            if all(
-                [x.rate == item_prices.get(x.item_code) for x in applicable_doc_items]
-            ):
-                original_amount = sum(
-                    [
-                        x.amount * cashback_program.cashback_rate / 100
-                        for x in applicable_doc_items
-                    ]
-                )
-                expiry_date = add_days(
-                    doc.posting_date, cashback_program.expiry_duration
-                )
-                frappe.get_doc(
-                    {
-                        "doctype": "Cashback Receipt",
-                        "origin": doc.name,
-                        "cashback_program": cashback_program.name,
-                        "expiry_date": expiry_date,
-                        "original_amount": original_amount,
-                    }
-                ).insert()
-
-
-def _get_item_prices(doc):
-    get_item_codes = compose(list, unique, partial(map, lambda x: x.item_code))
-    get_price_map = compose(
-        partial(valmap, lambda x: x.get("price_list_rate")),
-        partial(key_by, "item_code"),
-        frappe.db.sql,
-    )
-    return get_price_map(
-        """
-            SELECT item_code, price_list_rate FROM `tabItem Price`
-            WHERE price_list = %(price_list)s AND item_code IN %(item_codes)s
-        """,
-        values={
-            "price_list": doc.selling_price_list,
-            "item_codes": get_item_codes(doc.items),
-        },
-        as_dict=1,
-    )
-
-
-def _get_applicable_item_codes(doc, cashback_program):
-    get_item_codes = compose(list, unique, partial(map, lambda x: x.item_code))
-    return [
-        x.get("name")
-        for x in frappe.db.sql(
-            """
-                SELECT name FROM `tabItem`
-                WHERE
-                    name IN %(item_codes)s AND
-                    os_ignore_cashback = 0 AND
-                    item_group IN %(item_groups)s
-            """,
-            values={
-                "item_codes": get_item_codes(doc.items),
-                "item_groups": [x.item_group for x in cashback_program.item_groups],
-            },
-            as_dict=1,
+    cashback_program = get_cashback_program(doc.os_branch, doc.posting_date)
+    if not cashback_program or cashback_program.price_list != doc.selling_price_list:
+        return
+    cashback_amount = get_invoice_casback_amount(doc.items, cashback_program)
+    if not cashback_amount:
+        return
+    expiry_date = add_days(doc.posting_date, cashback_program.expiry_duration)
+    frappe.get_doc(
+        {
+            "doctype": "Cashback Receipt",
+            "origin": doc.name,
+            "cashback_program": cashback_program.name,
+            "expiry_date": expiry_date,
+            "cashback_amount": cashback_amount,
+        }
+    ).insert(ignore_permissions=True)
         )
-    ]
 
 
 def _make_return_dn(si_doc):
