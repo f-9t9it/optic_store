@@ -114,15 +114,19 @@ def before_submit(doc, method):
 def on_submit(doc, method):
     _set_gift_card_validities(doc)
     _set_gift_card_balances(doc)
-    if doc.status == "Paid" and not doc.is_return:
+    if doc.outstanding_amount == 0 and not doc.is_return:
         _create_cashback(doc)
+    if doc.is_return:
+        _update_cashback(doc)
     if doc.is_return and not doc.os_manual_return_dn and not doc.update_stock:
         _make_return_dn(doc)
 
 
 def on_update_after_submit(doc, method):
-    if doc.status == "Paid" and not doc.is_return:
+    if doc.outstanding_amount == 0 and not doc.is_return:
         _create_cashback(doc)
+    if doc.is_return:
+        _update_cashback(doc)
 
 
 def _set_gift_card_validities(doc):
@@ -185,6 +189,29 @@ def _create_cashback(doc):
     ).insert(ignore_permissions=True)
 
 
+def _update_cashback(doc, cancel=False):
+    # only for returned invoices
+    cashback_receipt_name = frappe.db.exists(
+        "Cashback Receipt", {"origin": doc.return_against}
+    )
+    if not cashback_receipt_name:
+        return
+    cashback_receipt = frappe.get_doc("Cashback Receipt", cashback_receipt_name)
+    cashback_program = frappe.get_doc(
+        "Cashback Program", cashback_receipt.cashback_program
+    )
+    cashback_amount = get_invoice_casback_amount(doc.items, cashback_program)
+    if not cashback_amount:
+        return
+    updated_amount = (
+        (cashback_receipt.cashback_amount - cashback_amount)
+        if cancel
+        else (cashback_receipt.cashback_amount + cashback_amount)
+    )
+    cashback_receipt.cashback_amount = updated_amount
+    cashback_receipt.save()
+
+
 def _delete_cashback(doc):
     cashback_receipt_name = frappe.db.exists("Cashback Receipt", {"origin": doc.name})
     if not cashback_receipt_name:
@@ -234,7 +261,9 @@ def on_cancel(doc, method):
     _set_gift_card_balances(doc, cancel=True)
     if doc.is_return and not doc.os_manual_return_dn and not doc.update_stock:
         _cancel_return_dn(doc)
-    if not doc.is_return:
+    if doc.is_return:
+        _update_cashback(doc, cancel=True)
+    else:
         _delete_cashback(doc)
 
 
