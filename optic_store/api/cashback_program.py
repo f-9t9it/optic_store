@@ -43,12 +43,13 @@ def get_cashback_program(branch, posting_date):
 
 def get_invoice_casback_amount(items, cashback_program):
     item_prices = _get_item_prices(items, cashback_program.price_list)
+
+    # validates price check against all items
+    if not all([x.rate == item_prices.get(x.item_code) for x in items]):
+        return 0
+
     applicable_item_codes = _get_applicable_item_codes(items, cashback_program)
     applicable_doc_items = [x for x in items if x.item_code in applicable_item_codes]
-
-    # validates price check against just the applicable items
-    if not all([x.rate == item_prices.get(x.item_code) for x in applicable_doc_items]):
-        return 0
 
     # calculates amount against just the applicable items
     return sum(
