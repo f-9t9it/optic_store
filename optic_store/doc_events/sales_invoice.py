@@ -183,7 +183,24 @@ def _create_cashback(doc):
             "cashback_amount": cashback_amount,
         }
     ).insert(ignore_permissions=True)
+
+
+def _delete_cashback(doc):
+    cashback_receipt_name = frappe.db.exists("Cashback Receipt", {"origin": doc.name})
+    if not cashback_receipt_name:
+        return
+    cashback_receipt = frappe.get_doc("Cashback Receipt", cashback_receipt_name)
+    if len(cashback_receipt.redemptions) > 0:
+        frappe.throw(
+            _("{} cannot be cancelled because {} is redeemed.").format(
+                frappe.get_desk_link("Sales Invoice", doc.name),
+                "cancelled" if doc.docstatus == 2 else "returned",
+                frappe.get_desk_link("Cashback Receipt", cashback_receipt_name),
+            )
         )
+    frappe.delete_doc(
+        "Cashback Receipt", cashback_receipt.name, ignore_permissions=True
+    )
 
 
 def _make_return_dn(si_doc):
@@ -217,6 +234,8 @@ def on_cancel(doc, method):
     _set_gift_card_balances(doc, cancel=True)
     if doc.is_return and not doc.os_manual_return_dn and not doc.update_stock:
         _cancel_return_dn(doc)
+    if not doc.is_return:
+        _delete_cashback(doc)
 
 
 def _cancel_return_dn(si_doc):
