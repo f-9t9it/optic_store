@@ -8,4 +8,11 @@ from frappe.model.document import Document
 
 
 class CashbackReceipt(Document):
-    pass
+    def validate(self):
+        if sum([x.amount for x in self.redemptions]) > self.cashback_amount:
+            frappe.throw(frappe._("Cannot redeem more than the Cashback Amount."))
+
+    def before_save(self):
+        self.balance_amount = self.cashback_amount - sum(
+            [x.amount for x in self.redemptions]
+        )
