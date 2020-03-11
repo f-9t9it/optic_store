@@ -84,12 +84,14 @@ def _get_applicable_item_codes(items, cashback_program):
                 SELECT name FROM `tabItem`
                 WHERE
                     name IN %(item_codes)s AND
-                    os_ignore_cashback = 0 AND
-                    item_group IN %(item_groups)s
+                    os_ignore_cashback = 0 AND (
+                        item_group IN %(item_groups)s OR brand IN %(brands)s
+                    )
             """,
             values={
                 "item_codes": _get_item_codes(items),
                 "item_groups": [x.item_group for x in cashback_program.item_groups],
+                "brands": [x.brand for x in cashback_program.brands],
             },
             as_dict=1,
         )
