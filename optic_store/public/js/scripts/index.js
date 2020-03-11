@@ -1,5 +1,6 @@
 import optical_prescription from './optical_prescription';
 import optical_store_settings from './optical_store_settings';
+import optical_store_selling_settings from './optical_store_selling_settings';
 import group_discount from './group_discount';
 import gift_card from './gift_card';
 import stock_transfer, { stock_transfer_item } from './stock_transfer';
@@ -35,6 +36,7 @@ export { default as payroll_entry } from './payroll_entry';
 export default {
   optical_prescription,
   optical_store_settings,
+  optical_store_selling_settings,
   group_discount,
   gift_card,
   stock_transfer,
