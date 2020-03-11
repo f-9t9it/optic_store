@@ -10,6 +10,7 @@ import withTabbedMops from './withTabbedMops';
 import withKeyboardShortcuts from './withKeyboardShortcuts';
 import withGroupDiscount from './withGroupDiscount';
 import withGiftCard from './withGiftCard';
+import withCashback from './withCashback';
 import withLoyaltyCard from './withLoyaltyCard';
 import withBranch from './withBranch';
 import withItemListOverride from './withItemListOverride';
@@ -22,6 +23,7 @@ export const extend_items = flowRight([withItemRates, withItemListOverride]);
 
 export const extend_payment = flowRight([
   withLoyaltyCard,
+  withCashback,
   withAmountValidation,
   withGiftCard,
   withTabbedMops,
