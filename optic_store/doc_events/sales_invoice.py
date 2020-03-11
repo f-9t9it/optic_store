@@ -11,7 +11,7 @@ from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
     get_loyalty_program_details_with_points,
 )
 from functools import partial
-from toolz import compose, pluck, unique, first
+from toolz import compose, pluck, unique, first, excepts
 
 from optic_store.doc_events.sales_order import (
     validate_opened_xz_report,
@@ -54,6 +54,7 @@ def validate(doc, method):
     if cint(doc.redeem_loyalty_points):
         _validate_loyalty_card_no(doc.customer, doc.os_loyalty_card_no)
         validate_loyalty(doc)
+    _validate_cashback(doc)
 
 
 def _validate_gift_card_expiry(posting_date, giftcard):
@@ -75,6 +76,44 @@ def _validate_loyalty_card_no(customer, loyalty_card_no):
             _(
                 "Loyalty Card No: {} does not belong to this Customer".format(
                     loyalty_card_no
+                )
+            )
+        )
+
+
+def _validate_cashback(doc):
+    cashback_mop = frappe.db.get_single_value(
+        "Optical Store Selling Settings", "cashback_mop"
+    )
+    if cashback_mop not in [x.mode_of_payment for x in doc.payments if x.amount != 0]:
+        return
+    if not doc.os_cashback_receipt:
+        frappe.throw(
+            _(
+                "Cashback Receipt required if using Mode of Payment {}".format(
+                    frappe.bold(cashback_mop)
+                )
+            )
+        )
+    get_cb_redeemed_amt = compose(
+        excepts(StopIteration, first, lambda _: 0),
+        lambda _=None: [
+            x.amount for x in doc.payments if x.mode_of_payment == cashback_mop
+        ],
+    )
+
+    redeemed_amt = get_cb_redeemed_amt()
+    balance_amt = frappe.db.get_value(
+        "Cashback Receipt", doc.os_cashback_receipt, "balance_amount"
+    )
+    if redeemed_amt > balance_amt:
+        frappe.throw(
+            _(
+                "Redeemed cashback amount cannot be greater than available balance "
+                "{}.".format(
+                    frappe.bold(
+                        frappe.utils.fmt_money(balance_amt, currency=doc.currency)
+                    )
                 )
             )
         )
