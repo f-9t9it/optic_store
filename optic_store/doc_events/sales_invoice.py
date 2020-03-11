@@ -135,6 +135,10 @@ def before_save(doc, method):
             silent=True,
         )
         doc.os_available_loyalty_points = lp_details.get("loyalty_points", 0)
+    if doc.os_cashback_receipt:
+        doc.os_cashback_balance = frappe.db.get_value(
+            "Cashback Receipt", doc.os_cashback_receipt, "balance_amount"
+        )
 
 
 def before_submit(doc, method):

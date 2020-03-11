@@ -16,7 +16,9 @@ from optic_store.utils import mapf, filterf, key_by
 
 
 @frappe.whitelist()
-def invoice_qol(name, payments, loyalty_card_no, loyalty_program, loyalty_points):
+def invoice_qol(
+    name, payments, loyalty_card_no, loyalty_program, loyalty_points, cashback_receipt
+):
     def set_cost_center(item):
         if cost_center:
             item.cost_center = cost_center
@@ -34,6 +36,8 @@ def invoice_qol(name, payments, loyalty_card_no, loyalty_program, loyalty_points
         doc.loyalty_program = loyalty_program
         doc.loyalty_points = cint(loyalty_points)
         doc.loyalty_redemption_cost_center = cost_center
+    if cashback_receipt:
+        doc.os_cashback_receipt = cashback_receipt
     get_payments = compose(
         partial(filterf, lambda x: x.get("amount") != 0),
         partial(map, partial(keyfilter, lambda x: x in ["mode_of_payment", "amount"])),

@@ -79,6 +79,33 @@ export default class InvoiceDialog {
           hidden: 1,
         },
         {
+          fieldname: 'cashback_sec',
+          fieldtype: 'Section Break',
+          label: __('Cashback'),
+          collapsible: 1,
+        },
+        {
+          fieldname: 'cashback_receipt',
+          label: __('Cashback Receipt'),
+          fieldtype: 'Link',
+          options: 'Cashback Receipt',
+          get_query: () => ({
+            filters: [
+              ['balance_amount', '>', 0],
+              ['expiry_date', '>=', frappe.datetime.get_today()],
+            ],
+          }),
+        },
+        {
+          fieldtype: 'Column Break',
+        },
+        {
+          fieldname: 'cashback_available',
+          fieldtype: 'Currency',
+          label: __('Available Balance'),
+          read_only: 1,
+        },
+        {
           fieldname: 'payment_sec',
           fieldtype: 'Section Break',
           label: __('Payments'),
@@ -125,6 +152,7 @@ export default class InvoiceDialog {
       conversion_factor: 0,
       loyalty_points_redeem: 0,
       loyalty_amount_redeem: 0,
+      cashback_receipt: null,
     };
   }
   async create_and_print(frm) {
@@ -169,6 +197,25 @@ export default class InvoiceDialog {
       this.set_payments(frm);
     };
 
+    this.dialog.fields_dict.cashback_receipt.df.change = async function(x) {
+      const cashback_receipt = this.dialog.get_value('cashback_receipt');
+      if (cashback_receipt) {
+        const {
+          message: { balance_amount: cashback_available = 0 } = {},
+        } = await frappe.db.get_value(
+          'Cashback Receipt',
+          cashback_receipt,
+          'balance_amount'
+        );
+        this.dialog.set_values({ cashback_available });
+      } else {
+        this.dialog.set_values({ cashback_available: null });
+      }
+      this.state = Object.assign({}, this.state, {
+        cashback_receipt,
+      });
+    }.bind(this);
+
     this.dialog.get_primary_btn().off('click');
     this.dialog.set_primary_action(
       'OK',
@@ -185,6 +232,7 @@ export default class InvoiceDialog {
           loyalty_points_redeem: loyalty_points,
           loyalty_program,
           loyalty_card_no,
+          cashback_receipt,
         } = this.state;
         await frappe.call({
           method: 'optic_store.api.sales_order.invoice_qol',
@@ -196,6 +244,7 @@ export default class InvoiceDialog {
             loyalty_card_no,
             loyalty_program,
             loyalty_points,
+            cashback_receipt,
           },
         });
         frm.reload_doc();
@@ -207,7 +256,9 @@ export default class InvoiceDialog {
 
     this.dialog.set_df_property('loyalty_sec', 'hidden', 0);
     this.dialog.set_df_property('payment_sec', 'hidden', 0);
+    this.dialog.set_df_property('cashback_sec', 'hidden', 0);
     this.dialog.fields_dict.loyalty_card_no.bind_change_event();
+    this.dialog.fields_dict.cashback_receipt.bind_change_event();
     const { message: { os_loyalty_card_no: loyalty_card_no } = {} } =
       (await frappe.db.get_value('Customer', frm.doc.customer, 'os_loyalty_card_no')) ||
       {};
@@ -282,6 +333,7 @@ export default class InvoiceDialog {
     );
     this.dialog.set_df_property('loyalty_sec', 'hidden', 1);
     this.dialog.set_df_property('payment_sec', 'hidden', 1);
+    this.dialog.set_df_property('cashback_sec', 'hidden', 1);
     this.dialog.show();
   }
   async _get_print_formats(sales_order) {
