@@ -103,8 +103,8 @@ def _validate_cashback(doc):
     )
 
     redeemed_amt = get_cb_redeemed_amt()
-    balance_amt = frappe.db.get_value(
-        "Cashback Receipt", doc.os_cashback_receipt, "balance_amount"
+    balance_amt, expiry_date = frappe.db.get_value(
+        "Cashback Receipt", doc.os_cashback_receipt, ["balance_amount", "expiry_date"]
     )
     if redeemed_amt > balance_amt:
         frappe.throw(
@@ -117,6 +117,9 @@ def _validate_cashback(doc):
                 )
             )
         )
+
+    if getdate(doc.posting_date) > expiry_date:
+        frappe.throw(_("Cashback Receipt has expired."))
 
 
 def before_insert(doc, method):
