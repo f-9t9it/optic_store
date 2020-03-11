@@ -82,9 +82,7 @@ def _validate_loyalty_card_no(customer, loyalty_card_no):
 
 
 def _validate_cashback(doc):
-    cashback_mop = frappe.db.get_single_value(
-        "Optical Store Selling Settings", "cashback_mop"
-    )
+    cashback_mop = "Cashback"
     if cashback_mop not in [x.mode_of_payment for x in doc.payments if x.amount != 0]:
         return
     if not doc.os_cashback_receipt:
@@ -156,6 +154,7 @@ def before_submit(doc, method):
 def on_submit(doc, method):
     _set_gift_card_validities(doc)
     _set_gift_card_balances(doc)
+    _set_cashback_balances(doc)
     if doc.outstanding_amount == 0 and not doc.is_return:
         _create_cashback(doc)
     if doc.is_return:
@@ -210,6 +209,28 @@ def _set_gift_card_balances(doc, cancel=False):
             gift_card.balance - amount if not cancel else gift_card.balance + amount,
         )
         amount_remaining -= amount
+
+
+def _set_cashback_balances(doc, cancel=False):
+    get_cb_redeemed_amt = compose(
+        excepts(StopIteration, first, lambda _: 0),
+        lambda _=None: [
+            x.amount for x in doc.payments if x.mode_of_payment == "Cashback"
+        ],
+    )
+
+    redeemed_amt = get_cb_redeemed_amt()
+    if redeemed_amt > 0:
+        cashback_receipt = frappe.get_doc("Cashback Receipt", doc.os_cashback_receipt)
+        if cancel:
+            cashback_receipt.redemptions = [
+                x for x in cashback_receipt.redemptions if x.reference != doc.name
+            ]
+        else:
+            cashback_receipt.append(
+                "redemptions", {"reference": doc.name, "amount": redeemed_amt}
+            )
+        cashback_receipt.save(ignore_permissions=True)
 
 
 def _create_cashback(doc):
@@ -301,6 +322,7 @@ def _make_return_dn(si_doc):
 
 def on_cancel(doc, method):
     _set_gift_card_balances(doc, cancel=True)
+    _set_cashback_balances(doc, cancel=True)
     if doc.is_return and not doc.os_manual_return_dn and not doc.update_stock:
         _cancel_return_dn(doc)
     if doc.is_return:
