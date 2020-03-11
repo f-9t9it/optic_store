@@ -41,7 +41,7 @@ def get_cashback_program(branch, posting_date):
     return get_program(program_names)
 
 
-def get_invoice_casback_amount(items, cashback_program):
+def get_invoice_cashback_amount(items, cashback_program):
     item_prices = _get_item_prices(items, cashback_program.price_list)
 
     # validates price check against all items

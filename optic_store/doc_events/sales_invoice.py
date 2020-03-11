@@ -22,7 +22,7 @@ from optic_store.doc_events.sales_order import (
 from optic_store.api.sales_invoice import validate_loyalty
 from optic_store.api.cashback_program import (
     get_cashback_program,
-    get_invoice_casback_amount,
+    get_invoice_cashback_amount,
 )
 
 
@@ -237,7 +237,7 @@ def _create_cashback(doc):
     cashback_program = get_cashback_program(doc.os_branch, doc.posting_date)
     if not cashback_program or cashback_program.price_list != doc.selling_price_list:
         return
-    cashback_amount = get_invoice_casback_amount(doc.items, cashback_program)
+    cashback_amount = get_invoice_cashback_amount(doc.items, cashback_program)
     if not cashback_amount:
         return
     expiry_date = add_days(doc.posting_date, cashback_program.expiry_duration)
@@ -263,7 +263,7 @@ def _update_cashback(doc, cancel=False):
     cashback_program = frappe.get_doc(
         "Cashback Program", cashback_receipt.cashback_program
     )
-    cashback_amount = get_invoice_casback_amount(doc.items, cashback_program)
+    cashback_amount = get_invoice_cashback_amount(doc.items, cashback_program)
     if not cashback_amount:
         return
     updated_amount = (
