@@ -177,6 +177,9 @@ export default {
         set_cost_center(frm);
       }
     }
+    frm.set_query('os_cashback_receipt', ({ posting_date }) => ({
+      filters: [['balance_amount', '>', 0], ['expiry_date', '>', posting_date]],
+    }));
   },
   refresh: function(frm) {
     frm.set_query('gift_card', 'os_gift_cards', function() {
