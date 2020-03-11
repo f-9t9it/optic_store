@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from functools import partial
-from toolz import compose, excepts, first, unique, valmap
+from toolz import compose, excepts, first, unique, valmap, concatv
 
 from optic_store.utils import key_by
 
@@ -77,22 +77,34 @@ def _get_item_prices(items, price_list):
 
 
 def _get_applicable_item_codes(items, cashback_program):
+    values = {
+        "item_codes": _get_item_codes(items),
+        "item_groups": [x.item_group for x in cashback_program.item_groups],
+        "brands": [x.brand for x in cashback_program.brands],
+    }
+
+    def join(sep):
+        return compose(lambda x: sep.join(x), concatv)
+
+    ander = join(" AND ")
+    orer = join(" OR ")
+
+    item_attrib = orer(
+        ["item_group IN %(item_groups)s"] if values.get("item_groups") else [],
+        ["brand IN %(brands)s"] if values.get("brands") else [],
+    )
+    clauses = ander(
+        ["name IN %(item_codes)s"] if values.get("item_codes") else [],
+        ["os_ignore_cashback = 0"],
+        ["({})".format(item_attrib)] if item_attrib else [],
+    )
     return [
         x.get("name")
         for x in frappe.db.sql(
-            """
-                SELECT name FROM `tabItem`
-                WHERE
-                    name IN %(item_codes)s AND
-                    os_ignore_cashback = 0 AND (
-                        item_group IN %(item_groups)s OR brand IN %(brands)s
-                    )
-            """,
-            values={
-                "item_codes": _get_item_codes(items),
-                "item_groups": [x.item_group for x in cashback_program.item_groups],
-                "brands": [x.brand for x in cashback_program.brands],
-            },
+            "SELECT name FROM `tabItem` {where}".format(
+                where="WHERE {}".format(clauses) if clauses else ""
+            ),
+            values=values,
             as_dict=1,
         )
     ]
