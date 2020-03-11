@@ -45,7 +45,7 @@ def get_invoice_casback_amount(items, cashback_program):
     item_prices = _get_item_prices(items, cashback_program.price_list)
 
     # validates price check against all items
-    if not all([x.rate == item_prices.get(x.item_code) for x in items]):
+    if not all([x.net_rate == item_prices.get(x.item_code) for x in items]):
         return 0
 
     applicable_item_codes = _get_applicable_item_codes(items, cashback_program)
