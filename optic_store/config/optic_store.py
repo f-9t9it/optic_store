@@ -170,6 +170,11 @@ def get_data():
                 },
                 {
                     "type": "doctype",
+                    "name": "Optical Store Selling Settings",
+                    "label": _("Optical Store Selling Settings"),
+                },
+                {
+                    "type": "doctype",
                     "name": "Optical Store HR Settings",
                     "label": _("Optical Store HR Settings"),
                 },
