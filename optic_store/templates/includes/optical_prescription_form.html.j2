@@ -19,7 +19,7 @@
       </dl>
       {%- if not is_prescription -%}
       <dl>
-        <dt>{{ _('Dispensor')}}</dt>
+        <dt>{{ _('Optometrist')}}</dt>
         <dd>
           {{ frappe.db.get_value('Employee', doc.orx_dispensor, 'employee_name') if doc.orx_dispensor else '' }}
         </dd>
