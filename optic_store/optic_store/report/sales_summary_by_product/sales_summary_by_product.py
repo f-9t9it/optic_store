@@ -98,7 +98,7 @@ def _get_columns(filters):
             make_column("customer", type="Link", options="Customer"),
             make_column("customer_name", width="150"),
             make_column("notes", type="Small Text", width=150),
-            make_column("dispensor", type="Link", options="Employee"),
+            make_column("dispensor", "Optometrist", type="Link", options="Employee"),
             make_column("branch", type="Link", options="Branch"),
             make_column(
                 "sales_status", type="Select", options=["Achieved", "Collected"]

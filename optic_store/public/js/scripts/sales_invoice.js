@@ -177,6 +177,9 @@ export default {
         set_cost_center(frm);
       }
     }
+    frm.set_query('os_cashback_receipt', ({ posting_date }) => ({
+      filters: [['balance_amount', '>', 0], ['expiry_date', '>', posting_date]],
+    }));
   },
   refresh: function(frm) {
     frm.set_query('gift_card', 'os_gift_cards', function() {
@@ -199,6 +202,19 @@ export default {
   orx_name: render_prescription,
   orx_group_discount: apply_group_discount,
   os_gift_card_entry: handle_gift_card_entry,
+  os_cashback_receipt: async function(frm) {
+    const { os_cashback_receipt: cashback_receipt } = frm.doc;
+    if (cashback_receipt) {
+      const { message: { balance_amount = 0 } = {} } = await frappe.db.get_value(
+        'Cashback Receipt',
+        cashback_receipt,
+        'balance_amount'
+      );
+      frm.set_value('os_cashback_balance', balance_amount);
+    } else {
+      frm.set_value('os_cashback_balance', 0);
+    }
+  },
   redeem_loyalty_points: async function(frm) {
     frm.toggle_reqd('os_loyalty_card_no', frm.doc.redeem_loyalty_points);
     const { customer, posting_date: expiry_date, company } = frm.doc;

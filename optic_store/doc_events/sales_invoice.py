@@ -5,13 +5,13 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import getdate, cint
+from frappe.utils import getdate, cint, add_days
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
 from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
     get_loyalty_program_details_with_points,
 )
 from functools import partial
-from toolz import compose, pluck, unique, first
+from toolz import compose, pluck, unique, first, excepts
 
 from optic_store.doc_events.sales_order import (
     validate_opened_xz_report,
@@ -20,6 +20,10 @@ from optic_store.doc_events.sales_order import (
     before_submit as so_before_submit,
 )
 from optic_store.api.sales_invoice import validate_loyalty
+from optic_store.api.cashback_program import (
+    get_cashback_program,
+    get_invoice_cashback_amount,
+)
 
 
 def before_naming(doc, method):
@@ -50,6 +54,7 @@ def validate(doc, method):
     if cint(doc.redeem_loyalty_points):
         _validate_loyalty_card_no(doc.customer, doc.os_loyalty_card_no)
         validate_loyalty(doc)
+    _validate_cashback(doc)
 
 
 def _validate_gift_card_expiry(posting_date, giftcard):
@@ -76,6 +81,45 @@ def _validate_loyalty_card_no(customer, loyalty_card_no):
         )
 
 
+def _validate_cashback(doc):
+    cashback_mop = "Cashback"
+    if cashback_mop not in [x.mode_of_payment for x in doc.payments if x.amount != 0]:
+        return
+    if not doc.os_cashback_receipt:
+        frappe.throw(
+            _(
+                "Cashback Receipt required if using Mode of Payment {}".format(
+                    frappe.bold(cashback_mop)
+                )
+            )
+        )
+    get_cb_redeemed_amt = compose(
+        excepts(StopIteration, first, lambda _: 0),
+        lambda _=None: [
+            x.amount for x in doc.payments if x.mode_of_payment == cashback_mop
+        ],
+    )
+
+    redeemed_amt = get_cb_redeemed_amt()
+    balance_amt, expiry_date = frappe.db.get_value(
+        "Cashback Receipt", doc.os_cashback_receipt, ["balance_amount", "expiry_date"]
+    )
+    if redeemed_amt > balance_amt:
+        frappe.throw(
+            _(
+                "Redeemed cashback amount cannot be greater than available balance "
+                "{}.".format(
+                    frappe.bold(
+                        frappe.utils.fmt_money(balance_amt, currency=doc.currency)
+                    )
+                )
+            )
+        )
+
+    if getdate(doc.posting_date) > expiry_date:
+        frappe.throw(_("Cashback Receipt has expired."))
+
+
 def before_insert(doc, method):
     so_before_insert(doc, method)
 
@@ -91,6 +135,10 @@ def before_save(doc, method):
             silent=True,
         )
         doc.os_available_loyalty_points = lp_details.get("loyalty_points", 0)
+    if doc.os_cashback_receipt:
+        doc.os_cashback_balance = frappe.db.get_value(
+            "Cashback Receipt", doc.os_cashback_receipt, "balance_amount"
+        )
 
 
 def before_submit(doc, method):
@@ -110,8 +158,20 @@ def before_submit(doc, method):
 def on_submit(doc, method):
     _set_gift_card_validities(doc)
     _set_gift_card_balances(doc)
+    _set_cashback_balances(doc)
+    if doc.outstanding_amount == 0 and not doc.is_return:
+        _create_cashback(doc)
+    if doc.is_return:
+        _update_cashback(doc)
     if doc.is_return and not doc.os_manual_return_dn and not doc.update_stock:
         _make_return_dn(doc)
+
+
+def on_update_after_submit(doc, method):
+    if doc.outstanding_amount == 0 and not doc.is_return:
+        _create_cashback(doc)
+    if doc.is_return:
+        _update_cashback(doc)
 
 
 def _set_gift_card_validities(doc):
@@ -155,6 +215,88 @@ def _set_gift_card_balances(doc, cancel=False):
         amount_remaining -= amount
 
 
+def _set_cashback_balances(doc, cancel=False):
+    get_cb_redeemed_amt = compose(
+        excepts(StopIteration, first, lambda _: 0),
+        lambda _=None: [
+            x.amount for x in doc.payments if x.mode_of_payment == "Cashback"
+        ],
+    )
+
+    redeemed_amt = get_cb_redeemed_amt()
+    if redeemed_amt > 0:
+        cashback_receipt = frappe.get_doc("Cashback Receipt", doc.os_cashback_receipt)
+        if cancel:
+            cashback_receipt.redemptions = [
+                x for x in cashback_receipt.redemptions if x.reference != doc.name
+            ]
+        else:
+            cashback_receipt.append(
+                "redemptions", {"reference": doc.name, "amount": redeemed_amt}
+            )
+        cashback_receipt.save(ignore_permissions=True)
+
+
+def _create_cashback(doc):
+    cashback_program = get_cashback_program(doc.os_branch, doc.posting_date)
+    if not cashback_program or cashback_program.price_list != doc.selling_price_list:
+        return
+    cashback_amount = get_invoice_cashback_amount(doc.items, cashback_program)
+    if not cashback_amount:
+        return
+    expiry_date = add_days(doc.posting_date, cashback_program.expiry_duration)
+    frappe.get_doc(
+        {
+            "doctype": "Cashback Receipt",
+            "origin": doc.name,
+            "cashback_program": cashback_program.name,
+            "expiry_date": expiry_date,
+            "cashback_amount": cashback_amount,
+        }
+    ).insert(ignore_permissions=True)
+
+
+def _update_cashback(doc, cancel=False):
+    # only for returned invoices
+    cashback_receipt_name = frappe.db.exists(
+        "Cashback Receipt", {"origin": doc.return_against}
+    )
+    if not cashback_receipt_name:
+        return
+    cashback_receipt = frappe.get_doc("Cashback Receipt", cashback_receipt_name)
+    cashback_program = frappe.get_doc(
+        "Cashback Program", cashback_receipt.cashback_program
+    )
+    cashback_amount = get_invoice_cashback_amount(doc.items, cashback_program)
+    if not cashback_amount:
+        return
+    updated_amount = (
+        (cashback_receipt.cashback_amount - cashback_amount)
+        if cancel
+        else (cashback_receipt.cashback_amount + cashback_amount)
+    )
+    cashback_receipt.cashback_amount = updated_amount
+    cashback_receipt.save()
+
+
+def _delete_cashback(doc):
+    cashback_receipt_name = frappe.db.exists("Cashback Receipt", {"origin": doc.name})
+    if not cashback_receipt_name:
+        return
+    cashback_receipt = frappe.get_doc("Cashback Receipt", cashback_receipt_name)
+    if len(cashback_receipt.redemptions) > 0:
+        frappe.throw(
+            _("{} cannot be cancelled because {} is redeemed.").format(
+                frappe.get_desk_link("Sales Invoice", doc.name),
+                "cancelled" if doc.docstatus == 2 else "returned",
+                frappe.get_desk_link("Cashback Receipt", cashback_receipt_name),
+            )
+        )
+    frappe.delete_doc(
+        "Cashback Receipt", cashback_receipt.name, ignore_permissions=True
+    )
+
+
 def _make_return_dn(si_doc):
     get_dns = compose(list, unique, partial(pluck, "parent"), frappe.get_all)
     dns = get_dns(
@@ -184,8 +326,13 @@ def _make_return_dn(si_doc):
 
 def on_cancel(doc, method):
     _set_gift_card_balances(doc, cancel=True)
+    _set_cashback_balances(doc, cancel=True)
     if doc.is_return and not doc.os_manual_return_dn and not doc.update_stock:
         _cancel_return_dn(doc)
+    if doc.is_return:
+        _update_cashback(doc, cancel=True)
+    else:
+        _delete_cashback(doc)
 
 
 def _cancel_return_dn(si_doc):

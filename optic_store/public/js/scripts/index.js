@@ -1,5 +1,6 @@
 import optical_prescription from './optical_prescription';
 import optical_store_settings from './optical_store_settings';
+import optical_store_selling_settings from './optical_store_selling_settings';
 import group_discount from './group_discount';
 import gift_card from './gift_card';
 import stock_transfer, { stock_transfer_item } from './stock_transfer';
@@ -9,6 +10,7 @@ import sms_template from './sms_template';
 import custom_loyalty_entry from './custom_loyalty_entry';
 import custom_purchase_receipt from './custom_purchase_receipt';
 import email_alerts from './email_alerts';
+import cashback_program from './cashback_program';
 import * as extensions from './extensions';
 
 export { default as payment_entry } from './payment_entry';
@@ -34,6 +36,7 @@ export { default as payroll_entry } from './payroll_entry';
 export default {
   optical_prescription,
   optical_store_settings,
+  optical_store_selling_settings,
   group_discount,
   gift_card,
   stock_transfer,
@@ -45,5 +48,6 @@ export default {
   custom_loyalty_entry,
   custom_purchase_receipt,
   email_alerts,
+  cashback_program,
   extensions,
 };

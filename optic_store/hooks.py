@@ -98,6 +98,7 @@ fixtures = [
                     "Item-gift_card_col",
                     "Item-gift_card_value",
                     "Item-gift_card_validity",
+                    "Item-os_ignore_cashback",
                     "Item-os_commission_sec",
                     "Item-os_has_commission",
                     "Item-os_commission_by",
@@ -168,6 +169,10 @@ fixtures = [
                     "Sales Invoice-os_gift_card_sec",
                     "Sales Invoice-os_gift_card_entry",
                     "Sales Invoice-os_gift_cards",
+                    "Sales Invoice-os_cashback_sec",
+                    "Sales Invoice-os_cashback_receipt",
+                    "Sales Invoice-os_cashback_col",
+                    "Sales Invoice-os_cashback_balance",
                     "Sales Invoice-os_branch",
                     "Sales Invoice-os_sales_person",
                     "Sales Invoice-os_sales_person_name",
@@ -365,6 +370,7 @@ doc_events = {
         "before_save": "optic_store.doc_events.sales_invoice.before_save",
         "before_submit": "optic_store.doc_events.sales_invoice.before_submit",
         "on_submit": "optic_store.doc_events.sales_invoice.on_submit",
+        "on_update_after_submit": "optic_store.doc_events.sales_invoice.on_update_after_submit",  # noqa
         "on_cancel": "optic_store.doc_events.sales_invoice.on_cancel",
     },
     "Payment Entry": {
