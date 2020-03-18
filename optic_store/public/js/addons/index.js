@@ -14,10 +14,11 @@ import withCashback from './withCashback';
 import withLoyaltyCard from './withLoyaltyCard';
 import withBranch from './withBranch';
 import withItemListOverride from './withItemListOverride';
+import withRecall from './withRecall';
 
 export const extend_pos = flowRight([withKeyboardShortcuts, withXzReport, withBranch]);
 
-export const extend_cart = flowRight([withGroupDiscount, withSalesPerson]);
+export const extend_cart = flowRight([withRecall, withGroupDiscount, withSalesPerson]);
 
 export const extend_items = flowRight([withItemRates, withItemListOverride]);
 
