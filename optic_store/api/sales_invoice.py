@@ -337,3 +337,67 @@ def validate_loyalty(doc):
                 "Please correct loyalty fields or contact System Manager."
             )
         )
+
+
+def write_off_expired_credit_notes():
+    credit_note_expiry = frappe.db.get_single_value(
+        "Optic Store Selling Settings", "credit_note_expiry"
+    )
+    if not credit_note_expiry:
+        return
+
+    posting_date = frappe.utils.today()
+
+    expired_credit_notes = frappe.db.sql(
+        """
+            SELECT name, company, cost_center, debit_to, outstanding_amount
+            FROM `tabSales Invoice`
+            WHERE
+                status = 'Credit Note Issued' AND
+                outstanding_amount < 0 AND
+                posting_date < %(posting_date)s
+            ORDER BY posting_date
+        """,
+        values={
+            "posting_date": frappe.utils.add_days(posting_date, -credit_note_expiry)
+        },
+        as_dict=1,
+    )
+
+    for credit_note in expired_credit_notes:
+        _make_je(credit_note, posting_date)
+
+
+def _make_je(credit_note, posting_date):
+    company = credit_note.get("company")
+    wo_account = frappe.db.get_value(
+        "Company", company, "write_off_account"
+    ) or frappe.db.exists("Account", {"company": company, "account_name": "Write Off"})
+    cost_center = credit_note.get("cost_center") or frappe.db.get_value(
+        "Company", company, "cost_center"
+    )
+
+    outstanding_amount = credit_note.get("outstanding_amount")
+    je = frappe.get_doc(
+        {
+            "doctype": "Journal Entry",
+            "voucher_type": "Write Off Entry",
+            "posting_date": posting_date,
+            "company": company,
+            "accounts": [
+                {
+                    "account": wo_account,
+                    "cost_center": cost_center,
+                    "credit": outstanding_amount,
+                },
+                {
+                    "account": credit_note.get("debit_to"),
+                    "debit": outstanding_amount,
+                    "reference_type": "Sales Invoice",
+                    "reference_name": credit_note.get("name"),
+                },
+            ],
+        }
+    )
+    je.insert()
+    je.submit()

@@ -399,6 +399,7 @@ scheduler_events = {
     "daily": [
         "optic_store.api.gift_card.write_off_expired_gift_cards",
         "optic_store.api.email_alerts.process",
+        "optic_store.api.sales_invoice.write_off_expired_credit_notes",
     ],
     # "hourly": ["optic_store.tasks.hourly"],
     # "weekly": ["optic_store.tasks.weekly"],
