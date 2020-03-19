@@ -371,6 +371,7 @@ doc_events = {
         "before_submit": "optic_store.doc_events.sales_invoice.before_submit",
         "on_submit": "optic_store.doc_events.sales_invoice.on_submit",
         "on_update_after_submit": "optic_store.doc_events.sales_invoice.on_update_after_submit",  # noqa
+        "before_cancel": "optic_store.doc_events.sales_invoice.before_cancel",
         "on_cancel": "optic_store.doc_events.sales_invoice.on_cancel",
     },
     "Payment Entry": {
