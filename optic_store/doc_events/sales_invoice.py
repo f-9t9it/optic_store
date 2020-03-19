@@ -60,7 +60,10 @@ def validate(doc, method):
 
 
 def _contains_credit_note_payment(doc):
-    return cint(doc.is_pos) and "Credit Note" in [
+    credit_note_mop = frappe.db.get_single_value(
+        "Optic Store Selling Settings", "credit_note_mop"
+    )
+    return cint(doc.is_pos) and credit_note_mop in [
         x.mode_of_payment for x in doc.payments
     ]
 
@@ -129,6 +132,9 @@ def _validate_cashback(doc):
 
 
 def _validate_credit_note(doc):
+    credit_note_mop, credit_note_expiry = frappe.db.get_single_value(
+        "Optic Store Selling Settings", ["credit_note_mop", "credit_note_expiry"]
+    )
     current_credit = frappe.db.sql(
         """
             SELECT SUM(credit_in_account_currency) - SUM(debit_in_account_currency)
@@ -136,9 +142,16 @@ def _validate_credit_note(doc):
             WHERE
                 party_type = 'Customer' AND
                 party = %(party)s AND
-                company = %(company)s
+                company = %(company)s AND
+                posting_date >= %(posting_date)s
         """,
-        values={"party": doc.customer, "company": doc.company},
+        values={
+            "party": doc.customer,
+            "company": doc.company,
+            "posting_date": frappe.utils.add_days(doc.posting_date, -credit_note_expiry)
+            if credit_note_expiry
+            else "1970-01-01",
+        },
     )[0][0]
     if current_credit <= 0:
         frappe.throw(_("Customer does not have any credit note"))
@@ -146,7 +159,7 @@ def _validate_credit_note(doc):
     get_credit_note_amount = compose(
         lambda x: x.get("base_amount", 0),
         excepts(StopIteration, first, lambda _: {}),
-        partial(filter, lambda x: x.mode_of_payment == "Credit Note"),
+        partial(filter, lambda x: x.mode_of_payment == credit_note_mop),
     )
     if get_credit_note_amount(doc.payments) > current_credit:
         frappe.throw(
@@ -424,6 +437,10 @@ def _cancel_return_dn(si_doc):
 def _reconcile_credit_note(doc):
     from erpnext.accounts.general_ledger import make_gl_entries
 
+    credit_note_mop, credit_note_expiry = frappe.db.get_single_value(
+        "Optic Store Selling Settings", ["credit_note_mop", "credit_note_expiry"]
+    )
+
     issued_credit_notes = frappe.db.sql(
         """
             SELECT name, -outstanding_amount
@@ -432,15 +449,22 @@ def _reconcile_credit_note(doc):
                 company = %(company)s AND
                 customer = %(customer)s AND
                 status = 'Credit Note Issued' AND
-                outstanding_amount < 0
+                outstanding_amount < 0 AND
+                posting_date >= %(posting_date)s
             ORDER BY posting_date
         """,
-        values={"company": doc.company, "customer": doc.customer},
+        values={
+            "company": doc.company,
+            "customer": doc.customer,
+            "posting_date": frappe.utils.add_days(doc.posting_date, -credit_note_expiry)
+            if credit_note_expiry
+            else "1970-01-01",
+        },
     )
     get_account_and_amount = compose(
         lambda x: (x.get("account"), x.get("base_amount")),
         excepts(StopIteration, first, lambda _: {}),
-        partial(filter, lambda x: x.mode_of_payment == "Credit Note"),
+        partial(filter, lambda x: x.mode_of_payment == credit_note_mop),
     )
     account, to_allocate = get_account_and_amount(doc.payments)
     gl_entries = [
