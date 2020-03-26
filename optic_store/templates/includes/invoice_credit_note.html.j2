@@ -57,7 +57,12 @@
       {%- endif -%}
     </div>
     {%- endcall -%}
-    {{ macros.sales_summary(doc, payments=get_payments(doc), show_details=True, hide_balance=True) }}
+    {{ macros.sales_summary(
+      doc,
+      payments=get_payments(doc) if doc.is_pos else [],
+      show_details=True,
+      hide_balance=True
+    ) }}
   </div>
 
   {{ macros.footer(doc) }}
