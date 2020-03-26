@@ -15,6 +15,7 @@ from toolz import compose, pluck, unique, first, excepts
 
 from optic_store.doc_events.sales_order import (
     validate_opened_xz_report,
+    validate_rate_against_min_prices,
     before_insert as so_before_insert,
     before_save as so_before_save,
     before_submit as so_before_submit,
@@ -57,6 +58,8 @@ def validate(doc, method):
     _validate_cashback(doc)
     if _contains_credit_note_payment(doc):
         _validate_credit_note(doc)
+    if not doc.is_return:
+        validate_rate_against_min_prices(doc)
 
 
 def _contains_credit_note_payment(doc):

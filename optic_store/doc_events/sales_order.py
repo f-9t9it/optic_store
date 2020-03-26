@@ -47,6 +47,7 @@ def validate(doc, method):
                         )
                     )
                 )
+    validate_rate_against_min_prices(doc)
 
 
 def validate_opened_xz_report(company, pos_profile=None):
@@ -121,6 +122,31 @@ def _validate_spec_parts(items):
     for part in ["Frame", "Lens Right", "Lens Left"]:
         if count(part)(parts) > 1:
             frappe.throw(_("There can only be one row for {}".format(part)))
+
+
+def validate_rate_against_min_prices(doc):
+    price_lists = ["Minimum Selling", "Minimum Selling 2", "Standard Buying"]
+    for item in filter(lambda x: not x.os_ignore_min_price_validation, doc.items):
+        min_price = frappe.db.sql(
+            """
+                SELECT MAX(price_list_rate) FROM `tabItem Price`
+                WHERE
+                    item_code = %(item_code)s AND
+                    price_list IN %(price_lists)s
+            """,
+            values={"item_code": item.item_code, "price_lists": price_lists},
+        )[0][0]
+        if item.net_rate < min_price:
+            frappe.throw(
+                frappe._(
+                    "Item rate cannot for row {idx} cannot be less than {min_price}".format(
+                        idx=item.idx,
+                        min_price=frappe.bold(
+                            frappe.utils.fmt_money(min_price, currency=doc.currency)
+                        ),
+                    )
+                )
+            )
 
 
 def before_submit(doc, method):
