@@ -20,7 +20,6 @@ import scripts, {
 } from './scripts';
 import extend_query_report, { extend_multiselect } from './pages/query_report';
 import extend_pos from './pages/pos';
-import extend_batch_selector from './pages/serial_no_and_batch_selector';
 import * as reports from './reports';
 import * as addons from './addons';
 
@@ -60,7 +59,6 @@ optic_store = {
   reports,
   addons,
   extend_pos,
-  extend_batch_selector,
   listview: {
     sales_invoice: sales_invoice_list,
     stock_entry: stock_entry.listview_settings,
@@ -68,9 +66,6 @@ optic_store = {
 };
 
 frappe.views.QueryReport = extend_query_report(frappe.views.QueryReport);
-frappe.ui.form.ControlMultiSelect = extend_multiselect(
-  frappe.ui.form.ControlMultiSelect
-);
 
 frappe.ui.form.ControlMultiSelect = extend_multiselect(
   frappe.ui.form.ControlMultiSelect

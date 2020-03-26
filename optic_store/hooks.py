@@ -269,7 +269,6 @@ page_js = {"pos": "public/js/pos.js", "point-of-sale": "public/js/point_of_sale.
 
 # include js in doctype views
 doctype_js = {
-    "Stock Entry": "public/js/stock_entry.js",
     "Sales Order": "public/js/transaction_controller.js",
     "Sales Invoice": "public/js/transaction_controller.js",
     "Delivery Note": "public/js/transaction_controller.js",
