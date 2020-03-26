@@ -401,3 +401,33 @@ def _make_je(credit_note, posting_date):
     )
     je.insert()
     je.submit()
+
+
+def get_credit_notes(customer):
+    expiry_days = frappe.utils.cint(
+        frappe.db.get_single_value(
+            "Optical Store Selling Settings", "credit_note_expiry"
+        )
+    )
+
+    def make_line(invoice):
+        return merge(
+            pick(["name"], invoice),
+            {
+                "amount": -invoice.get("outstanding_amount"),
+                "expiry_date": frappe.utils.add_days(
+                    invoice.get("posting_date"), expiry_days
+                )
+                if expiry_days
+                else None,
+            },
+        )
+
+    return [
+        make_line(x)
+        for x in frappe.get_all(
+            "Sales Invoice",
+            filters={"status": "Credit Note Issued", "customer": customer},
+            fields=["name", "outstanding_amount", "posting_date"],
+        )
+    ]

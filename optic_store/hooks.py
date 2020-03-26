@@ -436,5 +436,6 @@ jenv = {
         "get_salary_component_by_type:optic_store.api.leave_application.get_salary_component_by_type",  # noqa
         "get_leave_balance:optic_store.api.leave_application.get_leave_balance",
         "get_salary_slips_from_payroll_entry:optic_store.api.salary_slip.get_salary_slip_docs_from_payroll_entry",  # noqa
+        "get_credit_notes:optic_store.api.sales_invoice.get_credit_notes",
     ]
 }
