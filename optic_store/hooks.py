@@ -153,6 +153,7 @@ fixtures = [
                     "Sales Order-os_recall_months",
                     "Sales Order-os_recall_col",
                     "Sales Order-os_recall_reason",
+                    "Sales Order Item-os_ignore_min_price_validation",
                     "Sales Order Item-os_minimum_selling_rate",
                     "Sales Order Item-os_minimum_selling_2_rate",
                     "Sales Order Item-batch_no",
@@ -201,6 +202,7 @@ fixtures = [
                     "Sales Invoice-os_recall_months",
                     "Sales Invoice-os_recall_col",
                     "Sales Invoice-os_recall_reason",
+                    "Sales Invoice Item-os_ignore_min_price_validation",
                     "Sales Invoice Item-os_minimum_selling_rate",
                     "Sales Invoice Item-os_minimum_selling_2_rate",
                     "Sales Invoice Item-os_spec_part",
@@ -269,7 +271,6 @@ page_js = {"pos": "public/js/pos.js", "point-of-sale": "public/js/point_of_sale.
 
 # include js in doctype views
 doctype_js = {
-    "Stock Entry": "public/js/stock_entry.js",
     "Sales Order": "public/js/transaction_controller.js",
     "Sales Invoice": "public/js/transaction_controller.js",
     "Delivery Note": "public/js/transaction_controller.js",
@@ -371,6 +372,7 @@ doc_events = {
         "before_submit": "optic_store.doc_events.sales_invoice.before_submit",
         "on_submit": "optic_store.doc_events.sales_invoice.on_submit",
         "on_update_after_submit": "optic_store.doc_events.sales_invoice.on_update_after_submit",  # noqa
+        "before_cancel": "optic_store.doc_events.sales_invoice.before_cancel",
         "on_cancel": "optic_store.doc_events.sales_invoice.on_cancel",
     },
     "Payment Entry": {
@@ -398,6 +400,7 @@ scheduler_events = {
     "daily": [
         "optic_store.api.gift_card.write_off_expired_gift_cards",
         "optic_store.api.email_alerts.process",
+        "optic_store.api.sales_invoice.write_off_expired_credit_notes",
     ],
     # "hourly": ["optic_store.tasks.hourly"],
     # "weekly": ["optic_store.tasks.weekly"],
@@ -434,5 +437,6 @@ jenv = {
         "get_salary_component_by_type:optic_store.api.leave_application.get_salary_component_by_type",  # noqa
         "get_leave_balance:optic_store.api.leave_application.get_leave_balance",
         "get_salary_slips_from_payroll_entry:optic_store.api.salary_slip.get_salary_slip_docs_from_payroll_entry",  # noqa
+        "get_credit_notes:optic_store.api.sales_invoice.get_credit_notes",
     ]
 }

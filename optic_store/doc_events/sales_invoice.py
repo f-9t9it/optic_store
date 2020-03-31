@@ -15,6 +15,7 @@ from toolz import compose, pluck, unique, first, excepts
 
 from optic_store.doc_events.sales_order import (
     validate_opened_xz_report,
+    validate_rate_against_min_prices,
     before_insert as so_before_insert,
     before_save as so_before_save,
     before_submit as so_before_submit,
@@ -55,6 +56,19 @@ def validate(doc, method):
         _validate_loyalty_card_no(doc.customer, doc.os_loyalty_card_no)
         validate_loyalty(doc)
     _validate_cashback(doc)
+    if _contains_credit_note_payment(doc):
+        _validate_credit_note(doc)
+    if not doc.is_return:
+        validate_rate_against_min_prices(doc)
+
+
+def _contains_credit_note_payment(doc):
+    credit_note_mop = frappe.db.get_single_value(
+        "Optic Store Selling Settings", "credit_note_mop"
+    )
+    return cint(doc.is_pos) and credit_note_mop in [
+        x.mode_of_payment for x in doc.payments
+    ]
 
 
 def _validate_gift_card_expiry(posting_date, giftcard):
@@ -120,6 +134,48 @@ def _validate_cashback(doc):
         frappe.throw(_("Cashback Receipt has expired."))
 
 
+def _validate_credit_note(doc):
+    credit_note_mop, credit_note_expiry = frappe.db.get_single_value(
+        "Optic Store Selling Settings", ["credit_note_mop", "credit_note_expiry"]
+    )
+    current_credit = frappe.db.sql(
+        """
+            SELECT SUM(credit_in_account_currency) - SUM(debit_in_account_currency)
+            FROM `tabGL Entry`
+            WHERE
+                party_type = 'Customer' AND
+                party = %(party)s AND
+                company = %(company)s AND
+                posting_date >= %(posting_date)s
+        """,
+        values={
+            "party": doc.customer,
+            "company": doc.company,
+            "posting_date": frappe.utils.add_days(doc.posting_date, -credit_note_expiry)
+            if credit_note_expiry
+            else "1970-01-01",
+        },
+    )[0][0]
+    if current_credit <= 0:
+        frappe.throw(_("Customer does not have any credit note"))
+
+    get_credit_note_amount = compose(
+        lambda x: x.get("base_amount", 0),
+        excepts(StopIteration, first, lambda _: {}),
+        partial(filter, lambda x: x.mode_of_payment == credit_note_mop),
+    )
+    if get_credit_note_amount(doc.payments) > current_credit:
+        frappe.throw(
+            _(
+                "Credit Note amount cannot exceed {}".format(
+                    frappe.bold(
+                        frappe.utils.fmt_money(current_credit, currency=doc.currency)
+                    )
+                )
+            )
+        )
+
+
 def before_insert(doc, method):
     so_before_insert(doc, method)
 
@@ -165,6 +221,8 @@ def on_submit(doc, method):
         _update_cashback(doc)
     if doc.is_return and not doc.os_manual_return_dn and not doc.update_stock:
         _make_return_dn(doc)
+    if _contains_credit_note_payment(doc):
+        _reconcile_credit_note(doc)
 
 
 def on_update_after_submit(doc, method):
@@ -324,6 +382,11 @@ def _make_return_dn(si_doc):
     doc.submit()
 
 
+def before_cancel(doc, method):
+    if _contains_credit_note_payment(doc):
+        _reset_credit_notes_on_cancel(doc)
+
+
 def on_cancel(doc, method):
     _set_gift_card_balances(doc, cancel=True)
     _set_cashback_balances(doc, cancel=True)
@@ -372,3 +435,93 @@ def _cancel_return_dn(si_doc):
                 )
             )
     doc.cancel()
+
+
+def _reconcile_credit_note(doc):
+    from erpnext.accounts.general_ledger import make_gl_entries
+
+    credit_note_mop, credit_note_expiry = frappe.db.get_single_value(
+        "Optic Store Selling Settings", ["credit_note_mop", "credit_note_expiry"]
+    )
+
+    issued_credit_notes = frappe.db.sql(
+        """
+            SELECT name, -outstanding_amount
+            FROM `tabSales Invoice`
+            WHERE
+                company = %(company)s AND
+                customer = %(customer)s AND
+                status = 'Credit Note Issued' AND
+                outstanding_amount < 0 AND
+                posting_date >= %(posting_date)s
+            ORDER BY posting_date
+        """,
+        values={
+            "company": doc.company,
+            "customer": doc.customer,
+            "posting_date": frappe.utils.add_days(doc.posting_date, -credit_note_expiry)
+            if credit_note_expiry
+            else "1970-01-01",
+        },
+    )
+    get_account_and_amount = compose(
+        lambda x: (x.get("account"), x.get("base_amount")),
+        excepts(StopIteration, first, lambda _: {}),
+        partial(filter, lambda x: x.mode_of_payment == credit_note_mop),
+    )
+    account, to_allocate = get_account_and_amount(doc.payments)
+    gl_entries = [
+        doc.get_gl_dict(
+            {
+                "account": account,
+                "against": doc.customer,
+                "credit": to_allocate,
+                "cost_center": doc.cost_center,
+            },
+            doc.party_account_currency,
+        )
+    ]
+    for invoice, outstanding in issued_credit_notes:
+        base_amount = min(outstanding, to_allocate)
+        gl_entries.append(
+            doc.get_gl_dict(
+                {
+                    "account": doc.debit_to,
+                    "party_type": "Customer",
+                    "party": doc.customer,
+                    "against": account,
+                    "debit": base_amount,
+                    "against_voucher_type": "Sales Invoice",
+                    "against_voucher": invoice,
+                    "cost_center": doc.cost_center,
+                    "remarks": "Credit Note Adjustment",
+                },
+                doc.party_account_currency,
+            ),
+        )
+        to_allocate += base_amount
+        if to_allocate == 0:
+            break
+
+    make_gl_entries(gl_entries)
+
+
+def _reset_credit_notes_on_cancel(doc):
+    redeemed_credit_notes = frappe.db.sql(
+        """
+            SELECT against_voucher, debit - credit
+            FROM `tabGL Entry`
+            WHERE
+                voucher_type = 'Sales Invoice' AND
+                voucher_no = %(voucher_no)s AND
+                against_voucher_type = 'Sales Invoice' AND
+                remarks = 'Credit Note Adjustment'
+        """,
+        values={"voucher_no": doc.name},
+    )
+    for invoice, amount in redeemed_credit_notes:
+        doc = frappe.get_doc("Sales Invoice", invoice)
+        bal = doc.outstanding_amount - amount
+        doc.outstanding_amount = bal
+        frappe.db.set_value("Sales Invoice", invoice, "outstanding_amount", bal)
+        doc.set_status(update=True)

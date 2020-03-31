@@ -14,10 +14,14 @@
         <dt>{{ _('Invoice Date')}}</dt>
         <dd class="text-right">{{ doc.get_formatted('posting_date') }}</dd>
       </dl>
-      <div />
+      <dl>
+        <dt>{{ _('Return Against')}}</dt>
+        <dd>{{ doc.return_against }}</dd>
+      </dl>
       <dl>
         <dt>{{ _('Valid Till')}}</dt>
-        <dd class="text-right">{{ frappe.format_value(frappe.utils.add_days(doc.posting_date, 180), 'Date') }}</dd>
+        {%- set expiry_days = frappe.utils.cint(frappe.db.get_value('Optical Store Selling Settings', None, 'credit_note_expiry')) -%}
+        <dd class="text-right">{{ frappe.format_value(frappe.utils.add_days(doc.posting_date, expiry_days), 'Date') if expiry_days else '' }}</dd>
       </dl>
     </div>
   </div>
@@ -54,7 +58,12 @@
       {%- endif -%}
     </div>
     {%- endcall -%}
-    {{ macros.sales_summary(doc, payments=get_payments(doc), show_details=True, hide_balance=True) }}
+    {{ macros.sales_summary(
+      doc,
+      payments=get_payments(doc) if doc.is_pos else [],
+      show_details=True,
+      hide_balance=True
+    ) }}
   </div>
 
   {{ macros.footer(doc) }}
