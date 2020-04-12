@@ -17,6 +17,11 @@ def get_sales_order_workflows():
     ]
 
 
+@frappe.whitelist()
+def get_current_workflow_name(doctype):
+    return frappe.model.meta.get_workflow_name(doctype)
+
+
 def activate_workflow(name):
     if not frappe.db.exists("Workflow", name):
         setup_workflow(name)

@@ -58,24 +58,35 @@ def get_warehouse(branch=None):
     return frappe.db.get_value("Branch", name, "warehouse") if name else None
 
 
+NO_WORKFLOW_MSG = frappe._("Sales Order has no active Workflows.")
+
+
 @frappe.whitelist()
 def get_workflow_states():
-    workflow = get_workflow("Sales Order")
-    states = partial(mapf, lambda x: x.state)
-    return states(workflow.states)
+    try:
+        workflow = get_workflow("Sales Order")
+        return [x.state for x in workflow.states]
+    except frappe.exceptions.DoesNotExistError:
+        frappe.throw(NO_WORKFLOW_MSG)
 
 
 @frappe.whitelist()
 def get_next_workflow_actions(state):
-    workflow = get_workflow("Sales Order")
-    nexts = compose(
-        partial(mapf, lambda x: x.action), partial(filter, lambda x: x.state == state)
-    )
-    return nexts(workflow.transitions)
+    try:
+        workflow = get_workflow("Sales Order")
+        nexts = compose(
+            partial(mapf, lambda x: x.action),
+            partial(filter, lambda x: x.state == state),
+        )
+        return nexts(workflow.transitions)
+    except frappe.exceptions.DoesNotExistError:
+        frappe.throw(NO_WORKFLOW_MSG)
 
 
 @frappe.whitelist()
 def get_sales_orders(company, state, branch=None, from_date=None, to_date=None):
+    if not frappe.model.meta.get_workflow_name("Sales Order"):
+        frappe.throw(NO_WORKFLOW_MSG)
     make_conditions = compose(
         " AND ".join,
         partial(cons, "os_branch = %(branch)s") if branch else identity,
@@ -106,6 +117,17 @@ def get_sales_orders(company, state, branch=None, from_date=None, to_date=None):
 
 @frappe.whitelist()
 def update_sales_orders(sales_orders, action, lab_tech=None):
+    workflow_name = frappe.model.meta.get_workflow_name("Sales Order")
+    if not workflow_name:
+        frappe.throw(NO_WORKFLOW_MSG)
+    if workflow_name != "Optic Store Sales Order":
+        frappe.throw(
+            frappe._(
+                "Operation not allowed for Workflow: {}".format(
+                    frappe.bold(workflow_name)
+                )
+            )
+        )
     transition = compose(
         lambda doc: apply_workflow(doc, action), partial(frappe.get_doc, "Sales Order")
     )
