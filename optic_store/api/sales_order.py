@@ -58,24 +58,35 @@ def get_warehouse(branch=None):
     return frappe.db.get_value("Branch", name, "warehouse") if name else None
 
 
+NO_WORKFLOW_MSG = frappe._("Sales Order has no active Workflows.")
+
+
 @frappe.whitelist()
 def get_workflow_states():
-    workflow = get_workflow("Sales Order")
-    states = partial(mapf, lambda x: x.state)
-    return states(workflow.states)
+    try:
+        workflow = get_workflow("Sales Order")
+        return [x.state for x in workflow.states]
+    except frappe.exceptions.DoesNotExistError:
+        frappe.throw(NO_WORKFLOW_MSG)
 
 
 @frappe.whitelist()
 def get_next_workflow_actions(state):
-    workflow = get_workflow("Sales Order")
-    nexts = compose(
-        partial(mapf, lambda x: x.action), partial(filter, lambda x: x.state == state)
-    )
-    return nexts(workflow.transitions)
+    try:
+        workflow = get_workflow("Sales Order")
+        nexts = compose(
+            partial(mapf, lambda x: x.action),
+            partial(filter, lambda x: x.state == state),
+        )
+        return nexts(workflow.transitions)
+    except frappe.exceptions.DoesNotExistError:
+        frappe.throw(NO_WORKFLOW_MSG)
 
 
 @frappe.whitelist()
 def get_sales_orders(company, state, branch=None, from_date=None, to_date=None):
+    if not frappe.model.meta.get_workflow_name("Sales Order"):
+        frappe.throw(NO_WORKFLOW_MSG)
     make_conditions = compose(
         " AND ".join,
         partial(cons, "os_branch = %(branch)s") if branch else identity,
@@ -106,6 +117,17 @@ def get_sales_orders(company, state, branch=None, from_date=None, to_date=None):
 
 @frappe.whitelist()
 def update_sales_orders(sales_orders, action, lab_tech=None):
+    workflow_name = frappe.model.meta.get_workflow_name("Sales Order")
+    if not workflow_name:
+        frappe.throw(NO_WORKFLOW_MSG)
+    if workflow_name != "Optic Store Sales Order":
+        frappe.throw(
+            frappe._(
+                "Operation not allowed for Workflow: {}".format(
+                    frappe.bold(workflow_name)
+                )
+            )
+        )
     transition = compose(
         lambda doc: apply_workflow(doc, action), partial(frappe.get_doc, "Sales Order")
     )
@@ -166,263 +188,3 @@ def get_print_formats(sales_order, print_formats):
     make_pfs = compose(list, concat, partial(map, get_ref_doc), json.loads)
 
     return make_pfs(print_formats)
-
-
-workflow = {
-    "name": "Optic Store Sales Order",
-    "document_type": "Sales Order",
-    "is_active": 1,
-    "send_email_alert": 0,
-    "workflow_state_field": "workflow_state",
-    "states": [
-        {
-            "state": "Draft",
-            "style": "Danger",
-            "doc_status": "0",
-            "allow_edit": "Sales User",
-        },
-        {
-            "state": "Process Pending",
-            "style": "Warning",
-            "doc_status": "1",
-            "allow_edit": "Sales User",
-        },
-        {
-            "state": "Processing at Branch",
-            "style": "Primary",
-            "doc_status": "1",
-            "allow_edit": "Sales User",
-        },
-        {
-            "state": "With Special Order Incharge",
-            "style": "Warning",
-            "doc_status": "1",
-            "allow_edit": "Store User",
-        },
-        {
-            "state": "Ordered to Supplier",
-            "style": "Warning",
-            "doc_status": "1",
-            "allow_edit": "Store User",
-        },
-        {
-            "state": "Sent to HQM",
-            "style": "Warning",
-            "doc_status": "1",
-            "allow_edit": "Store User",
-        },
-        {
-            "state": "Processing at HQM",
-            "style": "Primary",
-            "doc_status": "1",
-            "allow_edit": "Lab Tech",
-        },
-        {
-            "state": "Processing for Delivery",
-            "style": "Info",
-            "doc_status": "1",
-            "allow_edit": "Store User",
-        },
-        {
-            "state": "In Transit (with Driver)",
-            "style": "Warning",
-            "doc_status": "1",
-            "allow_edit": "Sales User",
-        },
-        {
-            "state": "Ready to Deliver",
-            "style": "Info",
-            "doc_status": "1",
-            "allow_edit": "Sales User",
-        },
-        {
-            "state": "Collected",
-            "style": "Success",
-            "doc_status": "1",
-            "allow_edit": "Sales User",
-        },
-        {
-            "state": "Cancelled",
-            "style": "Danger",
-            "doc_status": "2",
-            "allow_edit": "Sales User",
-            "is_optional_state": 1,
-        },
-    ],
-    "transitions": [
-        {
-            "state": "Draft",
-            "action": "Complete",
-            "next_state": "Ready to Deliver",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-            "condition": "doc.os_order_type == 'Eye Test'",
-        },
-        {
-            "state": "Draft",
-            "action": "Process at Branch",
-            "next_state": "Process Pending",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-            "condition": "doc.os_order_type == 'Sales' and doc.os_item_type == 'Other'",
-        },
-        {
-            "state": "Process Pending",
-            "action": "Complete",
-            "next_state": "Ready to Deliver",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Process Pending",
-            "action": "Cancel",
-            "next_state": "Cancelled",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Draft",
-            "action": "Process at Branch",
-            "next_state": "Processing at Branch",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-            "condition": "doc.os_order_type == 'Repair' or (doc.os_order_type == 'Sales' and doc.os_item_type == 'Standard')",  # noqa
-        },
-        {
-            "state": "Processing at Branch",
-            "action": "Complete",
-            "next_state": "Ready to Deliver",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Processing at Branch",
-            "action": "Cancel",
-            "next_state": "Cancelled",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Draft",
-            "action": "Send to HQM",
-            "next_state": "Sent to HQM",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-            "condition": "doc.os_order_type == 'Repair' or (doc.os_order_type == 'Sales' and doc.os_item_type == 'Standard')",  # noqa
-        },
-        {
-            "state": "Sent to HQM",
-            "action": "Process Order",
-            "next_state": "Processing at HQM",
-            "allowed": "Store User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Sent to HQM",
-            "action": "Cancel",
-            "next_state": "Cancelled",
-            "allowed": "Store User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Draft",
-            "action": "Send as Special Order",
-            "next_state": "With Special Order Incharge",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-            "condition": "doc.os_order_type == 'Sales' and doc.os_item_type == 'Special'",  # noqa
-        },
-        {
-            "state": "With Special Order Incharge",
-            "action": "Order to Supplier",
-            "next_state": "Ordered to Supplier",
-            "allowed": "Store User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "With Special Order Incharge",
-            "action": "Cancel",
-            "next_state": "Cancelled",
-            "allowed": "Store User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Ordered to Supplier",
-            "action": "Process Order",
-            "next_state": "Processing at HQM",
-            "allowed": "Store User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Ordered to Supplier",
-            "action": "Cancel",
-            "next_state": "Cancelled",
-            "allowed": "Store User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Processing at HQM",
-            "action": "Proceed to Deliver",
-            "next_state": "Processing for Delivery",
-            "allowed": "Lab Tech",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Processing at HQM",
-            "action": "Cancel",
-            "next_state": "Cancelled",
-            "allowed": "Lab Tech",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Processing for Delivery",
-            "action": "Send to Branch",
-            "next_state": "In Transit (with Driver)",
-            "allowed": "Store User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Processing for Delivery",
-            "action": "Cancel",
-            "next_state": "Cancelled",
-            "allowed": "Store User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "In Transit (with Driver)",
-            "action": "Accept",
-            "next_state": "Ready to Deliver",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "In Transit (with Driver)",
-            "action": "Reject",
-            "next_state": "Processing at HQM",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "In Transit (with Driver)",
-            "action": "Cancel",
-            "next_state": "Cancelled",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-        },
-        {
-            "state": "Ready to Deliver",
-            "action": "Complete",
-            "next_state": "Collected",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-            "condition": "doc.delivery_status == 'Fully Delivered'",  # noqa
-        },
-        {
-            "state": "Ready to Deliver",
-            "action": "Cancel",
-            "next_state": "Cancelled",
-            "allowed": "Sales User",
-            "allow_self_approval": 1,
-        },
-    ],
-}

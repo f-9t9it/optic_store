@@ -28,6 +28,7 @@ def deliver_qol(name, payments=[], batches=None, deliver=0):
     is_delivery = cint(deliver)
 
     si = frappe.get_doc("Sales Invoice", name)
+    _validate_workflow()
     if is_delivery:
         _validate_qol(batches, si)
 
@@ -88,6 +89,17 @@ def deliver_qol(name, payments=[], batches=None, deliver=0):
         result = merge(result, {"delivery_note": dn.name})
 
     return result
+
+
+def _validate_workflow():
+    workflow_name = frappe.model.meta.get_workflow_name("Sales Order")
+    if workflow_name != "Optic Store Sales Order":
+        frappe.throw(
+            frappe._(
+                "Operation not permitted because either Sales Order workflow is not "
+                "configured or incompatible"
+            )
+        )
 
 
 def _validate_qol(batches, si):
@@ -308,6 +320,7 @@ def get_ref_so_date(sales_invoice):
 
 @frappe.whitelist()
 def get_ref_so_statuses(sales_invoice):
+    _validate_workflow()
     get_statuses = compose(
         partial(
             mapf, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")

@@ -56,6 +56,9 @@ def _are_paid(sales_orders):
 
 
 def on_submit(doc, method):
+    if frappe.model.meta.get_workflow_name("Sales Order") != "Optic Store Sales Order":
+        return
+
     def advance_wf(name):
         doc = frappe.get_doc("Sales Order", name)
         if (
