@@ -31,3 +31,12 @@ class OpticalStoreSettings(Document):
                 as_list=1,
             ):
                 frappe.db.set_value("Workflow", name, "is_active", 0)
+        for report in ["Sales Order Workflow", "Sales Summary by Product"]:
+            frappe.db.set_value(
+                "Report",
+                report,
+                "disabled",
+                frappe.utils.cint(
+                    self.sales_order_workflow != "Optic Store Sales Order"
+                ),
+            )
