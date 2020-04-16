@@ -50,7 +50,7 @@ frappe.ui.form.OpticalPrescriptionQuickEntryForm = frappe.ui.form.QuickEntryForm
 );
 frappe.ui.form.BatchQuickEntryForm = frappe.ui.form.QuickEntryForm.extend(batch_qe);
 
-const __version__ = '0.9.2';
+const __version__ = '0.10.0';
 
 frappe.provide('optic_store');
 optic_store = {

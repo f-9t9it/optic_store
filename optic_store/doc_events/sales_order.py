@@ -171,5 +171,7 @@ def _get_item_type(items, settings):
 
 
 def before_cancel(doc, method):
+    if frappe.model.meta.get_workflow_name("Sales Order") != "Optic Store Sales Order":
+        return
     if doc.workflow_state != "Cancelled":
         doc.workflow_state = "Cancelled"
