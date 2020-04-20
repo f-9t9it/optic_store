@@ -99,6 +99,7 @@ fixtures = [
                     "Item-gift_card_value",
                     "Item-gift_card_validity",
                     "Item-os_ignore_cashback",
+                    "Item-os_ignore_min_price_validation",
                     "Item-os_commission_sec",
                     "Item-os_has_commission",
                     "Item-os_commission_by",
