@@ -47,6 +47,7 @@ def invoice_qol(
     if payments_proc:
         doc.is_pos = 1
         mapf(lambda x: doc.append("payments", x), payments_proc)
+    doc.update_stock = 0
     doc.insert(ignore_permissions=True)
     doc.submit()
     return doc.name
