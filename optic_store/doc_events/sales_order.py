@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from functools import partial
-from toolz import compose
+from toolz import compose, pluck
 
 from optic_store.api.customer import get_user_branch
 from optic_store.api.item import get_min_prices
@@ -126,7 +126,19 @@ def _validate_spec_parts(items):
 
 def validate_rate_against_min_prices(doc):
     price_lists = ["Minimum Selling", "Minimum Selling 2", "Standard Buying"]
-    for item in filter(lambda x: not x.os_ignore_min_price_validation, doc.items):
+    get_validation_items = compose(
+        list,
+        partial(pluck, "name"),
+        lambda: frappe.get_all(
+            "Item",
+            filters={
+                "os_ignore_min_price_validation": 0,
+                "name": ("in", [x.item_code for x in doc.items]),
+            },
+        ),
+    )
+
+    for item in filter(lambda x: x.item_code in get_validation_items(), doc.items):
         min_price = frappe.db.sql(
             """
                 SELECT MAX(price_list_rate) FROM `tabItem Price`
@@ -139,7 +151,7 @@ def validate_rate_against_min_prices(doc):
         if item.net_rate < min_price:
             frappe.throw(
                 frappe._(
-                    "Item rate cannot for row {idx} cannot be less than {min_price}".format(
+                    "Item rate for row {idx} cannot be less than {min_price}".format(
                         idx=item.idx,
                         min_price=frappe.bold(
                             frappe.utils.fmt_money(min_price, currency=doc.currency)
