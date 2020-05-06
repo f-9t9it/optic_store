@@ -23,6 +23,16 @@ _filter_batch_items = partial(
 
 
 @frappe.whitelist()
+def get_state_to_complete(doctype):
+    workflow_name = frappe.model.meta.get_workflow_name(doctype)
+    return frappe.db.get_value(
+        "Workflow Transition",
+        filters={"parent": workflow_name, "action": "Complete"},
+        fieldname="state",
+    )
+
+
+@frappe.whitelist()
 def deliver_qol(name, payments=[], batches=None, deliver=0):
 
     is_delivery = cint(deliver)
@@ -92,8 +102,7 @@ def deliver_qol(name, payments=[], batches=None, deliver=0):
 
 
 def _validate_workflow():
-    workflow_name = frappe.model.meta.get_workflow_name("Sales Order")
-    if workflow_name != "Optic Store Sales Order":
+    if not get_state_to_complete("Sales Order"):
         frappe.throw(
             frappe._(
                 "Operation not permitted because either Sales Order workflow is not "
@@ -103,6 +112,8 @@ def _validate_workflow():
 
 
 def _validate_qol(batches, si):
+    state_to_complete = get_state_to_complete("Sales Order")
+
     def si_deliverable(items):
         return sum_by("qty")(items) > sum_by("delivered_qty")(items)
 
@@ -117,7 +128,7 @@ def _validate_qol(batches, si):
         return get_si_items(items) != get_batch_items(batches)
 
     sos_deliverable = compose(
-        lambda states: reduce(lambda a, x: a and x == "Ready to Deliver", states, True),
+        lambda states: reduce(lambda a, x: a and x == state_to_complete, states, True),
         partial(map, lambda x: frappe.db.get_value("Sales Order", x, "workflow_state")),
         unique,
         partial(filter, lambda x: x),
@@ -128,7 +139,11 @@ def _validate_qol(batches, si):
         frappe.throw(_("Delivery has already been processed"))
     if not sos_deliverable(si.items):
         frappe.throw(
-            _("Cannot make delivery until Sales Order status is 'Ready to Deliver'")
+            _(
+                "Cannot make delivery until Sales Order status is '{}'".format(
+                    state_to_complete
+                )
+            )
         )
     if batches and invalid_batch_qtys(si.items):
         frappe.throw(_("Mismatched Items and Batches"))

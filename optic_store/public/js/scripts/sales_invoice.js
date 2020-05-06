@@ -38,11 +38,11 @@ function set_gift_card_payment(frm) {
 }
 
 async function render_qol_button(frm) {
-  const { message: workflow_name } = await frappe.call({
-    method: 'optic_store.api.workflow.get_current_workflow_name',
+  const { message: state_to_complete } = await frappe.call({
+    method: 'optic_store.api.sales_invoice.get_state_to_complete',
     args: { doctype: 'Sales Order' },
   });
-  if (workflow_name === 'Optic Store Sales Order' && frm.doc.docstatus === 1) {
+  if (state_to_complete && frm.doc.docstatus === 1) {
     const actual_qty = frm.doc.items.reduce((a, { qty }) => a + qty, 0);
     const delivered_qty = frm.doc.items.reduce(
       (a, { delivered_qty }) => a + delivered_qty,
@@ -56,7 +56,7 @@ async function render_qol_button(frm) {
 
     const can_be_paid = ['Unpaid', 'Overdue'].includes(status);
     const can_be_collected =
-      !so_statuses.some((state) => state !== 'Ready to Deliver') &&
+      !so_statuses.some((state) => state !== state_to_complete) &&
       cint(update_stock) !== 1 &&
       actual_qty > delivered_qty;
 
