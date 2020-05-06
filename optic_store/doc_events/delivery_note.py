@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.workflow import apply_workflow
 from functools import partial, reduce
-from toolz import compose, unique, pluck
+from toolz import compose, unique, pluck, excepts, first
 
 
 def validate(doc, method):
@@ -56,15 +56,24 @@ def _are_paid(sales_orders):
 
 
 def on_submit(doc, method):
-    if frappe.model.meta.get_workflow_name("Sales Order") != "Optic Store Sales Order":
+    workflow = frappe.model.workflow.get_workflow("Sales Order")
+    if not workflow:
         return
 
     def advance_wf(name):
         doc = frappe.get_doc("Sales Order", name)
+
+        workflow_state = compose(
+            lambda x: x.get("state"),
+            excepts(StopIteration, first, lambda: {}),
+            partial(filter, lambda x: x.get("action") == "Complete"),
+            frappe.model.workflow.get_transitions,
+        )(doc, workflow)
+
         if (
             doc
             and doc.delivery_status == "Fully Delivered"
-            and doc.workflow_state == "Ready to Deliver"
+            and doc.get(workflow.workflow_state_field) == workflow_state
         ):
             apply_workflow(doc, "Complete")
 
