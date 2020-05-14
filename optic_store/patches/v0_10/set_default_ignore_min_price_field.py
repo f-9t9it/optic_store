@@ -7,5 +7,7 @@ import frappe
 
 
 def execute():
+    if not frappe.db.exists("Custom Field", "Item-os_ignore_min_price_validation"):
+        return
     for (name,) in frappe.get_all("Item", as_list=1):
         frappe.db.set_value("Item", name, "os_ignore_min_price_validation", 1)
