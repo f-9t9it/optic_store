@@ -9,6 +9,9 @@ from optic_store.api.item import get_min_prices
 
 
 def execute():
+    if not frappe.db.exists("Custom Field", "Sales Invoice Item-os_minimum_selling_rate}"):
+        return
+
     def get_docs(doctype):
         return frappe.db.sql(
             """
