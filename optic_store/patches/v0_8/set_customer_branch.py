@@ -9,6 +9,8 @@ from optic_store.api.customer import get_user_branch
 
 
 def execute():
+    if not frappe.db.exists("Custom Field", "Customer-branch}"):
+        return
     for doc in frappe.get_all(
         "Customer",
         filters=[["branch", "is", "not set"], ["old_customer_id", "is", "not set"]],
