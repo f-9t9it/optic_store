@@ -7,12 +7,11 @@ import frappe
 
 
 def execute():
-    if not frappe.db.exists(
-        "Custom Field", "{}-{}".format(doctype, "os_sales_person")
-    ):
-        return
-
     for doctype in ["Sales Order", "Sales Invoice"]:
+        if not frappe.db.exists(
+            "Custom Field", "{}-{}".format(doctype, "os_sales_person")
+        ):
+            continue
         if not frappe.db.exists(
             "Custom Field", "{}-{}".format(doctype, "os_sales_person_name")
         ):
