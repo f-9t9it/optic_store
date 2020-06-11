@@ -10,6 +10,9 @@ from frappe.model.utils.rename_field import rename_field
 def execute():
     old_field = "os_crp_no"
     new_field = "os_cpr_no"
+    if not frappe.db.exists("Custom Field", "Customer-{}".format(old_field)):
+        return
+
     if not frappe.db.exists("Custom Field", "Customer-{}".format(new_field)):
         frappe.get_doc(
             {
