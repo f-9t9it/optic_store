@@ -19,6 +19,6 @@
   "homepage": "https://github.com/f-9t9it/optic_store#readme",
   "dependencies": {
     "jsbarcode": "^3.11.0",
-    "lodash": "^4.17.14"
+    "lodash": "^4.17.19"
   }
 }
