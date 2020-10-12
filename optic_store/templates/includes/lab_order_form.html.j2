@@ -1,0 +1,110 @@
+<main class="os-lof">
+  {{ macros.preheader(doc) }}
+
+  <div class="os-lof-header">
+    <div class="os-lof-header-content">
+      <h1>{{ _('Lab Order Form') }}</h1>
+      <dl>
+        <dt>{{ _('Branch')}}</dt>
+        <dd>{{ doc.os_branch or '' }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Order Date')}}</dt>
+        <dd>{{ doc.get_formatted('transaction_date') }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Lab')}}</dt>
+        <dd>{{ doc.orx_lab or '' }}</dd>
+      </dl>
+    </div>
+    <svg
+      class="barcode"
+      jsbarcode-format="CODE128"
+      jsbarcode-value="{{ doc.name }}"
+      jsbarcode-textmargin="2"
+      jsbarcode-textposition="top"
+      jsbarcode-fontoptions="bold"
+      jsbarcode-height="40"
+      jsbarcode-width="1"
+      jsbarcode-margin="4"
+    />
+  </div>
+  {%- if doc.orx_name -%}
+
+  {%- set rx = frappe.get_doc('Optical Prescription', doc.orx_name) -%}
+  {{ macros.prescription_details(rx) }}
+
+  <div class="os-section">
+    <div class="os-section-content">
+      {%- set items = get_optical_items(doc.items) -%}
+      <dl class="os-fill">
+        <dt>{{ _('Frame / Model') }}</dt>
+        <dd>
+          {%- if items.frame -%} {{ items.frame.item_name }} x {{ items.frame.qty }} {%- endif -%}
+        </dd>
+      </dl>
+      <dl class="os-fill">
+        <dt>{{ _('Lens (R)') }}</dt>
+        <dd>
+          {%- if items.lens_right -%} {{ items.lens_right.item_name }} x {{ items.lens_right.qty }} {%- endif -%}
+        </dd>
+      </dl>
+      <dl class="os-fill">
+        <dt>{{ _('Lens (L)') }}</dt>
+        <dd>
+          {%- if items.lens_left -%} {{ items.lens_left.item_name }} x {{ items.lens_left.qty }} {%- endif -%}
+        </dd>
+      </dl>
+      {%- for item in items.others -%}
+      <dl class="os-fill">
+        <dt>{{ item.item_group }}</dt>
+        <dd>{{ item.item_name }} x {{ item.qty }}</dd>
+      </dl>
+      {%- endfor -%}
+    </div>
+  </div>
+
+  {{ macros.prescription_order_details(rx, doc) }}
+  {%- endif -%}
+
+  <div class="os-lof-main os-fill">
+    <div class="os-lof-main-subline">
+      <dl>
+        <dt>{{ _('Delivery Date') }}</dt>
+        <dd>{{ doc.get_formatted('delivery_date') }}</dd>
+      </dl>
+    </div>
+    <div class="os-lof-main-headline">
+      <dl>
+        <dt>{{ _('Name / ID') }}</dt>
+        <dd>{{ doc.customer_name }} / {{ doc.customer }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="os-summary">
+    <div class="os-bordered">
+      <dl>
+        <dt>{{ _('Storage Location')}}</dt>
+        <dd>{{ doc.set_warehouse or ''}}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Remarks')}}</dt>
+        <dd>{{ doc.os_orx_notes or '' }}</dd>
+      </dl>
+    </div>
+    <div class="os-bordered os-bordered-no-left">
+      <dl>
+        <dt>{{ _('Lab Remarks')}}</dt>
+        <dd>{{ doc.os_notes or '' }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  {{ macros.footer(doc) }}
+</main>
+
+<script type="text/javascript" src="/assets/js/optic_store_print.min.js"></script>
+<script type="text/javascript">
+  JsBarcode('.barcode').init();
+</script>

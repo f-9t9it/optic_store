@@ -3,7 +3,13 @@ export default {
     this._super();
     if (cur_frm) {
       const { doctype, item_code } = cur_frm.selected_doc || {};
-      if (['Stock Entry Detail', 'Purchase Receipt Item'].includes(doctype)) {
+      if (
+        [
+          'Stock Entry Detail',
+          'Purchase Receipt Item',
+          'Purchase Invoice Item',
+        ].includes(doctype)
+      ) {
         this.dialog.set_value('item', item_code);
         const { message: item = {} } = await frappe.db.get_value('Item', item_code, [
           'create_new_batch',

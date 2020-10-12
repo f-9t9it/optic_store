@@ -46,6 +46,13 @@ fixtures = [
                     "Branch-os_sales_invoice_naming_series",
                     "Branch-os_sales_col",
                     "Branch-os_cost_center",
+                    "Branch-os_targets_sec",
+                    "Branch-os_half_monthly_target",
+                    "Branch-os_target",
+                    "Branch-os_targets_col",
+                    "Branch-os_quarterly_target",
+                    "Branch-os_half_yearly_target",
+                    "Branch-os_yearly_target",
                     "Branch-os_details_sec",
                     "Branch-warehouse",
                     "Branch-location",
@@ -62,7 +69,7 @@ fixtures = [
                     "Customer-os_details_sec",
                     "Customer-os_detail_bio_col",
                     "Customer-os_short_name",
-                    "Customer-os_crp_no",
+                    "Customer-os_cpr_no",
                     "Customer-os_date_of_birth",
                     "Customer-os_occupation",
                     "Customer-os_nationality",
@@ -76,6 +83,7 @@ fixtures = [
                     "Customer-os_email",
                     "Customer-os_address",
                     "Customer-os_loyalty_col",
+                    "Customer-os_loyalty_activation_date",
                     "Customer-os_loyalty_card_no",
                     "Item Group-item_group_abbr",
                     "Item-manual_item_code",
@@ -90,6 +98,8 @@ fixtures = [
                     "Item-gift_card_col",
                     "Item-gift_card_value",
                     "Item-gift_card_validity",
+                    "Item-os_ignore_cashback",
+                    "Item-os_ignore_min_price_validation",
                     "Item-os_commission_sec",
                     "Item-os_has_commission",
                     "Item-os_commission_by",
@@ -108,7 +118,16 @@ fixtures = [
                     "Sales Order-os_order_type",
                     "Sales Order-os_branch",
                     "Sales Order-os_item_type",
+                    "Sales Order-os_insurance_sec",
+                    "Sales Order-os_is_insurance",
+                    "Sales Order-os_membership_no",
+                    "Sales Order-os_insurance_col",
+                    "Sales Order-os_policy_name",
+                    "Sales Order-os_policy_no",
+                    "Sales Order-os_approval_no",
+                    "Sales Order-os_claim_form_no",
                     "Sales Order-os_sales_person",
+                    "Sales Order-os_sales_person_name",
                     "Sales Order-orx_sec",
                     "Sales Order-orx_type",
                     "Sales Order-orx_col",
@@ -138,11 +157,26 @@ fixtures = [
                     "Sales Order Item-os_minimum_selling_rate",
                     "Sales Order Item-os_minimum_selling_2_rate",
                     "Sales Order Item-batch_no",
+                    "Sales Order Item-os_spec_part",
+                    "Sales Invoice-os_manual_return_dn",
+                    "Sales Invoice-os_insurance_sec",
+                    "Sales Invoice-os_is_insurance",
+                    "Sales Invoice-os_membership_no",
+                    "Sales Invoice-os_insurance_col",
+                    "Sales Invoice-os_policy_name",
+                    "Sales Invoice-os_policy_no",
+                    "Sales Invoice-os_approval_no",
+                    "Sales Invoice-os_claim_form_no",
                     "Sales Invoice-os_gift_card_sec",
                     "Sales Invoice-os_gift_card_entry",
                     "Sales Invoice-os_gift_cards",
+                    "Sales Invoice-os_cashback_sec",
+                    "Sales Invoice-os_cashback_receipt",
+                    "Sales Invoice-os_cashback_col",
+                    "Sales Invoice-os_cashback_balance",
                     "Sales Invoice-os_branch",
                     "Sales Invoice-os_sales_person",
+                    "Sales Invoice-os_sales_person_name",
                     "Sales Invoice-orx_sec",
                     "Sales Invoice-orx_type",
                     "Sales Invoice-orx_col",
@@ -160,6 +194,7 @@ fixtures = [
                     "Sales Invoice-orx_dispensor",
                     "Sales Invoice-orx_lab",
                     "Sales Invoice-os_lab_tech",
+                    "Sales Invoice-os_available_loyalty_points",
                     "Sales Invoice-os_loyalty_card_no",
                     "Sales Invoice-orx_group_discount",
                     "Sales Invoice-os_recall_sec",
@@ -169,9 +204,16 @@ fixtures = [
                     "Sales Invoice-os_recall_reason",
                     "Sales Invoice Item-os_minimum_selling_rate",
                     "Sales Invoice Item-os_minimum_selling_2_rate",
+                    "Sales Invoice Item-os_spec_part",
                     "Sales Invoice Payment-os_in_alt_tab",
                     "Delivery Note-os_branch",
+                    "Purchase Invoice-supplier_delivery_note",
+                    "Purchase Receipt Item-os_expiry_date",
+                    "Payment Entry-os_posting_time",
+                    "Payment Entry-os_branch",
                     "Payment Entry-os_gift_card",
+                    "Stock Entry-os_reference_stock_transfer",
+                    "Loyalty Point Entry-os_custom_loyalty_entry",
                 ],
             ]
         ],
@@ -188,11 +230,11 @@ fixtures = [
                     "Item-quick_entry",
                     "Item-naming_series-options",
                     "Batch-search_fields",
+                    "Batch-expiry_date-bold",
                     "Sales Order-naming_series-read_only",
                     "Sales Order-order_type-hidden",
                     "Sales Order-set_warehouse-read_only",
                     "Sales Order-po_no-hidden",
-                    "Sales Order-terms_section_break-hidden",
                     "Sales Order-more_info-hidden",
                     "Sales Order-printing_details-hidden",
                     "Sales Order-section_break_78-hidden",
@@ -224,11 +266,18 @@ app_include_js = "/assets/js/optic_store.min.js"
 # web_include_js = "/assets/optic_store/js/optic_store.js"
 
 # include js in page
-page_js = {"pos": "public/js/pos.js"}
+page_js = {"pos": "public/js/pos.js", "point-of-sale": "public/js/point_of_sale.js"}
 
 # include js in doctype views
-doctype_js = {"Stock Entry": "public/js/stock_entry.js"}
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_js = {
+    "Sales Order": "public/js/transaction_controller.js",
+    "Sales Invoice": "public/js/transaction_controller.js",
+    "Delivery Note": "public/js/transaction_controller.js",
+}
+doctype_list_js = {
+    "Sales Invoice": "public/js/sales_invoice_list.js",
+    "Stock Entry": "public/js/stock_entry_list.js",
+}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -281,14 +330,28 @@ doctype_js = {"Stock Entry": "public/js/stock_entry.js"}
 # Hook on document methods and events
 
 doc_events = {
-    "Delivery Note": {"validate": "optic_store.doc_events.delivery_note.validate"},
+    "Delivery Note": {
+        "validate": "optic_store.doc_events.delivery_note.validate",
+        "on_submit": "optic_store.doc_events.delivery_note.on_submit",
+    },
+    "Purchase Receipt": {
+        "before_save": "optic_store.doc_events.purchase_receipt.before_validate",
+        "validate": "optic_store.doc_events.purchase_receipt.validate",
+        "on_submit": "optic_store.doc_events.purchase_receipt.set_batch_references",
+    },
     "Sales Order": {
         "before_naming": "optic_store.doc_events.sales_order.before_naming",
         "validate": "optic_store.doc_events.sales_order.validate",
         "before_insert": "optic_store.doc_events.sales_order.before_insert",
+        "before_save": "optic_store.doc_events.sales_order.before_save",
+        "before_submit": "optic_store.doc_events.sales_order.before_submit",
         "on_update": "optic_store.doc_events.sales_order.on_update",
+        "before_cancel": "optic_store.doc_events.sales_order.before_cancel",
     },
-    "Customer": {"before_insert": "optic_store.doc_events.customer.before_insert"},
+    "Customer": {
+        "before_insert": "optic_store.doc_events.customer.before_insert",
+        "before_save": "optic_store.doc_events.customer.before_save",
+    },
     "Item": {
         "before_naming": "optic_store.doc_events.item.before_naming",
         "autoname": "optic_store.doc_events.item.autoname",
@@ -301,18 +364,31 @@ doc_events = {
         "on_trash": "optic_store.doc_events.serial_no.on_trash",
     },
     "Sales Invoice": {
+        "before_naming": "optic_store.doc_events.sales_invoice.before_naming",
         "validate": "optic_store.doc_events.sales_invoice.validate",
         "before_insert": "optic_store.doc_events.sales_invoice.before_insert",
+        "before_save": "optic_store.doc_events.sales_invoice.before_save",
         "before_submit": "optic_store.doc_events.sales_invoice.before_submit",
         "on_submit": "optic_store.doc_events.sales_invoice.on_submit",
+        "on_update_after_submit": "optic_store.doc_events.sales_invoice.on_update_after_submit",  # noqa
+        "before_cancel": "optic_store.doc_events.sales_invoice.before_cancel",
         "on_cancel": "optic_store.doc_events.sales_invoice.on_cancel",
     },
     "Payment Entry": {
         "validate": "optic_store.doc_events.payment_entry.validate",
+        "before_insert": "optic_store.doc_events.payment_entry.before_insert",
+        "before_save": "optic_store.doc_events.payment_entry.before_save",
         "on_submit": "optic_store.doc_events.payment_entry.on_submit",
         "on_cancel": "optic_store.doc_events.payment_entry.on_cancel",
     },
     "Journal Entry": {"on_cancel": "optic_store.doc_events.journal_entry.on_cancel"},
+    "*": {
+        "after_insert": "optic_store.api.sms.process",
+        "on_update": "optic_store.api.sms.process",
+        "on_submit": "optic_store.api.sms.process",
+        "on_update_after_submit": "optic_store.api.sms.process",
+        "on_cancel": "optic_store.api.sms.process",
+    },
 }
 
 # Scheduled Tasks
@@ -320,7 +396,11 @@ doc_events = {
 
 scheduler_events = {
     # "all": ["optic_store.tasks.all"],
-    "daily": ["optic_store.api.gift_card.write_off_expired_gift_cards"],
+    "daily": [
+        "optic_store.api.gift_card.write_off_expired_gift_cards",
+        "optic_store.api.email_alerts.process",
+        "optic_store.api.sales_invoice.write_off_expired_credit_notes",
+    ],
     # "hourly": ["optic_store.tasks.hourly"],
     # "weekly": ["optic_store.tasks.weekly"],
     # "monthly": ["optic_store.tasks.monthly"],
@@ -338,6 +418,10 @@ override_whitelisted_methods = {
     "erpnext.accounts.doctype.sales_invoice.pos.get_pos_data": "optic_store.api.pos.get_pos_data",  # noqa
     "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice",  # noqa
     "erpnext.selling.page.point_of_sale.point_of_sale.search_serial_or_batch_or_barcode_number": "optic_store.api.sales_invoice.search_serial_or_batch_or_barcode_number",  # noqa
+    "erpnext.selling.page.point_of_sale.point_of_sale.get_items": "optic_store.api.pos.get_items",  # noqa
+    # TODO: when PR #18111 is merged
+    "erpnext.accounts.doctype.loyalty_program.loyalty_program.get_loyalty_program_details": "optic_store.api.pos.get_loyalty_program_details",  # noqa
+    "erpnext.stock.get_item_details.get_item_details": "optic_store.api.item.get_item_details",  # noqa
 }
 
 # Jinja Environment Customizations
@@ -346,7 +430,12 @@ override_whitelisted_methods = {
 jenv = {
     "methods": [
         "get_optical_items:optic_store.utils.helpers.get_optical_items",
+        "get_amounts:optic_store.utils.helpers.get_amounts",
         "get_ref_so_date:optic_store.api.sales_invoice.get_ref_so_date",
-        "get_advance_payments:optic_store.api.sales_invoice.get_payments",
+        "get_payments:optic_store.api.sales_invoice.get_payments",
+        "get_salary_component_by_type:optic_store.api.leave_application.get_salary_component_by_type",  # noqa
+        "get_leave_balance:optic_store.api.leave_application.get_leave_balance",
+        "get_salary_slips_from_payroll_entry:optic_store.api.salary_slip.get_salary_slip_docs_from_payroll_entry",  # noqa
+        "get_credit_notes:optic_store.api.sales_invoice.get_credit_notes",
     ]
 }

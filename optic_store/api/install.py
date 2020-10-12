@@ -6,8 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from toolz import merge
 
-from optic_store.api.sales_order import workflow as sales_order_workflow
-from optic_store.api.stock_transfer import workflow as stock_transfer_workflow
+from optic_store.api.workflow import setup_workflow
 
 
 @frappe.whitelist()
@@ -69,56 +68,18 @@ def _update_settings():
         "Selling Settings": {"cust_master_name": "Naming Series", "territory": None},
         "Stock Settings": {"item_naming_by": "Naming Series", "show_barcode_field": 1},
         "POS Settings": {"use_pos_in_offline_mode": 1},
+        "Optical Store Settings": {
+            "loyalty_validation": "loyalty_points % 10 == 0 and loyalty_points >= 250"
+        },
     }
 
     map(lambda x: update(*x), settings.items())
 
 
 def _setup_workflow():
-    def make_action(name):
-        if not frappe.db.exists("Workflow Action Master", name):
-            frappe.get_doc(
-                {"doctype": "Workflow Action Master", "workflow_action_name": name}
-            ).insert(ignore_permissions=True)
-
-    def make_state(name, style=None):
-        if not frappe.db.exists("Workflow State", name):
-            frappe.get_doc(
-                {
-                    "doctype": "Workflow State",
-                    "workflow_state_name": name,
-                    "style": style,
-                }
-            ).insert(ignore_permissions=True)
-        else:
-            doc = frappe.get_doc("Workflow State", name)
-            doc.update({"style": style})
-            doc.save(ignore_permissions=True)
-
-    def make_role(name, desk_access=1):
-        if not frappe.db.exists("Role", name):
-            frappe.get_doc(
-                {"doctype": "Role", "role_name": name, "desk_access": desk_access}
-            ).insert(ignore_permissions=True)
-
-    def make_workflow(name, **args):
-        if args.get("transitions"):
-            map(lambda x: make_action(x.get("action")), args.get("transitions"))
-        if args.get("states"):
-            map(
-                lambda x: make_state(x.get("state"), x.get("style")), args.get("states")
-            )
-            map(lambda x: make_role(x.get("allow_edit")), args.get("states"))
+    for name in ["Optic Store Sales Order", "Optic Store Stock Transfer"]:
         if not frappe.db.exists("Workflow", name):
-            frappe.get_doc(
-                merge({"doctype": "Workflow", "workflow_name": name}, args)
-            ).insert(ignore_permissions=True)
-        else:
-            doc = frappe.get_doc("Workflow", name)
-            doc.update(args)
-            doc.save(ignore_permissions=True)
-
-    map(lambda x: make_workflow(**x), [sales_order_workflow, stock_transfer_workflow])
+            setup_workflow(name)
 
 
 def _setup_accounts(company):

@@ -19,14 +19,11 @@ async function set_missing_fields(frm) {
   if (frm.doc.__islocal && !start_time) {
     frm.set_value('start_time', frappe.datetime.now_datetime());
   }
-  if (!frm.doc.__islocal && frm.doc.docstatus === 0 && !end_time) {
-    frm.set_value('end_time', frappe.datetime.now_datetime());
-  }
 }
 
 async function set_report_details(frm) {
-  const { user, pos_profile, start_time, end_time } = frm.doc;
-  if (user && pos_profile && start_time && end_time) {
+  const { user, pos_profile, start_time } = frm.doc;
+  if (user && pos_profile && start_time) {
     await frappe.call({
       method: 'set_report_details',
       doc: frm.doc,
@@ -52,8 +49,18 @@ async function calculate_cash(frm) {
 export default {
   onload: function(frm) {
     frm.set_query('pos_profile', ({ user }) => ({ filters: { user } }));
+    if (!frm.doc.__islocal && frm.doc.docstatus === 0) {
+      set_report_details(frm);
+    }
   },
-  refresh: set_missing_fields,
+  refresh: function(frm) {
+    if (!frm.doc.__islocal && frm.doc.docstatus === 0) {
+      frm.add_custom_button(__('Refresh'), function() {
+        set_report_details(frm);
+      });
+    }
+    set_missing_fields(frm);
+  },
   user: set_report_details,
   pos_profile: async function(frm) {
     const { pos_profile } = frm.doc;

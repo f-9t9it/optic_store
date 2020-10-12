@@ -6,11 +6,25 @@ from __future__ import unicode_literals
 from datetime import date
 from functools import partial
 from toolz import compose, first, excepts
-
-from frappe.utils import get_first_day, get_last_day, getdate, add_months, add_days
+from frappe.utils import get_first_day, get_last_day, getdate, add_months, add_days, flt
 
 
 def generate_intervals(interval, start_date, end_date):
+    if interval == "Daily":
+        periods = []
+        start = getdate(start_date)
+        cur_start = start
+        while cur_start <= getdate(end_date):
+            periods.append(
+                {
+                    "key": cur_start.strftime("%Y-%m-%d"),
+                    "label": cur_start.strftime("%Y-%m-%d"),
+                    "start_date": cur_start,
+                    "end_date": cur_start,
+                }
+            )
+            cur_start = add_days(cur_start, 1)
+        return periods
     if interval == "Weekly":
         periods = []
         start = getdate(start_date)
@@ -58,24 +72,41 @@ def generate_intervals(interval, start_date, end_date):
     return []
 
 
-def get_optical_items(items, frames=[], lenses=[]):
-    get_frame = compose(
-        excepts(StopIteration, first, lambda x: None),
-        partial(filter, lambda x: x.item_group in frames),
-    )
-
-    def get_lens(idx):
+def get_parts(items):
+    def get_by_part(part):
         return compose(
-            excepts(IndexError, lambda x: x[idx], lambda x: None),
-            partial(filter, lambda x: x.item_group in lenses),
-        )
+            excepts(StopIteration, first, lambda x: None),
+            partial(filter, lambda x: x.os_spec_part == part),
+        )(items)
 
-    frame = get_frame(items)
-    lens_right = get_lens(0)(items)
-    lens_left = get_lens(1)(items)
+    return map(get_by_part, ("Frame", "Lens Right", "Lens Left"))
+
+
+def get_optical_items(items):
+    frame, lens_right, lens_left = get_parts(items)
     return {
         "frame": frame,
         "lens_right": lens_right,
         "lens_left": lens_left,
         "others": filter(lambda x: x not in [frame, lens_right, lens_left], items),
     }
+
+
+def get_amounts(doc):
+    get_price_list_amount = compose(
+        sum,
+        partial(
+            map,
+            excepts(
+                ZeroDivisionError,
+                lambda x: x.amount
+                / abs(x.amount)
+                * max(flt(x.price_list_rate) * abs(flt(x.qty)), abs(flt(x.amount))),
+                lambda __: 0,
+            ),
+        ),
+    )
+    total = get_price_list_amount(doc.items)
+    # `doc.discount_amount` is negative
+    discount_amount = doc.discount_amount + (doc.total - total)
+    return {"total": total, "discount_amount": discount_amount}

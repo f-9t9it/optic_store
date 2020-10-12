@@ -5,17 +5,29 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import now, get_datetime, flt
+from frappe.utils import now, get_datetime, flt, cint
 from frappe.model.document import Document
 from functools import partial
 from toolz import merge, compose
 
 from optic_store.api.customer import get_user_branch
-from optic_store.utils import pick, sum_by
+from optic_store.utils import pick, sum_by, mapf, filterf
+
+DISPATCH = "Dispatch"
+RECEIVE = "Receive"
 
 
 class StockTransfer(Document):
     def validate(self):
+        user_branch = get_user_branch()
+        if not _is_sys_mgr() and self.source_branch != user_branch:
+            frappe.throw(
+                _(
+                    "Source branch only allowed to be set to User branch: {}".format(
+                        user_branch
+                    )
+                )
+            )
         if self.source_branch == self.target_branch:
             frappe.throw(_("Source and Target Branches cannot be the same"))
         if not self.source_warehouse:
@@ -29,47 +41,77 @@ class StockTransfer(Document):
         if not self.source_warehouse or not self.target_warehouse:
             frappe.throw(_("Warehouse not found for one or both Branches"))
 
+        for item in self.items:
+            has_batch_no, has_serial_no = frappe.db.get_value(
+                "Item", item.item_code, ["has_batch_no", "has_serial_no"]
+            )
+            if has_batch_no and not item.batch_no:
+                frappe.throw(_("Batch No required in row {}".format(item.idx)))
+            if has_serial_no and len(
+                filterf(lambda x: x, item.serial_no.split("\n"))
+            ) != cint(item.qty):
+                frappe.throw(_("Serial No missing for row {}".format(item.idx)))
+
     def before_save(self):
         if not self.outgoing_datetime:
             self.outgoing_datetime = now()
         self.set_missing_fields()
 
+    def before_submit(self):
+        self.validate_owner()
+
     def on_submit(self):
         if self.workflow_state == "In Transit":
+            self.validate_reference(DISPATCH)
             warehouses = self.get_warehouses(incoming=False)
             accounts = self.get_accounts()
             ref_doc = _make_stock_entry(
                 merge(
                     pick(["company"], self.as_dict()),
                     warehouses,
-                    {"items": _map_items(warehouses, accounts)(self.items)},
+                    {
+                        "items": _map_items(warehouses, accounts)(self.items),
+                        "os_reference_stock_transfer": self.name,
+                    },
                     _destruct_datetime(self.outgoing_datetime),
                 )
             )
             self.set_ref_doc("outgoing_stock_entry", ref_doc)
 
     def before_update_after_submit(self):
+        if not _is_sys_mgr() and self.target_branch != get_user_branch():
+            frappe.throw(
+                _(
+                    "Only users from Branch: {} can perform this".format(
+                        self.target_branch
+                    )
+                )
+            )
+
         if not self.incoming_datetime:
             self.incoming_datetime = now()
         self.validate_dates()
 
     def on_update_after_submit(self):
         if self.workflow_state == "Received":
+            self.validate_reference(RECEIVE)
             warehouses = self.get_warehouses(incoming=True)
             accounts = self.get_accounts()
             ref_doc = _make_stock_entry(
                 merge(
                     pick(["company"], self.as_dict()),
                     warehouses,
-                    {"items": _map_items(warehouses, accounts)(self.items)},
+                    {
+                        "items": _map_items(warehouses, accounts)(self.items),
+                        "os_reference_stock_transfer": self.name,
+                    },
                     _destruct_datetime(self.incoming_datetime),
                 )
             )
             self.set_ref_doc("incoming_stock_entry", ref_doc)
 
     def before_cancel(self):
-        if self.target_branch == get_user_branch():
-            frappe.throw(_("Users from Target branch cannot Cancel"))
+        self.validate_owner()
 
     def on_cancel(self):
         if self.incoming_stock_entry:
@@ -89,6 +131,30 @@ class StockTransfer(Document):
     def validate_dates(self):
         if get_datetime(self.outgoing_datetime) > get_datetime(self.incoming_datetime):
             frappe.throw(_("Outgoing Datetime cannot be after Incoming Datetime"))
+
+        # hack to resolve issue where dispatch and receive are happening back to back
+        # invalidate when receipt happens within 5 secs
+        if (
+            frappe.utils.time_diff_in_seconds(
+                self.incoming_datetime, self.outgoing_datetime
+            )
+            < 5
+        ):
+            frappe.throw(
+                _("Stock events happening back-to-back. Please try after some time.")
+            )
+
+    def validate_owner(self):
+        if not _is_sys_mgr() and self.owner != frappe.session.user:
+            frappe.throw(_("Only document owner can perform this"))
+
+    def validate_reference(self, action):
+        if (action == DISPATCH and self.outgoing_stock_entry) or (
+            action == RECEIVE and self.incoming_stock_entry
+        ):
+            frappe.throw(
+                _("Stock Entry already present for this leg of Stock Transfer")
+            )
 
     def set_ref_doc(self, field, ref_doc):
         self.db_set(field, ref_doc)
@@ -145,7 +211,7 @@ def _map_items(warehouses, accounts):
         ),
         lambda x: x.as_dict(),
     )
-    return partial(map, make_item)
+    return partial(mapf, make_item)
 
 
 def _make_stock_entry(args):
@@ -162,3 +228,7 @@ def _make_stock_entry(args):
     doc.insert()
     doc.submit()
     return doc.name
+
+
+def _is_sys_mgr():
+    return "System Manager" in frappe.get_roles(frappe.session.user)

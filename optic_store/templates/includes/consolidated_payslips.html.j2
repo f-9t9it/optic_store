@@ -1,0 +1,97 @@
+{%- set salary_slips = get_salary_slips_from_payroll_entry(doc.name) -%}
+
+
+<!-- Payslip Type 1 -->
+{%- for salary_slip in salary_slips -%}
+<div class="page-break os-lof">
+  {{ macros.payslip_preheader('PAYSLIP', 'for %s'|format(frappe.utils.getdate(salary_slip.start_date).strftime('%b, %Y')), logo_url) }}
+  {{ macros.payslip_header(salary_slip, salary_slip.posting_date) }}
+
+  {%- set earnings = get_salary_component_by_type('type_1', salary_slip.earnings) -%}
+  {%- set deductions = get_salary_component_by_type('type_1', salary_slip.deductions) -%}
+
+  {%- if earnings -%}
+  {{ macros.salary_components('Earnings', earnings) }}
+  {%- endif -%}
+  {%- if deductions -%}
+  {{ macros.salary_components('Deductions', deductions) }}
+  {%- endif -%}
+
+  {%- set total = earnings|sum(attribute='amount') - deductions|sum(attribute='amount') -%}
+  <div class="os-section os-payslip">
+    <dl>
+      <dt>Amount</dt>
+      <dd>
+        {{ frappe.utils.fmt_money(total, currency=frappe.db.get_default('currency')) }}<br />
+        {{ frappe.utils.money_in_words(total) }}
+      </dd>
+    </dl>
+  </div>
+
+  <div class="os-section os-fill os-payslip">
+    <dl>
+      <dt>Working Days</dt>
+      <dd>{{ salary_slip.get_formatted('total_working_days') }}</dd>
+    </dl>
+    <dl>
+      <dt>Leave Without Pay</dt>
+      <dd>{{ salary_slip.get_formatted('leave_without_pay') }}</dd>
+    </dl>
+    <dl>
+      <dt>Payment Days</dt>
+      <dd>{{ salary_slip.get_formatted('payment_days') }}</dd>
+    </dl>
+    <dl>
+      <dt>Annual Leave Accumalted</dt>
+      <dd>{{ get_leave_balance(salary_slip.employee, doc.end_date) }}</dd>
+    </dl>
+  </div>
+
+  <div class="os-footer">
+    <div class="os-footer-content">
+      <div class="os-footer-message">
+        This is a computer generated receipt. No signature is required.
+      </div>
+    </div>
+  </div>
+</div>
+{%- endfor -%}
+
+<!-- Payslip Type 2 -->
+{%- for salary_slip in salary_slips -%}
+<main class="page-break os-lof">
+  {{ macros.payslip_preheader('CASH RECEIPT', 'for %s'|format(frappe.utils.getdate(salary_slip.start_date).strftime('%b, %Y')), logo_url) }}
+  {{ macros.payslip_header(salary_slip, frappe.utils.add_days(salary_slip.posting_date, posting_date_offset or 0)) }}
+
+  {%- set earnings = get_salary_component_by_type('type_2', salary_slip.earnings) -%}
+  {%- set deductions = get_salary_component_by_type('type_2', salary_slip.deductions) -%}
+
+  {%- if earnings -%}
+  {{ macros.salary_components('Earnings', earnings) }}
+  {%- endif -%}
+  {%- if deductions -%}
+  {{ macros.salary_components('Deductions', deductions) }}
+  {%- endif -%}
+
+  {%- set total = earnings|sum(attribute='amount') - deductions|sum(attribute='amount') -%}
+  <div class="os-section os-payslip">
+    <dl>
+      <dt>Amount</dt>
+      <dd>
+        {{ frappe.utils.fmt_money(total, currency=frappe.db.get_default('currency')) }}<br />
+        {{ frappe.utils.money_in_words(total) }}
+      </dd>
+    </dl>
+  </div>
+
+  <div class="os-fill"></div>
+
+  <div class="os-footer">
+    <div class="os-footer-content">
+      <div class="os-footer-message">
+        This is a computer generated receipt. No signature is required.
+      </div>
+    </div>
+  </div>
+</main>
+{%- endfor -%}

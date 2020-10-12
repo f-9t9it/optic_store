@@ -14,6 +14,21 @@ export function print_doc(doctype, docname, print_format, no_letterhead) {
   }
 }
 
+export async function set_amount(gr, amount) {
+  // this is necessary because gr.get_field throws 'fieldname not found' error the
+  // first time the dialog is opened. furthermore, the code in the catch block is
+  // unable to handle succeeding opens. catch block handles the first run;
+  // succeeding opens by the try block. the issue - if using the catch block code -
+  // for all opens is that succeeding opens will set the value in doc properly,
+  // but the ui input field will remain with the value from the previous open
+  try {
+    await gr.get_field('amount').set_value(amount);
+  } catch (e) {
+    gr.doc.amount = amount;
+    gr.refresh_field('amount');
+  }
+}
+
 export default class InvoiceDialog {
   constructor(print_formats = [], mode_of_payments = []) {
     this.mode_of_payments = mode_of_payments.map(mode_of_payment => ({
@@ -64,6 +79,33 @@ export default class InvoiceDialog {
           hidden: 1,
         },
         {
+          fieldname: 'cashback_sec',
+          fieldtype: 'Section Break',
+          label: __('Cashback'),
+          collapsible: 1,
+        },
+        {
+          fieldname: 'cashback_receipt',
+          label: __('Cashback Receipt'),
+          fieldtype: 'Link',
+          options: 'Cashback Receipt',
+          get_query: () => ({
+            filters: [
+              ['balance_amount', '>', 0],
+              ['expiry_date', '>=', frappe.datetime.get_today()],
+            ],
+          }),
+        },
+        {
+          fieldtype: 'Column Break',
+        },
+        {
+          fieldname: 'cashback_available',
+          fieldtype: 'Currency',
+          label: __('Available Balance'),
+          read_only: 1,
+        },
+        {
           fieldname: 'payment_sec',
           fieldtype: 'Section Break',
           label: __('Payments'),
@@ -110,6 +152,7 @@ export default class InvoiceDialog {
       conversion_factor: 0,
       loyalty_points_redeem: 0,
       loyalty_amount_redeem: 0,
+      cashback_receipt: null,
     };
   }
   async create_and_print(frm) {
@@ -134,7 +177,7 @@ export default class InvoiceDialog {
         loyalty_points_redeem * flt(this.state.conversion_factor);
       const min_amount = Math.min(
         this.state.loyalty_points * flt(this.state.conversion_factor),
-        frm.doc.rounded_total
+        frm.doc.rounded_total || frm.doc.grand_total
       );
       if (loyalty_amount_redeem > min_amount) {
         frappe.throw(
@@ -154,13 +197,32 @@ export default class InvoiceDialog {
       this.set_payments(frm);
     };
 
+    this.dialog.fields_dict.cashback_receipt.df.change = async function(x) {
+      const cashback_receipt = this.dialog.get_value('cashback_receipt');
+      if (cashback_receipt) {
+        const {
+          message: { balance_amount: cashback_available = 0 } = {},
+        } = await frappe.db.get_value(
+          'Cashback Receipt',
+          cashback_receipt,
+          'balance_amount'
+        );
+        this.dialog.set_values({ cashback_available });
+      } else {
+        this.dialog.set_values({ cashback_available: null });
+      }
+      this.state = Object.assign({}, this.state, {
+        cashback_receipt,
+      });
+    }.bind(this);
+
     this.dialog.get_primary_btn().off('click');
     this.dialog.set_primary_action(
       'OK',
       async function() {
         const { name } = frm.doc;
         const values = this.dialog.get_values();
-        const enabled_print_formats = this.print_formats.filter(pf => values[pf]);
+        const enabled_print_formats = await this._get_print_formats(name);
         const payments = values.payments.map(({ mode_of_payment, amount }) => ({
           mode_of_payment,
           amount,
@@ -170,6 +232,7 @@ export default class InvoiceDialog {
           loyalty_points_redeem: loyalty_points,
           loyalty_program,
           loyalty_card_no,
+          cashback_receipt,
         } = this.state;
         await frappe.call({
           method: 'optic_store.api.sales_order.invoice_qol',
@@ -181,19 +244,25 @@ export default class InvoiceDialog {
             loyalty_card_no,
             loyalty_program,
             loyalty_points,
+            cashback_receipt,
           },
         });
         frm.reload_doc();
-        enabled_print_formats.forEach(pf => {
-          print_doc(frm.doc.doctype, frm.doc.name, pf, 0);
+        enabled_print_formats.forEach(({ doctype, docname, print_format }) => {
+          print_doc(doctype, docname, print_format, 0);
         });
       }.bind(this)
     );
 
     this.dialog.set_df_property('loyalty_sec', 'hidden', 0);
     this.dialog.set_df_property('payment_sec', 'hidden', 0);
+    this.dialog.set_df_property('cashback_sec', 'hidden', 0);
     this.dialog.fields_dict.loyalty_card_no.bind_change_event();
-    await this.dialog.set_value('loyalty_card_no', null);
+    this.dialog.fields_dict.cashback_receipt.bind_change_event();
+    const { message: { os_loyalty_card_no: loyalty_card_no } = {} } =
+      (await frappe.db.get_value('Customer', frm.doc.customer, 'os_loyalty_card_no')) ||
+      {};
+    await this.dialog.set_value('loyalty_card_no', loyalty_card_no);
     this.dialog.fields_dict.loyalty_card_no.change();
 
     this.set_payments(frm);
@@ -201,11 +270,11 @@ export default class InvoiceDialog {
   }
   set_payments(frm) {
     this.dialog.fields_dict.payments.grid.grid_rows.forEach(gr => {
-      gr.doc.amount = 0;
-      gr.refresh_field('amount');
+      set_amount(gr, 0);
     });
 
-    let amount_to_set = frm.doc.rounded_total - this.state.loyalty_amount_redeem;
+    let amount_to_set =
+      (frm.doc.rounded_total || frm.doc.grand_total) - this.state.loyalty_amount_redeem;
     const gift_card_balance = frm.doc.os_gift_cards.reduce(
       (a, { balance }) => a + balance,
       0
@@ -214,16 +283,14 @@ export default class InvoiceDialog {
       ({ doc }) => doc.mode_of_payment === 'Gift Card'
     );
     if (gift_card_balance && gift_card_gr) {
-      gift_card_gr.doc.amount = Math.min(gift_card_balance, amount_to_set);
-      gift_card_gr.refresh_field('amount');
+      set_amount(gift_card_gr, Math.min(gift_card_balance, amount_to_set));
       amount_to_set -= gift_card_gr.doc.amount;
     }
     const first_payment_gr = this.dialog.fields_dict.payments.grid.grid_rows.filter(
       ({ doc }) => doc.mode_of_payment !== 'Gift Card'
     )[0];
     if (first_payment_gr) {
-      first_payment_gr.doc.amount = amount_to_set;
-      first_payment_gr.refresh_field('amount');
+      set_amount(first_payment_gr, amount_to_set);
     }
   }
   async handle_loyalty(frm, loyalty_card_no) {
@@ -253,19 +320,32 @@ export default class InvoiceDialog {
     }
   }
   async print(frm) {
-    const print_formats = this.print_formats;
     this.dialog.get_primary_btn().off('click');
-    this.dialog.set_primary_action('OK', async function() {
-      const { name } = frm.doc;
-      const values = this.get_values();
-      const enabled_print_formats = print_formats.filter(pf => values[pf]);
-      this.hide();
-      enabled_print_formats.forEach(pf => {
-        print_doc(frm.doc.doctype, frm.doc.name, pf, 0);
-      });
-    });
+    this.dialog.set_primary_action(
+      'OK',
+      async function() {
+        const enabled_print_formats = await this._get_print_formats(frm.doc.name);
+        this.dialog.hide();
+        enabled_print_formats.forEach(({ doctype, docname, print_format }) => {
+          print_doc(doctype, docname, print_format, 0);
+        });
+      }.bind(this)
+    );
     this.dialog.set_df_property('loyalty_sec', 'hidden', 1);
     this.dialog.set_df_property('payment_sec', 'hidden', 1);
+    this.dialog.set_df_property('cashback_sec', 'hidden', 1);
     this.dialog.show();
+  }
+  async _get_print_formats(sales_order) {
+    const values = this.dialog.get_values();
+    const print_formats = this.print_formats.filter(pf => values[pf]);
+    if (print_formats.length === 0) {
+      return [];
+    }
+    const { message } = await frappe.call({
+      method: 'optic_store.api.sales_order.get_print_formats',
+      args: { sales_order, print_formats },
+    });
+    return message;
   }
 }

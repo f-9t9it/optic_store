@@ -1,0 +1,70 @@
+<main class="os-lof">
+  {{ macros.preheader(doc) }}
+
+  {%- set branch_cr_no = frappe.db.get_value('Branch', doc.os_branch, 'os_cr_no') -%}
+  <div class="os-header">
+    <h1>{{ _('Tax Invoice / Credit Note') }}</h1>
+    <div class="os-header-subtitle">Biz Reg No. CR {{ branch_cr_no }}</div>
+    <div class="os-header-content">
+      <dl>
+        <dt>{{ _('Sales No')}}</dt>
+        <dd>{{ doc.name }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Invoice Date')}}</dt>
+        <dd class="text-right">{{ doc.get_formatted('posting_date') }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Return Against')}}</dt>
+        <dd>{{ doc.return_against }}</dd>
+      </dl>
+      <dl>
+        <dt>{{ _('Valid Till')}}</dt>
+        {%- set expiry_days = frappe.utils.cint(frappe.db.get_value('Optical Store Selling Settings', None, 'credit_note_expiry')) -%}
+        <dd class="text-right">{{ frappe.format_value(frappe.utils.add_days(doc.posting_date, expiry_days), 'Date') if expiry_days else '' }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  {{ macros.customer_details(doc.customer) }}
+
+  <div class="os-section os-fill">
+    <table class="table table-condensed os-items">
+      <thead>
+        <tr>
+          <th>{{ _('No') }}</th>
+          <th>{{ _('Description') }}</th>
+          <th>{{ _('Amount') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for item in doc.items -%}
+        <tr>
+          <td>{{ item.idx }}</td>
+          <td>{{ item.item_name }} x {{ item.qty }}</td>
+          <td>{{ item.get_formatted('amount') }}</td>
+        </tr>
+        {%- endfor -%}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="os-summary">
+    {%- call macros.summary_aside(doc) -%}
+    <div class="os-fill">
+      {%- if doc.terms -%}
+      <div>{{ _('Notes')}}</div>
+      <div>{{ doc.terms }}</div>
+      {%- endif -%}
+    </div>
+    {%- endcall -%}
+    {{ macros.sales_summary(
+      doc,
+      payments=get_payments(doc) if doc.is_pos else [],
+      show_details=True,
+      hide_balance=True
+    ) }}
+  </div>
+
+  {{ macros.footer(doc) }}
+</main>

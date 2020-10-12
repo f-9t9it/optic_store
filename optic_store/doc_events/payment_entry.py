@@ -5,7 +5,9 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import flt, nowtime
+
+from optic_store.api.customer import get_user_branch
 
 
 def validate(doc, method):
@@ -15,6 +17,16 @@ def validate(doc, method):
         balance = frappe.db.get_value("Gift Card", doc.os_gift_card, "balance")
         if flt(doc.paid_amount) > balance:
             frappe.throw(_("Paid Amount cannot be greater that Gift Card balance"))
+
+
+def before_insert(doc, method):
+    if not doc.os_branch:
+        doc.os_branch = get_user_branch()
+
+
+def before_save(doc, method):
+    if not doc.os_posting_time:
+        doc.os_posting_time = nowtime()
 
 
 def on_submit(doc, method):

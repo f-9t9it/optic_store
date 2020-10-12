@@ -1,0 +1,30 @@
+{
+ "add_total_row": 1,
+ "creation": "2019-07-05 14:33:48.316213",
+ "disable_prepared_report": 1,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 24,
+ "is_standard": "Yes",
+ "modified": "2020-01-21 18:05:37.562388",
+ "modified_by": "Administrator",
+ "module": "Optic Store",
+ "name": "Sales Summary by Product",
+ "owner": "Administrator",
+ "prepared_report": 1,
+ "ref_doctype": "Sales Invoice",
+ "report_name": "Sales Summary by Product",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Branch User"
+  }
+ ]
+}

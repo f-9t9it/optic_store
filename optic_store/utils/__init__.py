@@ -1,5 +1,6 @@
 from functools import partial
-from toolz import keyfilter, compose, reduceby, merge
+from toolz import keyfilter, compose, reduceby, merge, excepts
+from pymysql.err import ProgrammingError
 
 
 def pick(whitelist, d):
@@ -12,3 +13,30 @@ def sum_by(key):
 
 def key_by(key, items):
     return reduceby(key, lambda a, x: merge(a, x), items, {})
+
+
+split_to_list = excepts(
+    AttributeError,
+    compose(
+        list,
+        partial(filter, lambda x: x),
+        partial(map, lambda x: x.strip()),
+        lambda x: x.split(","),
+    ),
+    lambda x: None,
+)
+
+
+def with_report_error_check(data_fn):
+    def fn(*args, **kwargs):
+        try:
+            return data_fn(*args, **kwargs)
+        except ProgrammingError:
+            return []
+
+    return fn
+
+
+mapf = compose(list, map)
+map_resolved = mapf
+filterf = compose(list, filter)

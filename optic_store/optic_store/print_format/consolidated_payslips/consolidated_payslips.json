@@ -1,0 +1,23 @@
+{
+ "align_labels_right": 0,
+ "creation": "2020-02-15 19:54:01.961876",
+ "custom_format": 1,
+ "default_print_language": "en",
+ "disabled": 0,
+ "doc_type": "Payroll Entry",
+ "docstatus": 0,
+ "doctype": "Print Format",
+ "font": "Default",
+ "html": "{% set page_width = '210mm' %}\n{% set page_height = '297mm' %}\n{% set header_height = '13mm' %}\n{% set margin_page = '10mm' %}\n{% set base_font_size = '10pt' %}\n{% set logo_url = '/private/files/logo.jpg' %}\n\n{% import \"templates/includes/macros.html.j2\" as macros %}\n\n{% include \"templates/includes/pf_styles.html\" %}\n{% include \"templates/includes/consolidated_payslips.html.j2\" %}",
+ "idx": 0,
+ "line_breaks": 0,
+ "modified": "2020-02-15 19:54:01.961876",
+ "modified_by": "Administrator",
+ "module": "Optic Store",
+ "name": "Consolidated Payslips",
+ "owner": "Administrator",
+ "print_format_builder": 0,
+ "print_format_type": "Server",
+ "show_section_headings": 0,
+ "standard": "Yes"
+}

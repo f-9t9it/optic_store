@@ -1,0 +1,30 @@
+{
+ "add_total_row": 1,
+ "creation": "2019-10-28 16:15:17.801400",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 0,
+ "is_standard": "Yes",
+ "modified": "2019-11-28 10:53:38.411615",
+ "modified_by": "Administrator",
+ "module": "Optic Store",
+ "name": "Customer Loyalty Point",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Loyalty Point Entry",
+ "report_name": "Customer Loyalty Point",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Auditor"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  }
+ ]
+}

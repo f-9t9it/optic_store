@@ -1,0 +1,30 @@
+{
+ "add_total_row": 1, 
+ "creation": "2019-05-20 15:24:24.211211", 
+ "disable_prepared_report": 0, 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "modified": "2019-05-21 14:53:31.576546", 
+ "modified_by": "Administrator", 
+ "module": "Optic Store", 
+ "name": "Monthly Sales Summary", 
+ "owner": "Administrator", 
+ "prepared_report": 0, 
+ "ref_doctype": "Sales Invoice", 
+ "report_name": "Monthly Sales Summary", 
+ "report_type": "Script Report", 
+ "roles": [
+  {
+   "role": "Accounts Manager"
+  }, 
+  {
+   "role": "Accounts User"
+  }, 
+  {
+   "role": "Sales User"
+  }
+ ]
+}

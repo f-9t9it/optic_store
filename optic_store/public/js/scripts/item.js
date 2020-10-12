@@ -21,14 +21,23 @@ function render_price_button(frm) {
   });
 }
 
+function hide_actions(frm) {
+  // this is a hack to make native ui elements
+  if (!frm.doc.__islocal && frm.doc.is_stock_item) {
+    const hide_buttons = setInterval(() => {
+      const move_btns = frm.dashboard.wrapper.find('.btn-move');
+      if (move_btns.length > 0) {
+        move_btns.parent().hide();
+        clearInterval(hide_buttons);
+      }
+    }, 60);
+  }
+}
+
 export default {
   setup: async function(frm) {
-    const { price_lists = [] } = await frappe.db.get_doc(
-      'Optical Store Settings'
-    );
-    const price_lists_scrubbed = price_lists.map(
-      ({ price_list }) => price_list
-    );
+    const { price_lists = [] } = await frappe.db.get_doc('Optical Store Settings');
+    const price_lists_scrubbed = price_lists.map(({ price_list }) => price_list);
     frm.pricelist_dialog = new PricelistDialog(price_lists_scrubbed);
   },
   refresh: function(frm) {
@@ -36,6 +45,9 @@ export default {
     if (!frm.doc.__islocal) {
       render_price_button(frm);
     }
+
+    // hide stock actions beside stock level rows
+    hide_actions(frm);
   },
   manual_item_code: toggle_naming,
   is_gift_card: enable_gift_card,

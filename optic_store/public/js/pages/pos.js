@@ -1,5 +1,6 @@
 import pick from 'lodash/pick';
 import keyBy from 'lodash/keyBy';
+import sumBy from 'lodash/sumBy';
 import mapValues from 'lodash/mapValues';
 import JsBarcode from 'jsbarcode';
 
@@ -20,7 +21,7 @@ function set_description(field) {
 }
 
 function add_search_params_to_customer_mapper(customers_details = {}) {
-  const search_fields = ['os_crp_no', 'os_mobile_number', 'old_customer_id'];
+  const search_fields = ['os_cpr_no', 'os_mobile_number', 'old_customer_id'];
   return function(item) {
     const { value, searchtext: searchtext_ori = '' } = item;
     const customer = customers_details[value];
@@ -38,7 +39,7 @@ function add_search_params_to_customer_mapper(customers_details = {}) {
 function make_customer_search_subtitle(customers_details = {}) {
   const search_fields = [
     'customer_name',
-    'os_crp_no',
+    'os_cpr_no',
     'os_mobile_number',
     'old_customer_id',
   ];
@@ -61,9 +62,18 @@ function get_barcode_uri(text) {
   })._renderProperties.element.toDataURL();
 }
 
+function get_offline_customer(customer) {
+  const docjson = (JSON.parse(localStorage.getItem('customer_details')) || {})[
+    customer
+  ];
+  return docjson ? JSON.parse(docjson) : null;
+}
+
 export default function extend_pos(PosClass) {
   class PosClassExtended extends PosClass {
     onload() {
+      // property to test client runtime
+      this.last_update = '2019-05-27T15:15:14.776Z';
       super.onload();
       this.batch_dialog = new frappe.ui.Dialog({
         title: __('Select Batch No'),
@@ -90,7 +100,7 @@ export default function extend_pos(PosClass) {
             territories = [],
             customer_groups = [],
             batch_details = [],
-            branch,
+            branch_details = {},
           } = {},
         } = await frappe.call({
           method: 'optic_store.api.pos.get_extended_pos_data',
@@ -109,7 +119,7 @@ export default function extend_pos(PosClass) {
         this.gift_cards_data = list2dict('name', gift_cards);
         this.batch_details = batch_details;
         this.batch_no_data = mapValues(batch_details, x => x.map(({ name }) => name));
-        this.doc.os_branch = branch;
+        this.branch_details = branch_details;
         this.make_sales_person_field();
         this.make_group_discount_field();
         this.set_opening_entry();
@@ -183,7 +193,7 @@ export default function extend_pos(PosClass) {
                   const will_add =
                     !this.customers_mapper.map(({ value }) => value).includes(name) &&
                     (reg.test(detail['old_customer_id']) ||
-                      reg.test(detail['os_crp_no']) ||
+                      reg.test(detail['os_cpr_no']) ||
                       reg.test(detail['os_mobile_number']));
                   if (will_add) {
                     count++;
@@ -266,6 +276,34 @@ export default function extend_pos(PosClass) {
       this.prompt_details.customer_group = customer_group;
       return JSON.stringify(this.prompt_details);
     }
+    set_item_details(item_code, field, value, remove_zero_qty_items) {
+      super.set_item_details(item_code, field, value, remove_zero_qty_items);
+      if (field === 'rate') {
+        const item = this.frm.doc.items.find(({ item_code: x }) => x === item_code);
+        if (item) {
+          const { price_list_rate } = item;
+          const discount_percentage = flt(
+            (1.0 - flt(value) / flt(price_list_rate)) * 100.0
+          );
+          if (discount_percentage > 0) {
+            item.discount_percentage = discount_percentage;
+          }
+          this.update_paid_amount_status(false);
+        }
+      }
+    }
+    show_items_in_item_cart() {
+      super.show_items_in_item_cart();
+      this.wrapper
+        .find('.items')
+        .find('.pos-bill-item > .cell:nth-child(3)')
+        .each((i, el) => {
+          const value = el.innerText;
+          if (value !== '0') {
+            el.innerText = flt(value, precision('discount_percentage'));
+          }
+        });
+    }
     make_item_list(customer) {
       super.make_item_list(customer);
       const items = keyBy(this.item_data, 'name');
@@ -303,6 +341,12 @@ export default function extend_pos(PosClass) {
     validate() {
       if (!this.frm.doc.os_sales_person) {
         frappe.throw(__('Sales Person is mandatory'));
+      } else if (
+        !this.sales_persons_data
+          .map(({ value }) => value)
+          .includes(this.frm.doc.os_sales_person)
+      ) {
+        frappe.throw(__(`Sales Person: ${this.frm.doc.os_sales_person} is not valid`));
       }
       super.validate();
     }
@@ -349,10 +393,22 @@ export default function extend_pos(PosClass) {
     make_offline_customer(new_customer) {
       super.make_offline_customer(new_customer);
       const values = this.customer_doc.get_values();
+      const is_new = !this.customers_details_data[this.frm.doc.customer];
+      const current = this.customers_details_data[this.frm.doc.customer] || {};
       this.customers_details_data[this.frm.doc.customer] = Object.assign(
-        {},
-        this.customers_details_data[this.frm.doc.customer],
-        pick(values, CUSTOMER_DETAILS_FIELDS)
+        {
+          customer_pos_id: values.customer_pos_id,
+          full_name: values.full_name,
+        },
+        current,
+        pick(values, CUSTOMER_DETAILS_FIELDS),
+        {
+          customer_name:
+            values.full_name !== current.customer_name
+              ? values.full_name
+              : current.customer_name,
+          is_new,
+        }
       );
     }
     make_keyboard() {
@@ -380,8 +436,12 @@ export default function extend_pos(PosClass) {
         this.set_opening_entry();
       }
     }
-    set_primary_action() {
-      super.set_primary_action();
+    make_menu_list() {
+      super.make_menu_list();
+      this.page.menu
+        .find('a.grey-link:contains("Cashier Closing")')
+        .parent()
+        .hide();
       this.page.add_menu_item(
         'XZ Report',
         async function() {
@@ -406,13 +466,6 @@ export default function extend_pos(PosClass) {
       );
     }
     submit_invoice() {
-      if (this.frm.doc.grand_total !== this.frm.doc.paid_amount) {
-        return frappe.throw(
-          __(
-            '<strong>Paid Amount</strong> must be equal to <strong>Total Amount</strong>'
-          )
-        );
-      }
       const gift_card_no = this.os_payment_fg.get_value('gift_card_no');
       const { amount } = this.frm.doc.payments.find(
         ({ mode_of_payment }) => mode_of_payment === 'Gift Card'
@@ -426,12 +479,30 @@ export default function extend_pos(PosClass) {
       super.submit_invoice();
     }
     create_invoice() {
+      const get_customer_doc = customer => {
+        const doc = this.customers_details_data[customer];
+        const offline_doc = get_offline_customer(customer);
+        return Object.assign({}, doc, offline_doc, {
+          is_new: doc ? doc.hasOwnProperty('is_new') && doc.is_new : true,
+          customer_id: doc ? doc.name : null,
+          customer_name:
+            (doc && doc.customer_name) || (offline_doc && offline_doc.full_name),
+        });
+      };
       const invoice_data = super.create_invoice();
       // this is possible because invoice_data already references this.frm.doc
       // this will be used by the print format to render barcodes
       this.frm.doc.pos_name_barcode_uri = get_barcode_uri(
         this.frm.doc.offline_pos_name
       );
+      this.frm.doc.branch_doc = this.branch_details || {};
+      this.frm.doc.customer_doc = get_customer_doc(this.frm.doc.customer);
+      const sales_person =
+        this.sales_persons_data.find(
+          ({ value }) => value === this.frm.doc.os_sales_person
+        ) || {};
+      this.frm.doc.sales_person_name = sales_person.label;
+      this.update_invoice();
       return invoice_data;
     }
     set_interval_for_si_sync() {
@@ -655,6 +726,13 @@ export default function extend_pos(PosClass) {
       // totally override validation to check for zero amount to enable payment thru
       // loyalty program
       this.dialog.set_primary_action(__('Submit'), () => {
+        if (sumBy(this.frm.doc.payments, 'amount') !== this.frm.doc.grand_total) {
+          return frappe.throw(
+            __(
+              '<strong>Paid Amount</strong> must be equal to <strong>Total Amount</strong>'
+            )
+          );
+        }
         this.dialog.hide();
         this.submit_invoice();
       });

@@ -1,13 +1,16 @@
 <main class="os-lof">
   <div class="os-lof-preheader">
     {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch', doc.branch,
-    ['branch_phone', 'os_cr_no']) or (None, None) -%}
+    ['branch_phone', 'os_cr_no']) or (None, None) -%} {%- set tax_id =
+    frappe.db.get_value('Company', doc.company, 'tax_id') -%} {%- if tax_id -%}
+    <div>{{ _('VAT ID') }}: {{ tax_id or '' }}</div>
+    {%- endif -%}
     <div>{{ doc.branch or '' }}</div>
     {%- if branch_phone -%}
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
     {%- endif -%}
   </div>
-  <div class="os-sr-header">
+  <div class="os-header">
     <h1>{{ _('Z Report') if doc.docstatus == 1 else _('X Report') }}</h1>
     <dl>
       <dt>{{ _('Branch') }}</dt>
@@ -16,15 +19,16 @@
     <dl>
       <dt>{{ _('Start Time') }}</dt>
       <dd>
-        {{ frappe.utils.getdate(doc.start_time).strftime('%A, %B %d, %Y, %I:%M:%S %p')
-        }}
+        {{ frappe.utils.get_datetime(doc.start_time).strftime('%A, %B %d, %Y, %I:%M:%S
+        %p') }}
       </dd>
     </dl>
     {%- if doc.end_time -%}
     <dl>
       <dt>{{ _('End Time') }}</dt>
       <dd>
-        {{ frappe.utils.getdate(doc.end_time).strftime('%A, %B %d, %Y, %I:%M:%S %p') }}
+        {{ frappe.utils.get_datetime(doc.end_time).strftime('%A, %B %d, %Y, %I:%M:%S
+        %p') }}
       </dd>
     </dl>
     {%- endif -%}
@@ -84,8 +88,12 @@
       <dd>{{ doc.get_formatted('total__total_taxes_and_charges') }}</dd>
     </dl>
     <dl>
-      <dt>{{ _('Total Sales Tendered') }}</dt>
+      <dt>{{ _('Total Achieved Sales') }}</dt>
       <dd>{{ doc.get_formatted('total__grand_total') }}</dd>
+    </dl>
+    <dl>
+      <dt>{{ _('Total Collecction Amount') }}</dt>
+      <dd>{{ doc.get_formatted('total_collection') }}</dd>
     </dl>
   </div>
   <div class="os-lof-footer">

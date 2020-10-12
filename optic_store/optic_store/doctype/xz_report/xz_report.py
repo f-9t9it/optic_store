@@ -8,7 +8,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import now, flt
 from functools import partial
-from toolz import compose, excepts, first, get, unique, pluck
+from toolz import compose, excepts, first, get, unique, pluck, merge
 
 from optic_store.api.customer import get_user_branch
 from optic_store.utils import pick, sum_by
@@ -43,6 +43,8 @@ class XZReport(Document):
     def before_insert(self):
         if not self.branch:
             self.branch = get_user_branch()
+        if not self.start_time:
+            self.start_time = now()
 
     def before_save(self):
         self.expected_cash = (
@@ -53,9 +55,18 @@ class XZReport(Document):
         )
         self.difference_cash = self.expected_cash - flt(self.closing_cash)
 
+    def before_submit(self):
+        if not self.end_time:
+            self.end_time = now()
+        self.set_report_details()
+
     def set_report_details(self):
-        args = pick(
-            ["user", "pos_profile", "company", "start_time", "end_time"], self.as_dict()
+        args = merge(
+            pick(["user", "pos_profile", "company"], self.as_dict()),
+            {
+                "start_time": self.start_time or now(),
+                "end_time": self.end_time or now(),
+            },
         )
 
         sales, returns = _get_invoices(args)
@@ -121,6 +132,8 @@ class XZReport(Document):
         self.taxes = []
         for tax in taxes:
             self.append("taxes", make_tax(tax))
+
+        self.total_collection = sum_by("total_amount")(self.payments)
 
 
 def _get_invoices(args):
@@ -221,7 +234,8 @@ def _get_payments(args):
             WHERE docstatus = 1 AND
                 company = %(company)s AND
                 owner = %(user)s AND
-                creation BETWEEN %(start_time)s AND %(end_time)s
+                TIMESTAMP(posting_date, os_posting_time)
+                    BETWEEN %(start_time)s AND %(end_time)s
             GROUP BY mode_of_payment
         """,
         values=args,
@@ -234,7 +248,7 @@ def _get_taxes(args):
     taxes = frappe.db.sql(
         """
             SELECT
-                stc.rate AS mode_of_payment,
+                stc.rate AS rate,
                 SUM(stc.base_tax_amount_after_discount_amount) AS tax_amount
             FROM `tabSales Taxes and Charges` AS stc
             LEFT JOIN `tabSales Invoice` AS si ON

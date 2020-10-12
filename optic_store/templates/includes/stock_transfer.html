@@ -1,7 +1,10 @@
 <main class="os-lof">
   <div class="os-lof-preheader">
     {%- set branch_phone, branch_cr_no = frappe.db.get_value('Branch',
-    doc.source_branch, ['branch_phone', 'os_cr_no']) or (None, None) -%}
+    doc.source_branch, ['branch_phone', 'os_cr_no']) or (None, None) -%} {%- set tax_id
+    = frappe.db.get_value('Company', doc.company, 'tax_id') -%} {%- if tax_id -%}
+    <div>{{ _('VAT ID') }}: {{ tax_id or '' }}</div>
+    {%- endif -%}
     <div>{{ doc.source_branch or '' }}</div>
     {%- if branch_phone -%}
     <div>{{ 'Tel No: {}'.format(branch_phone) }}</div>
@@ -37,9 +40,6 @@
       <thead>
         <tr>
           <th>{{ _('Sr') }}</th>
-          <th>{{ _('Brand') }}</th>
-          <th>{{ _('Code') }}</th>
-          <th>{{ _('Group') }}</th>
           <th>{{ _('Description') }}</th>
           <th>{{ _('Qty') }}</th>
         </tr>
@@ -48,10 +48,7 @@
         {% for item in doc.items %}
         <tr>
           <td>{{ loop.index }}</td>
-          <td>{{ item.brand or '' }}</td>
-          <td>{{ item.item_code }}</td>
-          <td>{{ item.item_group }}</td>
-          <td>{{ item.item_name }}</td>
+          <td><em>{{ item.item_code }}</em>: {{ item.item_name }}</td>
           <td>{{ item.get_formatted('qty', doc) }}</td>
         </tr>
         {%- endfor -%}
@@ -82,10 +79,7 @@
   </div>
 </main>
 
-<script
-  type="text/javascript"
-  src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/barcodes/JsBarcode.code128.min.js"
-></script>
+<script type="text/javascript" src="/assets/js/optic_store_print.min.js"></script>
 <script type="text/javascript">
   JsBarcode('.barcode').init();
 </script>

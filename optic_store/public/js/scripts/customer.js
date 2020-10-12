@@ -36,12 +36,24 @@ export function set_nationality_options(frm) {
 
 function add_prescription_link(frm) {
   const orders =
-    frm.dashboard && frm.dashboard.data && frm.dashboard.data.transactions[1];
+    frm.dashboard &&
+    frm.dashboard.data &&
+    frm.dashboard.data.transactions.find(({ label }) => label === __('Orders'));
   if (orders && !orders.items.includes('Optical Prescription')) {
     orders.items = ['Optical Prescription', ...orders.items];
     frm.dashboard.data_rendered = false;
     frm.dashboard.transactions_area.empty();
     frm.dashboard.refresh();
+  }
+}
+
+function add_actions(frm) {
+  if (!frm.doc.__islocal) {
+    frm.add_custom_button(__('Customer-wise Invoice'), function() {
+      frappe.set_route('query-report', 'Customer-wise Invoice', {
+        customer: frm.doc.name,
+      });
+    });
   }
 }
 
@@ -53,5 +65,6 @@ export default {
   refresh: function(frm) {
     add_prescription_link(frm);
     render_prescription_data(frm);
+    add_actions(frm);
   },
 };

@@ -10,22 +10,18 @@ import operator
 from toolz import merge, pluck, get, compose, first, flip, groupby, excepts, keyfilter
 
 from optic_store.utils.helpers import generate_intervals
+from optic_store.utils.report import make_column, with_report_generation_time
 
 
 def execute(filters=None):
     args = _get_args(filters)
     columns = _get_columns(args)
     data = _get_data(args, columns)
-    return (
-        map(
-            partial(
-                keyfilter,
-                lambda k: k in ["label", "fieldname", "fieldtype", "options", "width"],
-            ),
-            columns,
-        ),
-        data,
+    pick_column_fields = partial(
+        keyfilter,
+        lambda k: k in ["label", "fieldname", "fieldtype", "options", "width"],
     )
+    return [pick_column_fields(x) for x in columns], data
 
 
 def _get_args(filters={}):
@@ -44,36 +40,33 @@ def _get_args(filters={}):
 
 
 def _get_columns(args):
-    def make_column(key, label, type="Float", options=None, width=90):
-        return {
-            "label": _(label),
-            "fieldname": key,
-            "fieldtype": type,
-            "options": options,
-            "width": width,
-        }
-
     columns = [
-        make_column("item_code", "Item Code", type="Link", options="Item", width=120),
-        make_column("brand", "Brand", type="Link", options="Brand", width=120),
-        make_column("item_name", "Item Name", type="Data", width=200),
-        make_column("supplier", "Supplier", type="Link", options="Supplier", width=120),
+        make_column("item_code", type="Link", options="Item"),
+        make_column("brand", type="Link", options="Brand"),
+        make_column("item_name", width=200),
+        make_column("supplier", type="Link", options="Supplier"),
         make_column(
             "price",
             args.get("price_list", "Standard Buying Price"),
             type="Currency",
-            width=120,
+            width=90,
         ),
-        make_column("stock", "Available Stock"),
+        make_column("stock", "Available Stock", type="Float", width=90),
     ]
     intervals = compose(
-        partial(map, lambda x: merge(x, make_column(x.get("key"), x.get("label")))),
+        list,
+        partial(
+            map,
+            lambda x: merge(
+                x, make_column(x.get("key"), x.get("label"), type="Float", width=90)
+            ),
+        ),
         generate_intervals,
     )
     return (
         columns
         + intervals(args.get("interval"), args.get("start_date"), args.get("end_date"))
-        + [make_column("total_consumption", "Total Consumption")]
+        + [make_column("total_consumption", type="Float", width=90)]
     )
 
 
@@ -138,13 +131,13 @@ def _get_data(args, columns):
         as_dict=1,
     )
     keys = compose(list, partial(pluck, "fieldname"))(columns)
-    periods = filter(lambda x: x.get("start_date") and x.get("end_date"), columns)
+    periods = list(filter(lambda x: x.get("start_date") and x.get("end_date"), columns))
 
     set_consumption = _set_consumption(sles, periods)
 
     make_row = compose(partial(keyfilter, lambda k: k in keys), set_consumption)
 
-    return map(make_row, items)
+    return with_report_generation_time([make_row(x) for x in items], keys)
 
 
 def _set_consumption(sles, periods):
@@ -168,8 +161,8 @@ def _set_consumption(sles, periods):
     def seg_filter(x):
         return lambda sl: sl.get("item_code") == x
 
-    segregator_fns = map(
-        lambda x: merge(
+    segregator_fns = [
+        merge(
             x,
             {
                 "seger": compose(
@@ -178,9 +171,9 @@ def _set_consumption(sles, periods):
                     seg_filter,
                 )
             },
-        ),
-        periods,
-    )
+        )
+        for x in periods
+    ]
 
     def seg_reducer(item_code):
         def fn(a, p):

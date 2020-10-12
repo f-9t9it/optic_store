@@ -1,0 +1,56 @@
+<div>
+  {%- if employee_docs -%}
+  {%- for sec in employee_docs -%}
+  <table style="{{ table }}">
+    <caption style="{{ caption }}">
+      {{ sec.label }} Expiry Report ({{ subtitle }})
+    </caption>
+    <thead>
+      <tr>
+        <th style="{{ th }} width: 25%;">{{ _('Employee ID') }}</th>
+        <th style="{{ th }}">{{ _('Employee Name') }}</th>
+        <th style="{{ th }} width: 25%;">{{ sec.label }} {{ _('Expiry Date') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for doc in sec.data -%}
+      <tr>
+        <td style="{{ td }} width: 25%;">{{ doc.employee_id }}</td>
+        <td style="{{ td }}">{{ doc.employee_name }}</td>
+        <td style="{{ td }} width: 25%; text-align: right;">
+          {{ frappe.format_date(doc.expiry_date, 'dd-MM-YYYY') }}
+        </td>
+      </tr>
+      {%- endfor -%}
+    </tbody>
+  </table>
+  {%- endfor -%}
+  {%- endif -%}
+  {%- if branch_docs -%}
+  {%- for sec in branch_docs -%}
+  <table style="{{ table }}">
+    <caption style="{{ caption }}">
+      {{ sec.label }} Expiry Report ({{ subtitle }})
+    </caption>
+    <thead>
+      <tr>
+        <th style="{{ th }} width: 25%;">{{ sec.label }} {{ _('No') }}</th>
+        <th style="{{ th }}">{{ _('Branch Name') }}</th>
+        <th style="{{ th }} width: 25%;">{{ sec.label }} {{ _('Expiry Date') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for doc in sec.data -%}
+      <tr>
+        <td style="{{ td }} width: 25%;">{{ doc.param }}</td>
+        <td style="{{ td }}">{{ doc.branch_name }}</td>
+        <td style="{{ td }} width: 25%; text-align: right;">
+          {{ frappe.format_date(doc.expiry_date, 'dd-MM-YYYY') }}
+        </td>
+      </tr>
+      {%- endfor -%}
+    </tbody>
+  </table>
+  {%- endfor -%}
+  {%- endif -%}
+</div>
