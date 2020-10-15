@@ -9,7 +9,7 @@ from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
     get_loyalty_details,
     get_loyalty_program_details,
 )
-from toolz import merge
+from toolz import merge, first
 
 from optic_store.utils import pick
 
@@ -30,3 +30,12 @@ def get_customer_loyalty_details(customer, loyalty_card_no, expiry_date, company
         pick(["loyalty_program", "conversion_factor"], program),
         pick(["loyalty_points"], points),
     )
+
+
+def get_loyalty_points(customer, company):
+    loyalty_details = get_loyalty_details(
+        customer,
+        frappe.db.get_value('Customer', customer, 'loyalty_program'),
+        company=company
+    )
+    return loyalty_details.get('loyalty_points') - loyalty_details.get('total_spent')
