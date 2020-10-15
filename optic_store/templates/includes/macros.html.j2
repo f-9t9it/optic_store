@@ -12,8 +12,9 @@
 </div>
 {%- endmacro -%}
 
-{%- macro customer_details(customer_id) -%}
+{%- macro customer_details(customer_id, company) -%}
 {%- set customer = frappe.get_doc('Customer', customer_id) -%}
+{%- set loyalty_points = get_loyalty_points(customer_id, company) -%}
 <div class="os-section">
   <div class="os-section-content">
     <dl class="os-fill">
@@ -23,6 +24,10 @@
     <dl class="os-fill">
       <dt>{{ _('IC No') }}</dt>
       <dd>{{ customer.os_loyalty_card_no or ''}}</dd>
+    </dl>
+    <dl class="os-fill">
+      <dt>{{ _('Loyalty Points') }}</dt>
+      <dd>{{ loyalty_points }}</dd>
     </dl>
     <dl class="os-fill">
       <dt>{{ _('Address') }}</dt>
