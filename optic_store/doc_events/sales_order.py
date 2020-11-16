@@ -147,7 +147,7 @@ def validate_rate_against_min_prices(doc):
                     price_list IN %(price_lists)s
             """,
             values={"item_code": item.item_code, "price_lists": price_lists},
-        )[0][0]
+        )[0][0] or 0
         if item.net_rate < min_price:
             frappe.throw(
                 frappe._(
