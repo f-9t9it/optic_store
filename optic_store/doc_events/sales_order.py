@@ -27,8 +27,8 @@ def before_naming(doc, method):
 
 def validate(doc, method):
     validate_opened_xz_report(doc.company)
-    if len(doc.items) > 5:
-        frappe.throw(_("Number of items cannot be greater than 5"))
+    _validate_max_item_rows(doc)
+
     for i in range(0, 3):
         try:
             if doc.items[i].qty > 1:
@@ -63,6 +63,14 @@ def validate_opened_xz_report(company, pos_profile=None):
                     "Please create a draft XZ Report and try again."
                 )
             )
+
+
+def _validate_max_item_rows(doc):
+    disable_row_limit = frappe.get_cached_value(
+        "Optical Store Selling Settings", None, "disable_row_limit"
+    )
+    if not disable_row_limit and len(doc.items) > 5:
+        frappe.throw(_("Number of items cannot be greater than 5"))
 
 
 def before_insert(doc, method):
