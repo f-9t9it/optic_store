@@ -8,6 +8,8 @@ from frappe.desk.reportview import get_filters_cond
 from toolz import compose
 
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def query_latest(doctype, txt, searchfield, start, page_len, filters):
     return frappe.db.sql(
         """
