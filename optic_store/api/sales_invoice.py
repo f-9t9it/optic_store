@@ -29,6 +29,7 @@ def get_state_to_complete(doctype):
         "Workflow Transition",
         filters={"parent": workflow_name, "action": "Complete"},
         fieldname="state",
+        order_by="idx desc"
     )
 
 
