@@ -64,7 +64,7 @@ def validate(doc, method):
 
 def _contains_credit_note_payment(doc):
     credit_note_mop = frappe.db.get_single_value(
-        "Optic Store Selling Settings", "credit_note_mop"
+        "Optical Store Selling Settings", "credit_note_mop"
     )
     return cint(doc.is_pos) and credit_note_mop in [
         x.mode_of_payment for x in doc.payments

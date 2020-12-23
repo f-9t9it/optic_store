@@ -251,6 +251,12 @@ async function set_delivery_date(frm) {
   }
 }
 
+function set_sales_person_field(frm) {
+  if (frm.doc.docstatus) {
+    frm.set_df_property('os_sales_person', 'read_only', 1);
+  }
+}
+
 export const sales_order_item = {
   item_code: handle_min_item_prices,
 };
@@ -286,6 +292,7 @@ export default {
       set_delivery_date(frm);
     }
     hide_actions(frm);
+    set_sales_person_field(frm);
   },
   customer: setup_orx_name,
   os_branch: set_naming_series,

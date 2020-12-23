@@ -32,7 +32,7 @@
     />
   </div>
 
-  {{ macros.customer_details(doc.customer) }}
+  {{ macros.customer_details(doc.customer, doc.company) }}
 
   <div class="os-section os-fill">
     {%- set items = get_optical_items(doc.items) -%}

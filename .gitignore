@@ -9,3 +9,4 @@ optic_store/docs/current
 yarn.lock
 
 .vscode
+.idea
