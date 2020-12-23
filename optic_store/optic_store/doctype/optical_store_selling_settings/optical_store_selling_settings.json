@@ -5,6 +5,7 @@
  "engine": "InnoDB",
  "field_order": [
   "cashback_expense_account",
+  "disable_row_limit",
   "column_break_2",
   "credit_note_mop",
   "credit_note_expiry"
@@ -30,10 +31,16 @@
    "fieldname": "credit_note_expiry",
    "fieldtype": "Int",
    "label": "Credit Note Expiry (in Days)"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_row_limit",
+   "fieldtype": "Check",
+   "label": "Disable 5 items rows limit in Sales Order"
   }
  ],
  "issingle": 1,
- "modified": "2020-10-12 22:30:19.258438",
+ "modified": "2020-12-23 09:25:44.129763",
  "modified_by": "Administrator",
  "module": "Optic Store",
  "name": "Optical Store Selling Settings",
