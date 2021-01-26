@@ -75,6 +75,7 @@ def _get_columns(filters):
                 type="Currency",
                 width=90,
             ),
+            make_column("additional_discount_amount", type="Currency", width=90),
             make_column("ms1", "Minimum Selling Rate 1", type="Currency", width=90),
             make_column(
                 "below_ms1",
@@ -91,6 +92,7 @@ def _get_columns(filters):
                 options=["No", "Yes"],
                 width=60,
             ),
+            make_column("total_taxes_and_charges", type="Currency", width=90),
             make_column("sales_person", type="Link", options="Employee"),
             make_column("sales_person_name", width="150"),
             make_column("commission_amount", type="Currency", width=90),
@@ -195,9 +197,11 @@ def _get_data(clauses, values, keys):
             "discount_amount",
             "discount_percentage",
             "amount_after_discount",
+            "additional_discount_amount",
             "ms1",
             "ms2",
             "commission_amount",
+            "total_taxes_and_charges"
         ]:
             return k, None
         return k, 0
@@ -317,7 +321,9 @@ def _query(clauses, values):
                     'Achieved'
                 ) AS sales_status,
                 si.update_stock AS own_delivery,
-                si.is_return AS is_return
+                si.is_return AS is_return,
+                si.discount_amount AS additional_discount_amount,
+                si.total_taxes_and_charges
             FROM `tabSales Invoice Item` AS sii
             LEFT JOIN `tabSales Invoice` AS si ON
                 si.name = sii.parent
