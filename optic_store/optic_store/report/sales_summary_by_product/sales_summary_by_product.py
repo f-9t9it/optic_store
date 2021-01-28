@@ -75,7 +75,6 @@ def _get_columns(filters):
                 type="Currency",
                 width=90,
             ),
-            make_column("additional_discount_amount", type="Currency", width=90),
             make_column("ms1", "Minimum Selling Rate 1", type="Currency", width=90),
             make_column(
                 "below_ms1",
@@ -92,7 +91,25 @@ def _get_columns(filters):
                 options=["No", "Yes"],
                 width=60,
             ),
-            make_column("total_taxes_and_charges", type="Currency", width=90),
+            make_column("total", "Invoice Total", type="Currency", width=90),
+            make_column(
+                "additional_discount_amount",
+                "Invoice Additional Discount",
+                type="Currency",
+                width=90,
+            ),
+            make_column(
+                "total_taxes_and_charges",
+                "Invoice Taxes and Charges",
+                type="Currency",
+                width=90,
+            ),
+            make_column(
+                "grand_total",
+                "Invoice Grand Total",
+                type="Currency",
+                width=90,
+            ),
             make_column("sales_person", type="Link", options="Employee"),
             make_column("sales_person_name", width="150"),
             make_column("commission_amount", type="Currency", width=90),
@@ -118,7 +135,8 @@ def _get_filters(filters):
     join_clauses = compose(" AND ".join, concatv)
 
     si_clauses = join_clauses(
-        ["si.docstatus = 1"], ["si.os_branch IN %(branches)s"] if branches else [],
+        ["si.docstatus = 1"],
+        ["si.os_branch IN %(branches)s"] if branches else [],
     )
     dn_clauses = join_clauses(
         [
@@ -197,17 +215,40 @@ def _get_data(clauses, values, keys):
             "discount_amount",
             "discount_percentage",
             "amount_after_discount",
-            "additional_discount_amount",
             "ms1",
             "ms2",
             "commission_amount",
-            "total_taxes_and_charges"
+            "total",
+            "additional_discount_amount",
+            "total_taxes_and_charges",
+            "grand_total",
         ]:
             return k, None
         return k, 0
 
+    def remove_duplicates(columns):
+        invoices = []
+
+        def fn(row):
+            invoice_name = row.get("invoice_name")
+            if invoice_name not in invoices:
+                invoices.append(invoice_name)
+            else:
+                return merge(row, {x: None for x in columns})
+            return row
+
+        return fn
+
     template = reduce(lambda a, x: merge(a, {x: None}), keys, {})
     make_row = compose(
+        remove_duplicates(
+            [
+                "total",
+                "additional_discount_amount",
+                "total_taxes_and_charges",
+                "grand_total",
+            ]
+        ),
         partial(pick, keys),
         partial(itemmap, lambda x: set_null(*x)),
         partial(merge, template),
@@ -223,7 +264,9 @@ def _query(clauses, values):
         if values.get("report_type") == "Achieved":
             return []
         get_invoices = compose(
-            list, partial(unique, key=lambda x: x.get("invoice")), frappe.db.sql,
+            list,
+            partial(unique, key=lambda x: x.get("invoice")),
+            frappe.db.sql,
         )
         return get_invoices(
             """
@@ -323,7 +366,9 @@ def _query(clauses, values):
                 si.update_stock AS own_delivery,
                 si.is_return AS is_return,
                 si.discount_amount AS additional_discount_amount,
-                si.total_taxes_and_charges
+                si.total_taxes_and_charges,
+                si.total,
+                si.grand_total
             FROM `tabSales Invoice Item` AS sii
             LEFT JOIN `tabSales Invoice` AS si ON
                 si.name = sii.parent
@@ -337,7 +382,10 @@ def _query(clauses, values):
         """.format(
             other_clauses=get_other_clauses(), **clauses
         ),
-        values=merge(values, {"invoices": [x.get("invoice") for x in invoices]},),
+        values=merge(
+            values,
+            {"invoices": [x.get("invoice") for x in invoices]},
+        ),
         as_dict=1,
     )
 
