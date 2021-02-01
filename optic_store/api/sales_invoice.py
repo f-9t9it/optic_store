@@ -29,6 +29,7 @@ def get_state_to_complete(doctype):
         "Workflow Transition",
         filters={"parent": workflow_name, "action": "Complete"},
         fieldname="state",
+        order_by="idx desc"
     )
 
 
@@ -342,6 +343,7 @@ def get_ref_so_statuses(sales_invoice):
         ),
         _get_sales_orders,
     )
+    print(get_statuses(sales_invoice))
     return get_statuses(sales_invoice)
 
 
