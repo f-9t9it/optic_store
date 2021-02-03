@@ -1,4 +1,4 @@
-import { make_link } from './fields';
+import { make_link, make_data } from './fields';
 
 export default {
   onload: async function(rep) {
@@ -12,5 +12,11 @@ export default {
     ];
     rep.get_filter('warehouse').get_query = { filters: filters.filter(x => !!x) };
   },
-  filters: [make_link({ fieldname: 'warehouse', options: 'Warehouse' })],
+  filters: [
+    make_link({ fieldname: 'warehouse', options: 'Warehouse' }),
+    make_link({ fieldname: 'item_group', options: 'Item Group' }),
+    make_link({ fieldname: 'brand', options: 'Brand' }),
+    make_link({ fieldname: 'item_code', options: 'Item' }),
+    make_data({ fieldname: 'item_name' }),
+  ],
 };

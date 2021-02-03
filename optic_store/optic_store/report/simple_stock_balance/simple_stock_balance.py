@@ -22,6 +22,7 @@ def _get_columns(filters):
     return [
         make_column("item_code", type="Link", options="Item"),
         make_column("item_name", type="Data", width=180),
+        make_column("brand", type="Link", options="Brand"),
         make_column("actual_qty", type="Float", width=90),
         make_column("reserved_qty", type="Float", width=90),
         make_column("projected_qty", type="Float", width=90),
@@ -37,7 +38,13 @@ def _get_filters(filters):
         ["i.disabled = 0"],
         ["warehouse = %(warehouse)s"] if filters.warehouse else [],
         ["warehouse != '{}'".format(scrap_warehouse)] if scrap_warehouse else [],
+        ["i.item_group = %(item_group)s"] if filters.item_group else [],
+        ["i.brand = %(brand)s"] if filters.brand else [],
+        ["i.item_code = %(item_code)s"] if filters.item_code else [],
+        ["i.item_name LIKE %(item_name_txt)s"] if filters.item_name else [],
     )
+    if filters.item_name:
+        filters.item_name_txt = "%%%s%%" % filters.item_name
     return " AND ".join(clauses), filters
 
 
@@ -47,6 +54,7 @@ def _get_data(clauses, values, keys):
             SELECT
                 b.item_code AS item_code,
                 i.item_name AS item_name,
+                i.brand,
                 b.actual_qty AS actual_qty,
                 b.reserved_qty AS reserved_qty,
                 b.projected_qty AS projected_qty,
