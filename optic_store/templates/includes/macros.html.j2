@@ -350,3 +350,13 @@
   </tfoot>
 </table>
 {%- endmacro -%}
+
+{%- macro loyalty(doc) -%}
+{%- set loyalty_points_earned = get_loyalty_points_earned(doc.name) -%}
+<div class="os-loyalty">
+  <div>Points Earned: {{ loyalty_points_earned }}</div>
+  {%- if doc.loyalty_points -%}
+    <div>Points Redeemed: {{ doc.loyalty_points }}</div>
+  {%- endif -%}
+</div>
+{%- endmacro -%}
