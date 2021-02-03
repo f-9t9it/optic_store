@@ -461,3 +461,12 @@ def get_credit_notes(customer):
             fields=["name", "outstanding_amount", "posting_date"],
         )
     ]
+
+
+def get_loyalty_points_earned(sales_invoice):
+    loyalty_point_entry = frappe.get_all(
+        "Loyalty Point Entry",
+        filters={"sales_invoice": sales_invoice, "redeem_against": ""},
+        fields=['loyalty_points']
+    )
+    return first(loyalty_point_entry).get('loyalty_points') if loyalty_point_entry else 0.00
