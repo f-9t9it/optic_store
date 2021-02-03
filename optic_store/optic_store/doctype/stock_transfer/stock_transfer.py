@@ -30,6 +30,16 @@ class StockTransfer(Document):
             )
         if self.source_branch == self.target_branch:
             frappe.throw(_("Source and Target Branches cannot be the same"))
+        if self.target_branch == frappe.db.get_single_value(
+            "Optical Store Settings", "stock_transfer_restricted_branch"
+        ):
+            frappe.throw(
+                _(
+                    "Not allowed to transfer to Branch <b>{}</b>".format(
+                        self.target_branch
+                    )
+                )
+            )
         if not self.source_warehouse:
             self.source_warehouse = frappe.db.get_value(
                 "Branch", self.source_branch, "warehouse"

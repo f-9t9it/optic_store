@@ -251,6 +251,12 @@ async function set_delivery_date(frm) {
   }
 }
 
+function set_sales_person_readonly(frm) {
+  if (!frappe.user.has_role('Sales Manager')) {
+    frm.set_df_property('os_sales_person', 'read_only', 1);
+  }
+}
+
 export const sales_order_item = {
   item_code: handle_min_item_prices,
 };
@@ -276,6 +282,7 @@ export default {
   onload: function(frm) {
     setup_employee_queries(frm);
     set_spec_types_options(frm);
+    set_sales_person_readonly(frm);
   },
   refresh: function(frm) {
     render_prescription(frm);
