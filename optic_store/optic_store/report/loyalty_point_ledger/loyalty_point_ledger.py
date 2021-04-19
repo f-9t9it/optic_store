@@ -99,7 +99,7 @@ def _get_data(clauses, values, keys):
         return row
 
     def set_balance(a, row):
-        return merge(row, {"balance": a.get("balance") + row.get("points")})
+        return merge(row, {"balance": a.get("balance", 0) + row.get("points")})
 
     make_list = compose(list, concatv)
     return with_report_generation_time(
