@@ -252,7 +252,7 @@ async function set_delivery_date(frm) {
 }
 
 function set_sales_person_readonly(frm) {
-  if (!frappe.user.has_role('Sales Manager')) {
+  if (!frappe.user.has_role('Sales Manager') && frm.doc.os_sales_person) {
     frm.set_df_property('os_sales_person', 'read_only', 1);
   }
 }
