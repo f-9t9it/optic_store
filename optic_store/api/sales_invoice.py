@@ -29,7 +29,7 @@ def get_state_to_complete(doctype):
         "Workflow Transition",
         filters={"parent": workflow_name, "action": "Complete"},
         fieldname="state",
-        order_by="idx desc"
+        order_by="idx desc",
     )
 
 
@@ -88,7 +88,10 @@ def deliver_qol(name, payments=[], batches=None, deliver=0):
                         or get_item("batch_no", batch.get("batch_no"))
                         or get_item("item_code", batch.get("item_code"))
                     ),
-                    pick(["item_code", "batch_no", "qty"], batch,),
+                    pick(
+                        ["item_code", "batch_no", "qty"],
+                        batch,
+                    ),
                     {"si_detail": si_detail} if si_detail else {},
                 )
                 dn.append("items", item)
@@ -368,6 +371,20 @@ def validate_loyalty(doc):
             )
         )
 
+    minimum_points = frappe.utils.cint(
+        frappe.db.get_single_value("Optical Store Settings", "minimum_points")
+    )
+    data = frappe._dict(pick(["os_available_loyalty_points"], get_dict(doc)))
+    available_pts = data.get("os_available_loyalty_points")
+    if minimum_points and available_pts <= minimum_points:
+        frappe.throw(
+            _(
+                "Customer should have minimum of {} pts to redeem. Available points are {} pts.".format(
+                    minimum_points, available_pts
+                ),
+            )
+        )
+
 
 def write_off_expired_credit_notes():
     credit_note_expiry = frappe.db.get_single_value(
@@ -467,6 +484,10 @@ def get_loyalty_points_earned(sales_invoice):
     loyalty_point_entry = frappe.get_all(
         "Loyalty Point Entry",
         filters={"sales_invoice": sales_invoice, "redeem_against": ""},
-        fields=['loyalty_points']
+        fields=["loyalty_points"],
     )
-    return first(loyalty_point_entry).get('loyalty_points') if loyalty_point_entry else 0.00
+    return (
+        first(loyalty_point_entry).get("loyalty_points")
+        if loyalty_point_entry
+        else 0.00
+    )
