@@ -29,7 +29,7 @@ def get_state_to_complete(doctype):
         "Workflow Transition",
         filters={"parent": workflow_name, "action": "Complete"},
         fieldname="state",
-        order_by="idx desc"
+        order_by="idx desc",
     )
 
 
@@ -88,7 +88,10 @@ def deliver_qol(name, payments=[], batches=None, deliver=0):
                         or get_item("batch_no", batch.get("batch_no"))
                         or get_item("item_code", batch.get("item_code"))
                     ),
-                    pick(["item_code", "batch_no", "qty"], batch,),
+                    pick(
+                        ["item_code", "batch_no", "qty"],
+                        batch,
+                    ),
                     {"si_detail": si_detail} if si_detail else {},
                 )
                 dn.append("items", item)
@@ -467,6 +470,10 @@ def get_loyalty_points_earned(sales_invoice):
     loyalty_point_entry = frappe.get_all(
         "Loyalty Point Entry",
         filters={"sales_invoice": sales_invoice, "redeem_against": ""},
-        fields=['loyalty_points']
+        fields=["loyalty_points"],
     )
-    return first(loyalty_point_entry).get('loyalty_points') if loyalty_point_entry else 0.00
+    return (
+        first(loyalty_point_entry).get("loyalty_points")
+        if loyalty_point_entry
+        else 0.00
+    )
