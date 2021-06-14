@@ -16,6 +16,7 @@ from functools import partial, reduce
 from toolz import compose, unique, pluck, concat, merge, excepts, groupby, valmap, first
 
 from optic_store.utils import sum_by, pick, mapf, filterf
+from optic_store.api.loyalty_program import get_customer_loyalty_details
 
 _filter_batch_items = partial(
     filter, lambda x: frappe.db.get_value("Item", x.item_code, "has_batch_no")
@@ -374,13 +375,24 @@ def validate_loyalty(doc):
     minimum_points = frappe.utils.cint(
         frappe.db.get_single_value("Optical Store Settings", "minimum_points")
     )
-    data = frappe._dict(pick(["os_available_loyalty_points"], get_dict(doc)))
-    available_pts = data.get("os_available_loyalty_points")
-    if minimum_points and available_pts <= minimum_points:
+
+    data = frappe._dict(
+        pick(["customer", "os_loyalty_card_no", "company"], get_dict(doc))
+    )
+    customer_loyalty_details = get_customer_loyalty_details(
+        data.get("customer"),
+        data.get("os_loyalty_card_no"),
+        frappe.utils.today(),
+        data.get("company"),
+    )
+    if (
+        minimum_points
+        and customer_loyalty_details.get("loyalty_points") <= minimum_points
+    ):
         frappe.throw(
             _(
                 "Customer should have minimum of {} pts to redeem. Available points are {} pts.".format(
-                    minimum_points, available_pts
+                    minimum_points, customer_loyalty_details.get("loyalty_points")
                 ),
             )
         )
