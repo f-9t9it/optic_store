@@ -9,7 +9,7 @@ from frappe import _
 from frappe.utils import nowdate, nowtime, cint
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
 from erpnext.selling.page.point_of_sale.point_of_sale import (
-    search_serial_or_batch_or_barcode_number as search_item,
+    search_for_serial_or_batch_or_barcode_number as search_item,
 )
 from six import string_types
 from functools import partial, reduce
