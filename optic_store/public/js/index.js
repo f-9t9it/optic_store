@@ -17,6 +17,7 @@ import scripts, {
   stock_entry,
   salary_slip,
   payroll_entry,
+  serial_no_batch_selector,
 } from './scripts';
 import extend_query_report, { extend_multiselect } from './pages/query_report';
 import extend_pos from './pages/pos';
@@ -70,3 +71,31 @@ frappe.views.QueryReport = extend_query_report(frappe.views.QueryReport);
 frappe.ui.form.ControlMultiSelect = extend_multiselect(
   frappe.ui.form.ControlMultiSelect
 );
+
+// from erpnext/public/js/controllers/transaction.js
+erpnext.show_serial_batch_selector = function (
+  frm,
+  d,
+  callback,
+  on_close,
+  show_dialog
+) {
+  frappe.require('assets/erpnext/js/utils/serial_no_batch_selector.js', function () {
+    erpnext.SerialNoBatchSelector = erpnext.SerialNoBatchSelector.extend(
+      serial_no_batch_selector
+    );
+    new erpnext.SerialNoBatchSelector(
+      {
+        frm: frm,
+        item: d,
+        warehouse_details: {
+          type: 'Warehouse',
+          name: d.warehouse,
+        },
+        callback: callback,
+        on_close: on_close,
+      },
+      show_dialog
+    );
+  });
+};

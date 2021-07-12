@@ -32,6 +32,7 @@ export { default as batch_qe } from './batch_qe';
 export { default as stock_entry } from './stock_entry';
 export { default as salary_slip } from './salary_slip';
 export { default as payroll_entry } from './payroll_entry';
+export { default as serial_no_batch_selector } from './serial_no_batch_selector';
 
 export default {
   optical_prescription,
