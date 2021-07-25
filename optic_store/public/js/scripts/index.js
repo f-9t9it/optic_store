@@ -11,6 +11,7 @@ import custom_loyalty_entry from './custom_loyalty_entry';
 import custom_purchase_receipt from './custom_purchase_receipt';
 import email_alerts from './email_alerts';
 import cashback_program from './cashback_program';
+import serial_no_batch_selector from './serial_no_batch_selector';
 import * as extensions from './extensions';
 
 export { default as payment_entry } from './payment_entry';
@@ -32,7 +33,6 @@ export { default as batch_qe } from './batch_qe';
 export { default as stock_entry } from './stock_entry';
 export { default as salary_slip } from './salary_slip';
 export { default as payroll_entry } from './payroll_entry';
-export { default as serial_no_batch_selector } from './serial_no_batch_selector';
 
 export default {
   optical_prescription,
@@ -51,4 +51,5 @@ export default {
   email_alerts,
   cashback_program,
   extensions,
+  serial_no_batch_selector,
 };
