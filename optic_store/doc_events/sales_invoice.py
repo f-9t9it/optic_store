@@ -25,6 +25,7 @@ from optic_store.api.cashback_program import (
     get_cashback_program,
     get_invoice_cashback_amount,
 )
+from optic_store.api.loyalty_program import get_customer_loyalty_details
 
 
 def before_naming(doc, method):
@@ -55,6 +56,7 @@ def validate(doc, method):
     if cint(doc.redeem_loyalty_points):
         _validate_loyalty_card_no(doc.customer, doc.os_loyalty_card_no)
         validate_loyalty(doc)
+        _validate_loyalty_min_points(doc.customer, doc.os_loyalty_card_no, doc.company)
     _validate_cashback(doc)
     if _contains_credit_note_payment(doc):
         _validate_credit_note(doc)
@@ -91,6 +93,29 @@ def _validate_loyalty_card_no(customer, loyalty_card_no):
                 "Loyalty Card No: {} does not belong to this Customer".format(
                     loyalty_card_no
                 )
+            )
+        )
+
+
+def _validate_loyalty_min_points(customer, loyalty_card_no, company):
+    minimum_points = frappe.utils.cint(
+        frappe.db.get_single_value("Optical Store Settings", "minimum_points")
+    )
+    customer_loyalty_details = get_customer_loyalty_details(
+        customer,
+        loyalty_card_no,
+        frappe.utils.today(),
+        company,
+    )
+    if (
+        minimum_points
+        and customer_loyalty_details.get("loyalty_points") <= minimum_points
+    ):
+        frappe.throw(
+            _(
+                "Customer should have minimum of {} pts to redeem. Available points are {} pts.".format(
+                    minimum_points, customer_loyalty_details.get("loyalty_points")
+                ),
             )
         )
 

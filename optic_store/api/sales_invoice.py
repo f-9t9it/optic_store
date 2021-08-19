@@ -372,31 +372,6 @@ def validate_loyalty(doc):
             )
         )
 
-    minimum_points = frappe.utils.cint(
-        frappe.db.get_single_value("Optical Store Settings", "minimum_points")
-    )
-
-    data = frappe._dict(
-        pick(["customer", "os_loyalty_card_no", "company"], get_dict(doc))
-    )
-    customer_loyalty_details = get_customer_loyalty_details(
-        data.get("customer"),
-        data.get("os_loyalty_card_no"),
-        frappe.utils.today(),
-        data.get("company"),
-    )
-    if (
-        minimum_points
-        and customer_loyalty_details.get("loyalty_points") <= minimum_points
-    ):
-        frappe.throw(
-            _(
-                "Customer should have minimum of {} pts to redeem. Available points are {} pts.".format(
-                    minimum_points, customer_loyalty_details.get("loyalty_points")
-                ),
-            )
-        )
-
 
 def write_off_expired_credit_notes():
     credit_note_expiry = frappe.db.get_single_value(
