@@ -1,0 +1,117 @@
+[
+    {
+        "inv_no": "SI-HAY22-000009",
+        "mop": "cash",
+        "paid_amount": 15.0
+    },
+    {
+        "inv_no": "SI-DAM22-000001",
+        "mop": "cash",
+        "paid_amount": 10.0
+    },
+    {
+        "inv_no": "SI-DAM22-000002",
+        "mop": "cash",
+        "paid_amount": 60.0
+    },
+    {
+        "inv_no": "SI-DAM22-000001",
+        "mop": null,
+        "paid_amount": 10.0
+    },
+    {
+        "inv_no": "SI-IBN22-000013",
+        "mop": "cash",
+        "paid_amount": 35.0
+    },
+    {
+        "inv_no": "SI-DAM22-000003",
+        "mop": "cash",
+        "paid_amount": 15.0
+    },
+    {
+        "inv_no": "SI-HAY22-000009",
+        "mop": "cash",
+        "paid_amount": 5.0
+    },
+    {
+        "inv_no": "SI-HAY22-000010",
+        "mop": "card",
+        "paid_amount": 10.0
+    },
+    {
+        "inv_no": "SI-HAY22-000011",
+        "mop": "card",
+        "paid_amount": 20.0
+    },
+    {
+        "inv_no": "SI-HAY22-000012",
+        "mop": "card",
+        "paid_amount": 39.0
+    },
+    {
+        "inv_no": "SI-HAY22-000013",
+        "mop": "card",
+        "paid_amount": 17.0
+    },
+    {
+        "inv_no": "SI-HAY22-000014",
+        "mop": "cash",
+        "paid_amount": 25.0
+    },
+    {
+        "inv_no": "SI-IBN22-000008",
+        "mop": "card",
+        "paid_amount": 20.0
+    },
+    {
+        "inv_no": "SI-IBN22-000009",
+        "mop": "tawuniya",
+        "paid_amount": 165.0
+    },
+    {
+        "inv_no": "SI-IBN22-000010",
+        "mop": "discount_voucher",
+        "paid_amount": 10.0
+    },
+    {
+        "inv_no": "SI-IBN22-000010",
+        "mop": "card",
+        "paid_amount": 40.0
+    },
+    {
+        "inv_no": "SI-IBN22-000011",
+        "mop": "discount_voucher",
+        "paid_amount": 10.0
+    },
+    {
+        "inv_no": "SI-IBN22-000011",
+        "mop": "card",
+        "paid_amount": 20.0
+    },
+    {
+        "inv_no": "SI-IBN22-000012",
+        "mop": "card",
+        "paid_amount": 80.0
+    },
+    {
+        "inv_no": "SI-IBN22-000012",
+        "mop": "discount_voucher",
+        "paid_amount": 10.0
+    },
+    {
+        "inv_no": "SI-IBN22-000013",
+        "mop": "card",
+        "paid_amount": 30.0
+    },
+    {
+        "inv_no": "SI-IBN22-000013",
+        "mop": "discount_voucher",
+        "paid_amount": 10.0
+    },
+    {
+        "inv_no": "SI-IBN22-000014",
+        "mop": "card",
+        "paid_amount": 58.0
+    }
+]

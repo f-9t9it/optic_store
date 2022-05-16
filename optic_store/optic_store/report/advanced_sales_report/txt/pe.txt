@@ -1,0 +1,27 @@
+[
+    {
+        "inv_no": "SI-HAY22-000009",
+        "mop": "cash",
+        "paid_amount": 15.0
+    },
+    {
+        "inv_no": "SI-DAM22-000001",
+        "mop": "cash",
+        "paid_amount": 10.0
+    },
+    {
+        "inv_no": "SI-DAM22-000002",
+        "mop": "cash",
+        "paid_amount": 60.0
+    },
+    {
+        "inv_no": "SI-DAM22-000001",
+        "mop": null,
+        "paid_amount": 10.0
+    },
+    {
+        "inv_no": "SI-IBN22-000013",
+        "mop": "cash",
+        "paid_amount": 35.0
+    }
+]
