@@ -22,7 +22,8 @@ def get_columns(filters):
 			{ "fieldname": "gross", "label": _("Gross"), "fieldtype": "Float", "Precision" :3, "width": 80 }, #
 			{ "fieldname": "serv_discount", "label": _("Serv Disc"), "fieldtype": "Float", "Precision" :3, "width": 80 },
 			{ "fieldname": "net", "label": _("Net"), "fieldtype": "Float", "Precision" :3, "width": 80 }, #ok
-			{ "fieldname": "receipts", "label": _("Receipts"), "fieldtype": "Link", "options":"Payment Entry", "width": 120 },
+			{ "fieldname": "receipts", "label": _("Receipts No"), "fieldtype": "Link", "options":"Payment Entry", "width": 120 },
+			{ "fieldname": "receipt_amt", "label": _("Receipt"), "fieldtype": "Float", "Precision" :3, "width": 80 },
 			{ "fieldname": "vat", "label": _("VAT"), "fieldtype": "Float", "Precision" :3,"width": 80 }, #ok
 			{ "fieldname": "total", "label": _("Total"), "fieldtype": "Float", "Precision" :3, "width": 100 }, #ok
 			{ "fieldname": "no_mop", "label": _("NO MOP"), "fieldtype": "Float", "Precision" :3, "width": 80 }
@@ -88,7 +89,12 @@ def get_sinv(filters):
 										SELECT group_concat(parent)
 										FROM  `tabPayment Entry Reference` pr
 										WHERE pr.reference_name = sinv.name
-										AND pr.docstatus = 1) AS receipts
+										AND pr.docstatus = 1) AS receipts,
+									(
+										SELECT sum(allocated_amount)
+										FROM  `tabPayment Entry Reference` pr
+										WHERE pr.reference_name = sinv.name
+										AND pr.docstatus = 1) AS receipt_amt	
 								FROM
 									`tabSales Invoice` sinv
 								LEFT JOIN
@@ -124,8 +130,8 @@ def get_payments(sinv_data):
 							pe.docstatus = 1
 						"""%{"inv_list": inv_list}, as_dict =1)
 
-	payments = pe + sip
-
+	#payments = pe + sip
+	payments = sip
 	grouper = itemgetter("inv_no", "mop")
 	result = []
 
