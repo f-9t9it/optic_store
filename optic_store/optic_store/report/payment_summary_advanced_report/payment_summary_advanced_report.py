@@ -124,7 +124,7 @@ def get_sinv(clauses, values, keys):
                 'Sales Invoice' AS voucher_type,
                 si.name AS voucher_no,
                 sip.mode_of_payment AS mode_of_payment,
-                sip.amount AS paid_amount,
+                si.paid_amount AS paid_amount,
                 0 as receipt_amount,
                 si.customer AS customer,
                 si.customer_name AS customer_name,
