@@ -1,0 +1,31 @@
+{
+ "add_total_row": 1,
+ "creation": "2022-05-25 08:49:47.980535",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "Al razi",
+ "modified": "2022-05-25 08:50:42.396818",
+ "modified_by": "Administrator",
+ "module": "Optic Store",
+ "name": "Payment Summary Advanced Report",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Sales Invoice",
+ "report_name": "Payment Summary Advanced Report",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Branch User"
+  }
+ ]
+}
