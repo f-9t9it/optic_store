@@ -216,7 +216,7 @@ def get_payments(sinv_data):
     inv_list = tuple((inv['voucher_no']) for inv in sinv_data)
     # inv_list = tuple((inv.voucher_no) for inv in sinv_data)
     # print(inv_list)
-    sip = frappe.db.sql("""SELECT
+    sip = frappe.db.sql(""" SELECT
                             sip.parent as voucher_no,
                             REPLACE(LOWER(sip.mode_of_payment), ' ', '_') AS mop,
                             sip.base_amount AS paid_amount
@@ -224,8 +224,8 @@ def get_payments(sinv_data):
                             `tabSales Invoice Payment` AS sip
                         WHERE
                             sip.parenttype = 'Sales Invoice' AND parent IN %(inv_list)s
-                        """%{"inv_list": inv_list}, as_dict =1)
-    pe = frappe.db.sql("""SELECT per.parent as voucher_no,
+                        """ %{"inv_list": inv_list}, as_dict =1)
+    pe = frappe.db.sql(""" SELECT per.parent as voucher_no,
                             per.reference_name as si_no,
                             per.allocated_amount as paid_amount,
                             REPLACE( LOWER(IFNULL(pe.mode_of_payment,"NO MOP")), ' ', '_') as mop
@@ -236,7 +236,7 @@ def get_payments(sinv_data):
                         WHERE
                             per.parent IN %(inv_list)s AND
                             pe.docstatus = 1
-                        """%{"inv_list": inv_list}, as_dict =1)
+                        """ %{"inv_list": inv_list}, as_dict =1)
 
     payments = pe + sip
     # payments = pe + sip
