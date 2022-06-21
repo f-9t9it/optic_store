@@ -9,7 +9,7 @@ from operator import itemgetter
 import json
 from optic_store.utils import pick, split_to_list
 from optic_store.utils.report import make_column, with_report_generation_time
-
+import re
 
 def execute(filters=None):
     columns = _get_columns()
@@ -213,9 +213,11 @@ def merge_inv_payment(sinv_data, payments):
 
     return merged_list
 def get_payments(sinv_data):
-    inv_list = tuple((inv['voucher_no']) for inv in sinv_data)
+    inv_list1 = tuple((inv['voucher_no']) for inv in sinv_data)
+    inv_list = " "  + re.sub(r',(?=\))', '', str(inv_list1))
+    # inv_list = ','.join([str(x) for x in inv_list1])
     # inv_list = tuple((inv.voucher_no) for inv in sinv_data)
-    # print(inv_list)
+    print(inv_list)
     sip = frappe.db.sql(""" SELECT
                             sip.parent as voucher_no,
                             REPLACE(LOWER(sip.mode_of_payment), ' ', '_') AS mop,
