@@ -1,3 +1,5 @@
+frappe.provide("optic_store.scripts.extensions.scan_barcode")
+
 frappe.ui.form.off(cur_frm.doctype, 'scan_barcode');
 frappe.ui.form.on(
   cur_frm.doctype,

@@ -84,7 +84,7 @@ fixtures = [
                     "Customer-os_address",
                     "Customer-os_loyalty_col",
                     "Customer-os_loyalty_activation_date",
-                    "Customer-os_loyalty_card_no",
+                    "Customer-custom_loyalty_card_no",
                     "Item Group-item_group_abbr",
                     "Item-manual_item_code",
                     "Item-os_prices_sec",
@@ -169,7 +169,7 @@ fixtures = [
                     "Sales Invoice-os_claim_form_no",
                     "Sales Invoice-os_gift_card_sec",
                     "Sales Invoice-os_gift_card_entry",
-                    "Sales Invoice-os_gift_cards",
+                    "Sales Invoice-custom_sales_invoice_gift_card",
                     "Sales Invoice-os_cashback_sec",
                     "Sales Invoice-os_cashback_receipt",
                     "Sales Invoice-os_cashback_col",
@@ -195,7 +195,7 @@ fixtures = [
                     "Sales Invoice-orx_lab",
                     "Sales Invoice-os_lab_tech",
                     "Sales Invoice-os_available_loyalty_points",
-                    "Sales Invoice-os_loyalty_card_no",
+                    "Sales Invoice-custom_loyalty_card_no",
                     "Sales Invoice-orx_group_discount",
                     "Sales Invoice-os_recall_sec",
                     "Sales Invoice-os_recall",
@@ -417,7 +417,7 @@ before_tests = "optic_store.api.install.setup_defaults"
 override_whitelisted_methods = {
     "erpnext.accounts.doctype.sales_invoice.pos.get_pos_data": "optic_store.api.pos.get_pos_data",  # noqa
     "erpnext.accounts.doctype.sales_invoice.pos.make_invoice": "optic_store.api.pos.make_invoice",  # noqa
-    "erpnext.selling.page.point_of_sale.point_of_sale.search_serial_or_batch_or_barcode_number": "optic_store.api.sales_invoice.search_serial_or_batch_or_barcode_number",  # noqa
+    "erpnext.selling.page.point_of_sale.point_of_sale.search_for_serial_or_batch_or_barcode_number": "optic_store.api.sales_invoice.search_for_serial_or_batch_or_barcode_number",  # noqa
     "erpnext.selling.page.point_of_sale.point_of_sale.get_items": "optic_store.api.pos.get_items",  # noqa
     # TODO: when PR #18111 is merged
     "erpnext.accounts.doctype.loyalty_program.loyalty_program.get_loyalty_program_details": "optic_store.api.pos.get_loyalty_program_details",  # noqa

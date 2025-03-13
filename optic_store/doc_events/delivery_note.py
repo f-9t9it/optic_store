@@ -58,8 +58,9 @@ def _are_paid(sales_orders):
 def on_submit(doc, method):
     if doc.is_return:
         return
-
-    workflow = frappe.model.workflow.get_workflow("Sales Order")
+    workflow =None
+    if frappe.db.exists("Workflow", {"doctype":"Sales Order"}):
+        workflow =  frappe.model.workflow.get_workflow("Sales Order")
     if not workflow:
         return
 
