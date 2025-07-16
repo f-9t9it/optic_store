@@ -4,6 +4,8 @@ import sumBy from 'lodash/sumBy';
 import StockTransferDashboard from '../components/StockTransferDashboard.vue';
 import { scan_barcode } from './extensions';
 
+frappe.provide('optic_store.scripts');
+
 function set_queries(frm) {
   ['source_warehouse', 'target_warehouse'].forEach(field => {
     frm.set_query(field, function({ company }) {
@@ -149,6 +151,7 @@ async function toggle_cancel_action(frm) {
 export default {
   setup: set_queries,
   refresh: function(frm) {
+    
     if (frm.doc.__islocal) {
       frm.set_value('outgoing_datetime', frappe.datetime.now_datetime());
       set_source_branch(frm);
@@ -171,3 +174,7 @@ export default {
     scan_barcode(frm);
   },
 };
+
+
+optic_store.scripts.stock_transfer = stock_transfer;
+optic_store.scripts.stock_transfer_item = stock_transfer_item;

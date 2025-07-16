@@ -16,6 +16,30 @@ error_report_email = "support@9t9it.com"
 
 fixtures = [
     {
+        "doctype":"Workflow",
+        "filters":[
+            [
+                "name", "in", ["Stock Transfer Workflow"]
+            ]
+        ]
+    },
+    {
+        "doctype":"Workflow State",
+        "filters":[
+            [
+                "name", "in", ["Draft", "Received", "In Transit"]
+            ]
+        ]
+    },
+    {
+        "doctype":"Workflow Action Master",
+        "filters":[
+            [
+                "name", "in", ["Dispatch", "Receive", "Cancel"]
+            ]
+        ]
+    },
+    {
         "doctype": "Custom Field",
         "filters": [
             [
@@ -41,6 +65,7 @@ fixtures = [
                     "Branch-disabled",
                     "Branch-os_main_col",
                     "Branch-os_user",
+                    "Branch-custom_branch_users",
                     "Branch-os_sales_sec",
                     "Branch-os_sales_order_naming_series",
                     "Branch-os_sales_invoice_naming_series",

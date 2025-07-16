@@ -1,0 +1,23 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-07-16 21:03:22.479661",
+  "name": "Dispatch",
+  "workflow_action_name": "Dispatch"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-07-16 21:03:47.341378",
+  "name": "Receive",
+  "workflow_action_name": "Receive"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-07-16 21:04:24.550995",
+  "name": "Cancel",
+  "workflow_action_name": "Cancel"
+ }
+]
