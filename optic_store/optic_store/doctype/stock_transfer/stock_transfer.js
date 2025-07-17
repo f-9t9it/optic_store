@@ -18,7 +18,9 @@ function showReceiveButton(frm) {
   },
   callback: function(systemRoleRes) {
     console.log(systemRoleRes);
-    if (systemRoleRes.message) {
+    if (!systemRoleRes.message) {
+       $('.actions-btn-group').hide();
+		    cur_frm.disable_form();
     }
   }
 });
