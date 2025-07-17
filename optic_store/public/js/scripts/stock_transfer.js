@@ -109,6 +109,7 @@ export const stock_transfer_item = {
       });
       frappe.model.set_value(cdt, cdn, 'basic_rate', basic_rate);
     }
+   
   },
   qty: async function(frm) {
     await calc_and_set_row_amount(frm);
@@ -160,6 +161,7 @@ export default {
     render_dashboard_data(frm);
   },
   onload_post_render: function(frm) {
+    
     // workflow related ui changes need to be here
     if (frm.doc.workflow_state === 'In Transit') {
       set_route_to_list(frm);

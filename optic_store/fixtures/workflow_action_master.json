@@ -4,6 +4,9 @@
   "doctype": "Workflow Action Master",
   "modified": "2025-07-16 21:03:22.479661",
   "name": "Dispatch",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
   "workflow_action_name": "Dispatch"
  },
  {
@@ -11,6 +14,9 @@
   "doctype": "Workflow Action Master",
   "modified": "2025-07-16 21:03:47.341378",
   "name": "Receive",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
   "workflow_action_name": "Receive"
  },
  {
@@ -18,6 +24,9 @@
   "doctype": "Workflow Action Master",
   "modified": "2025-07-16 21:04:24.550995",
   "name": "Cancel",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
   "workflow_action_name": "Cancel"
  }
 ]
