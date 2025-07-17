@@ -34,5 +34,17 @@
   "parenttype": null,
   "style": "",
   "workflow_state_name": "In Transit"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-07-17 09:07:15.961453",
+  "name": "Cancelled",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "style": "",
+  "workflow_state_name": "Cancelled"
  }
 ]
