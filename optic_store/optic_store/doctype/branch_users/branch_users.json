@@ -12,6 +12,9 @@
   {
    "fieldname": "branch_user",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Branch User",
    "options": "User"
   }
@@ -19,12 +22,13 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-17 10:18:00.534831",
+ "modified": "2025-07-17 09:25:32.679021",
  "modified_by": "Administrator",
  "module": "Optic Store",
  "name": "Branch Users",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "states": []
 }
