@@ -284,7 +284,7 @@ fixtures = [
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/optic_store/css/optic_store.css"
-app_include_js = "/assets/js/optic_store.min.js"
+app_include_js = ["/assets/js/optic_store.min.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/optic_store/css/optic_store.css"

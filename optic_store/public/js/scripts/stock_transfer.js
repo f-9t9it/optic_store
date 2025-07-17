@@ -4,7 +4,7 @@ import sumBy from 'lodash/sumBy';
 import StockTransferDashboard from '../components/StockTransferDashboard.vue';
 import { scan_barcode } from './extensions';
 
-frappe.provide('optic_store.scripts');
+
 
 function set_queries(frm) {
   ['source_warehouse', 'target_warehouse'].forEach(field => {
@@ -176,5 +176,3 @@ export default {
 };
 
 
-optic_store.scripts.stock_transfer = stock_transfer;
-optic_store.scripts.stock_transfer_item = stock_transfer_item;
