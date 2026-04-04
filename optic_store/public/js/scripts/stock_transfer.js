@@ -4,6 +4,8 @@ import sumBy from 'lodash/sumBy';
 import StockTransferDashboard from '../components/StockTransferDashboard.vue';
 import { scan_barcode } from './extensions';
 
+
+
 function set_queries(frm) {
   ['source_warehouse', 'target_warehouse'].forEach(field => {
     frm.set_query(field, function({ company }) {
@@ -107,6 +109,7 @@ export const stock_transfer_item = {
       });
       frappe.model.set_value(cdt, cdn, 'basic_rate', basic_rate);
     }
+   
   },
   qty: async function(frm) {
     await calc_and_set_row_amount(frm);
@@ -149,6 +152,7 @@ async function toggle_cancel_action(frm) {
 export default {
   setup: set_queries,
   refresh: function(frm) {
+    
     if (frm.doc.__islocal) {
       frm.set_value('outgoing_datetime', frappe.datetime.now_datetime());
       set_source_branch(frm);
@@ -157,6 +161,7 @@ export default {
     render_dashboard_data(frm);
   },
   onload_post_render: function(frm) {
+    
     // workflow related ui changes need to be here
     if (frm.doc.workflow_state === 'In Transit') {
       set_route_to_list(frm);
@@ -171,3 +176,5 @@ export default {
     scan_barcode(frm);
   },
 };
+
+

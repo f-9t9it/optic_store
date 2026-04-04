@@ -15,6 +15,7 @@ import scripts, {
   optical_prescription_qe,
   batch_qe,
   stock_entry,
+  stock_transfer,
   salary_slip,
   payroll_entry,
 } from './scripts';
@@ -22,6 +23,7 @@ import extend_query_report, { extend_multiselect } from './pages/query_report';
 import extend_pos from './pages/pos';
 import * as reports from './reports';
 import * as addons from './addons';
+import { stock_transfer_item } from './scripts/stock_transfer';
 
 frappe.ui.form.on('Payment Entry', payment_entry);
 frappe.ui.form.on('Sales Invoice', sales_invoice);
@@ -38,7 +40,8 @@ frappe.ui.form.on('Branch', branch);
 frappe.ui.form.on('Item', item);
 frappe.ui.form.on('Salary Slip', salary_slip);
 frappe.ui.form.on('Payroll Entry', payroll_entry);
-
+frappe.ui.form.on('Stock Transfer Item', stock_transfer_item);
+frappe.ui.form.on('Stock Transfer', stock_transfer);
 if (frappe.ui.form.CustomerQuickEntryForm) {
   frappe.ui.form.CustomerQuickEntryForm = frappe.ui.form.CustomerQuickEntryForm.extend(
     customer_qe

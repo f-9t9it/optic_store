@@ -12,6 +12,7 @@ import custom_purchase_receipt from './custom_purchase_receipt';
 import email_alerts from './email_alerts';
 import cashback_program from './cashback_program';
 import * as extensions from './extensions';
+export {default as stock_transfer} from './stock_transfer';
 
 export { default as payment_entry } from './payment_entry';
 export {

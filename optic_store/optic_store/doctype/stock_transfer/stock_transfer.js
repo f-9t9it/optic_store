@@ -1,5 +1,28 @@
-// Copyright (c) 2019, 9T9IT and contributors
-// For license information, please see license.txt
+frappe.ui.form.on('Stock Transfer', {
+ refresh: function(frm) {
+    showReceiveButton(frm) ;
+ },
+ onload_post_render: function(frm) {
+    showReceiveButton(frm) ;
+ }
 
-frappe.ui.form.on('Stock Transfer', optic_store.scripts.stock_transfer);
-frappe.ui.form.on('Stock Transfer Item', optic_store.scripts.stock_transfer_item);
+});
+
+
+function showReceiveButton(frm) {
+  if(frm.doc.workflow_state === 'In Transit') {
+  frappe.call({
+  method: "optic_store.optic_store.doctype.stock_transfer.stock_transfer.showReceive",
+  args: {
+    branch: frm.doc.target_branch
+  },
+  callback: function(systemRoleRes) {
+    console.log(systemRoleRes);
+    if (!systemRoleRes.message) {
+       $('.actions-btn-group').hide();
+		    cur_frm.disable_form();
+    }
+  }
+});
+  }
+}
