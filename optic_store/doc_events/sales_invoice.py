@@ -375,8 +375,8 @@ def _make_return_dn(si_doc):
     for  item in si_doc.items:
         for itm in doc.items:
             if item.name == itm.si_detail:
-                itm.qty = item.qty
-                itm.stock_qty = item.stock_qty
+                itm.qty = item.qty * -1
+                itm.stock_qty = item.stock_qty * -1
                 doc.update_child_table('items')
             else:
                 doc.items.remove(itm)
