@@ -398,8 +398,8 @@ def _make_return_dn(si_doc):
         )
     doc = make_delivery_note(si_doc.return_against)
     for i, item in enumerate(doc.items):
-        item.qty = si_doc.items[i].qty
-        item.stock_qty = si_doc.items[i].stock_qty
+        item.qty = si_doc.items[i].qty * -1
+        item.stock_qty = si_doc.items[i].stock_qty * -1
     doc.is_return = 1
     doc.return_against = first(dns)
     doc.run_method("calculate_taxes_and_totals")
