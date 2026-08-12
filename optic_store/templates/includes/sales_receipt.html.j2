@@ -25,6 +25,15 @@
         <dt>{{ _('Collection Date')}}</dt>
         <dd class="text-right">{{ doc.get_formatted('posting_date') }}</dd>
       </dl>
+      {%- if doc.os_branch -%}
+        {%- set branchDoc = frappe.get_doc("Branch", doc.os_branch) if doc.os_branch else None -%}
+        {%- if branchDoc and branchDoc.address_line_1 -%}
+        <dl>
+          <dt>{{ _('Branch Address:') }}</dt>
+          <dd>{{ branchDoc.address_line_1 }}</dd>
+        </dl>
+        {%- endif -%}
+      {%- endif -%}
     </div>
   </div>
 
