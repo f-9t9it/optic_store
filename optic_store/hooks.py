@@ -273,6 +273,9 @@ doctype_js = {
     "Sales Order": "public/js/transaction_controller.js",
     "Sales Invoice": "public/js/transaction_controller.js",
     "Delivery Note": "public/js/transaction_controller.js",
+    "Purchase Invoice":"public/js/cost_center.js",
+    "Purchase Order":"public/js/cost_center.js",
+    "Purchase Receipt":"public/js/cost_center.js"
 }
 doctype_list_js = {
     "Sales Invoice": "public/js/sales_invoice_list.js",
